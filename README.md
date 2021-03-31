@@ -2,7 +2,7 @@
 - 👀 I’m interested in programming
 - 🌱 I’m currently learning solidity
 - 💞️ I’m looking to collaborate on new projects
-- 📫 How to reach me telgram @nodezy
+- 📫 How to reach me nodezy01@gmail.com
 
 <!---
 nodezy/nodezy is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
