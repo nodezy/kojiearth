@@ -21,6 +21,6 @@ The development team is entirely composed of volunteers covering a wide
 range of skills, that have dedicated long hours and hard work to making this
 project a reality
 
-All contracts can be found in the newcoin branch
+All contracts can be found in the <a href="https://github.com/nodezy/kojiearth/tree/newcoin">newcoin</a> branch
 
 Please visit our awesome website at https://koji.earth
