@@ -22,8 +22,8 @@ All contracts can be found in the <a href="https://github.com/nodezy/kojiearth/t
 
 Please visit our awesome website at https://koji.earth
 
-Instagram: @kojiearth
-Twitter: @kojiearth
-Telegram: Kojiearth
-Fb: @kojifinance
+Instagram: @kojiearth<br>
+Twitter: @kojiearth<br>
+Telegram: Kojiearth<br>
+Fb: @kojifinance<br>
 Telegram: https://www.reddit.com/r/kojicoin/
