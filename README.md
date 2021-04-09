@@ -20,12 +20,12 @@ The development team is entirely composed of volunteers covering a wide
 range of skills, that have dedicated long hours and hard work to making this
 project a reality
 
-@BillyWizz - Senior Project Manager
-@kojirick - Project Manager & Creative Director
-@tonegro - Public Relations Officer & Technical Documentation
-@MounirDirk  - Outreach Manager and Creative Consultant 
-Andreas - Web development
-Adam - Project Manager & Tech Dev
+@BillyWizz - Senior Project Manager<br>
+@kojirick - Project Manager & Creative Director<br>
+@tonegro - Public Relations Officer & Technical Documentation<br>
+@MounirDirk  - Outreach Manager and Creative Consultant <br>
+Andreas - Web development<br>
+Adam - Project Manager & Tech Dev<br>
 @nodezy - Head Tech Dev
 
 All contracts can be found in the <a href="https://github.com/nodezy/kojiearth/tree/newcoin">newcoin</a> branch
