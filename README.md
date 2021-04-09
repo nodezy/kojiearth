@@ -1,3 +1,5 @@
+<img src="https://imgur.com/tltqyr7">
+
 KOJI is the token of the people. It is a distributed, worldwide, decentralized
 digital token designed to help the population by giving back, donating to
 charitable organizations.
