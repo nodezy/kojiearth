@@ -25,5 +25,6 @@ Please visit our awesome website at https://koji.earth
 Instagram: @kojiearth<br>
 Twitter: @kojiearth<br>
 Telegram: Kojiearth<br>
-Fb: @kojifinance<br>
+Reddit: r/kojiearth<br>
+Fb: @koji_earth<br>
 Telegram: https://www.reddit.com/r/kojicoin/
