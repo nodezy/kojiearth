@@ -36,5 +36,5 @@ Instagram: @kojiearth<br>
 Twitter: @kojiearth<br>
 Telegram: Kojiearth<br>
 Reddit: r/kojiearth<br>
-Fb: @koji_earth<br>
+Fb: @thekojiearth<br>
 Telegram: https://www.reddit.com/r/kojicoin/
