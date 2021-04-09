@@ -10,5 +10,17 @@ every transaction, buy and/or sell.
 KOJIs are issued and managed without any central authority: there is no
 government, company, or bank in charge of KOJI
 
-Website - Koji.earth
+KOJI is a community driven token based in the Ethereum network. The
+specific tokenomics were decided by our community, and we will continue to
+involve KOJI's community as much as possible.
 
+Make sure you are part of the telegram group https://t.me/kojiearth to help
+steer our direction and get our latest news.
+
+The development team is entirely composed of volunteers covering a wide
+range of skills, that have dedicated long hours and hard work to making this
+project a reality
+
+All contracts can be found in the newcoin branch
+
+Please visit our awesome website at https://koji.earth
