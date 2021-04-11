@@ -38,4 +38,4 @@ Telegram: Kojiearth<br>
 Discord: https://discord.gg/anDmHJSB<br>
 Reddit: r/kojiearth<br>
 Fb: @thekojiearth<br>
-Telegram: https://www.reddit.com/r/kojicoin/
+Telegram: https://t.me/kojiearth
