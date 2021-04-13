@@ -28,7 +28,7 @@ Andreas - Web development<br>
 Adam - Project Manager & Tech Dev<br>
 @nodezy - Head Tech Dev
 
-All contracts can be found in the <a href="https://github.com/nodezy/kojiearth/tree/newcoin">newcoin</a> branch
+All contracts can be found in the different branches
 
 Please visit our awesome website at https://koji.earth
 
