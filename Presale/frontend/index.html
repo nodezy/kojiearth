@@ -1,0 +1,383 @@
+<html>
+  <head>
+
+    <title>Get your $KOJI now, koji.earth Presale</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://koji.earth/wp-core/wp-content/themes/koji.earth/assets/imgs/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://koji.earth/wp-core/wp-content/themes/koji.earth/assets/imgs/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://koji.earth/wp-core/wp-content/themes/koji.earth/assets/imgs/favicon-16x16.png">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+    <link rel='stylesheet preload prefetch' href="https://fonts.googleapis.com/css2?family=Khand:wght@300;500;700&family=Montserrat:wght@300;500&display=swap" rel="stylesheet" crossorigin="anonymous">  
+    <link rel='stylesheet' id='styles-vendors-css' href='assets/css/style.min.css' type='text/css' media='all' />
+
+    <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-QDGJHBT4V9"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-QDGJHBT4V9');
+    </script> -->
+
+  </head>
+
+  <body>
+
+    <div id="page" class="disconnected">
+      
+
+      <div id="header">
+
+        <div id="header-top">
+
+          <div class="inner-wrapper">
+
+            <h1><strong>KOJI</strong><small>presale</small>
+              <img class="koji-face" src="assets/imgs/koji-face.svg" width="51" height="70" />
+            </h1>
+
+            <div class="buttons">
+
+              <button class="btn btn-sep connect" id="btn-connect" disabled>              
+                <div><i class="fas fa-wallet"></i><i class="fas fa-plus"></i></div>
+                <span>connect</span> <span>wallet</span>              
+              </button>
+        
+              <button class="btn btn-sep disconnect" id="btn-disconnect" style="display: none">
+                <div><i class="fas fa-wallet"></i><i class="fas fa-minus"></i></div>
+                <span>disconnect</span> <span>wallet</span>   
+              </button>
+
+            </div><!-- .buttons -->
+
+          </div><!-- .inner-wrapper -->
+
+        </div><!-- #header-top -->
+
+
+        <div id="connection-status" class="connection-status clearfix">
+
+          <div class="inner-wrapper">
+            <span class="status-text">
+              <span id="web3-wallet">
+                <div class="dot-container">
+                  <div class="dot red"></div>
+                </div>
+                Web3 wallet: <strong>not connected</strong>
+              </span>
+            </span> 
+
+          </div>
+
+        </div><!-- #connection-status-->
+
+      </div><!-- #header -->
+
+
+
+      <div id="content">
+        
+    
+      <div id="prepare">    
+
+
+        <div class="inner-wrapper">
+
+
+          <div class="ui-wrapper my-wallet ">
+
+            <span class="ui-title"><i class="fas fa-wallet"></i>My wallet</span>
+
+            <div class="ui-box wallet-info">
+
+            <p>No wallet is connected, please connect your wallet to join the presale.</p>
+            
+            <p>Supported wallets for PC/MAC is <strong>Browser + Metamask Extension</strong> and on mobile <strong>MetaMask</strong> and <strong>TrustWallet</strong></p>
+
+              <div class="alert alert-warning mb0">
+                <div class="alert-container">
+                  <div class="alert-icon">
+                    <i class="fa fa-warning"></i>
+                  </div>
+                  <span class="alert-msg">
+                  <span class="alert-title">Important:</span> 
+                    If you're on mobile please only use the DApp Browser <em>(the built-in browser in MetaMask & TrustWallet)</em> as other methods are not fully supported.
+                  </span>
+                </div>
+              </div>
+
+            </div>
+
+          </div><!-- .ui-wrapper.my-wallet -->
+
+
+
+
+
+        </div><!-- .inner-wrapper -->
+
+      </div><!-- #prepare -->
+
+
+
+      <div id="connected" style="display: none">    
+
+        <div class="inner-wrapper">        
+
+          <div class="countdown">            
+            <i class="fas fa-clock"></i> <span id="opening-time">Time left...</span>  
+          </div>           
+                
+
+        <div id="buy-koji">
+
+
+          <div class="ui-wrapper my-wallet">
+            <div id="buy-top" class="ui-box wallet-info clearfix">
+
+            <form method="post" onsubmit="return false">
+
+              <div class="clearfix">
+              <p class="enter">Enter amount of ETH to invest:</p>
+              
+              <div class="input-n-btn">
+                <input id="buyAmount" type="text" name="buyAmount" value="0">
+                <input type="hidden" name="wallet_amount" />
+
+                <!-- <input style="color:white" class="btn btn-primary" id="buySubmit" type="submit" value="Buy KOJI"
+                onmouseenter="validate()" onclick="buyTokens()" disabled> -->
+
+                <button class="btn btn-sep buy" id="buySubmit" type="submit" onmousedown="validate()" >
+                  <div><i class="fas fa-shopping-cart"></i></div>
+                  <span>Buy <em>$</em>Koji</span>   
+                </button>
+              </div>
+
+            </div>
+
+              <span id="validateMessage" class="clearfix"></span>
+
+            </form>
+
+
+
+          <div id="buyTokens" style="word-break: break-all;"></div>
+          <div id="showLoading" style="display:none">
+            <img src="loading.svg" />
+          </div>
+
+          <div id="submitted" class="alert alert-info col-xs-8 col-md-4" style="display:none"><span
+              class="glyphicon glyphicon-check"></span>&nbsp;Transaction Submitted!</div>
+
+          <div id="approved" class="alert alert-success col-xs-8 col-md-4" style="display:none"><span
+              class="glyphicon glyphicon-check"></span>&nbsp;Transaction Completed!</div>
+
+          <div id="disclaimer" style="display:none">
+
+            <p style="color:red" ; class="col-xs-12">
+              DISCLAIMER: This is a good faith sale to our community. Please do not add liquidity to Uniswap prior to
+              our public sale and listing on Safu.Investments. Any wallet that adds liquidity prior to the team adding
+              it will force us to issue a new token contract, and your tokens will be forfeit in that new contract. So
+              please, wait for our official listing!
+            </p>
+
+          </div>
+          <div id="troubleshooting" style="display:none">
+
+            <p style="color:yellow" ; class="col-xs-12">
+              WARNING: This transaction is taking longer than expected, OR you are using a browser that does not
+              support transaction receipt callbacks. Please verify your transaction manually by clicking on the
+              transaction link above and viewing it on etherscan. If this website is not working correctly, you can
+              also interact with the presale contract by sending Ethereum (up to the wallet cap limit) to the
+              crowdsale address directly. If the hardcap hasn't been reached, the contract will send you KOJI back
+              based on the amount of Eth you sent and the exchange rate.
+            </p>
+
+          </div>
+
+
+          <div id="incorrectnetwork" style="display:none">
+            <h2 style="color:red" ;>Please select the Ethereum Mainnet Network</h2>
+          </div>
+
+        </div><!-- #buy koji -->
+
+
+
+      </div>
+    </div><!-- .ui-wrapper.my-wallet -->
+
+
+
+    <div class="ui-wrapper my-wallet">
+      <span class="ui-title"><i class="fas fa-wallet"></i>My wallet</span>
+      <div class="ui-box wallet-info">
+
+        <div class="wallet-row clearfix">
+          <div class="title">My Network: </div>
+          <div class="value"><span id="network-name">Web3 not connected.</span></div>
+        </div>
+
+        <div class="wallet-row clearfix">
+          <div class="title">My Address:</div>
+          <div class="value"><span id="my-address" class="contract-address">Web3 not connected.</span></div>
+        </div>
+
+        <div class="wallet-row clearfix">
+          <div class="title">My ETH balance:</div>
+          <div class="value"><span id="my-eth-balance">Web3 not connected.</span></div>
+        </div>
+
+        <!-- <div class="wallet row">
+          <div class="title"></div>
+          <div class="value"></div>
+        </div> -->
+
+      </div>
+    </div><!-- .ui-wrapper.my-wallet -->
+
+ 
+        <!-- <p>My Address: <span id="my-address" class="contract-address">Web3 not connected.</span> </p>
+        <p>My ETH balance: <span id="my-eth-balance">Web3 not connected.</span></p> -->
+
+        <div id="correctnetwork" style="display:none">
+
+          <div class="ui-wrapper my-wallet">
+            <span class="ui-title"><i class="fas fa-network-wired"></i>Interacting with <span id="token-name"></span> Presale Contract</span>
+            <div class="ui-box wallet-info">
+
+              <div class="wallet-row clearfix">
+                <div class="title">Network: </div>
+                <div class="value"><span id="my-network">Please switch to Ethereum Mainnet!</span></div>
+              </div>
+
+              <div class="wallet-row clearfix pre-sale-address">
+                <div class="title">Contract Address:</div>
+                <div class="value">
+                  <a class="contract-address" href="https://etherscan.io/address/0x0bDd49F42CcF03855a7D508cf936Ad8d806B439f" target="_blank">0x0bDd49F42CcF03855a7D508cf936Ad8d806B439f <i class="fas fa-external-link-alt"></i></a>
+                  <a class="contract-code " href="https://etherscan.io/address/0x0bDd49F42CcF03855a7D508cf936Ad8d806B439f#contracts" target="_blank">Contract Source Code <i class="fas fa-external-link-alt"></i></a>
+                </div>
+              </div>
+
+              <div class="wallet-row clearfix">
+                <div class="title">Presale Amount Raised / Sale Hardcap:</div>
+                <div class="value"><span id="totalSale"></span><span id="totalCap"></span></div>
+              </div>
+
+              <div class="wallet-row clearfix">
+                <div class="title">Exchange Rate:</div>
+                <div class="value"><span id="rate">Please switch to Ethereum Mainnet!</span></div> 
+              </div>
+
+              <div class="wallet-row clearfix">
+                <div class="title">My wallet cap:</div>
+                <div class="value"><span id="walletCap"></span></div> 
+              </div>
+
+              <div class="wallet-row clearfix">
+                <div class="title">My KOJI balance:</div>
+                <div class="value"><span id="my-token-balance">Please switch to Ethereum Mainnet!</span></div> 
+              </div>
+
+            </div><!-- .ui-wrapper.my-wallet -->
+          </div><!-- #buy-koji -->
+
+
+          <!-- <div id="correctnetwork" style="display:none"> -->
+          <!-- <p><span id="my-network">Please switch your Metamask to ETH/Ropsten network!</span></p> -->
+          <!-- <p>Contract address: <a class="contract-address" href="https://ropsten.etherscan.io/address/0x9fE88BBE5Bb5d6e1ba9b64314607763FE7b7fa44"
+              target="_blank">0x9fE88BBE5Bb5d6e1ba9b64314607763FE7b7fa44</a><br>
+            <a href="https://ropsten.etherscan.io/address/0x9fE88BBE5Bb5d6e1ba9b64314607763FE7b7fa44#contracts"
+              target="_blank">Contract Source Code</a></p> -->
+          
+          <!-- <p>Presale Amount Raised / Sale Hardcap: <span id="totalSale"></span><span id="totalCap"></span></p> -->
+            <!-- <p>Exchange Rate: <span id="rate">Please switch your Metamask to ETH/Ropsten network!</span></p> -->
+            <!-- <p>My wallet cap: <span id="walletCap"></span></p> -->
+            <!-- <p>My KOJI balance: <span id="my-token-balance">Please switch your Metamask to ETH/Ropsten network!</span></p> -->
+
+
+
+
+        </div><!-- #correctnetwork -->
+
+        </div><!-- .inner-wrapper -->
+      </div><!-- #connected -->
+
+
+      <div class="presale-details">
+
+        <div class="inner-wrapper">
+
+
+        <p><strong>$KOJI</strong> tokens are being sold in presale to raise funds for development. We have several different areas of
+          development that have been funded by our own money, however we have a need to raise additional funds in order
+          to continue working on this amazing project. </p>
+
+        <p class="p-info"><span>Type of sale:</span> <strong>Flat Rate presale for community members.</strong></p>  
+        <p class="p-info"><span>Max buy per wallet:</span> <strong>0.5 ETH</strong></p>  
+        <p class="p-info"><span>Total Amount of KOJI being sold in presale:</span> <strong>~75 Billion (7.5% of supply)</strong></p>
+        <p class="p-info"><span>Total ETH Hardcap:</span> <strong>~25 ETH</strong></p>
+        <p class="p-info"><span>Opens:</span> <strong>Wed, April 21st at UTC 15:00</strong></p>
+        <p class="p-info last"><span>Closes:</span> <strong>Sat, April 24th at UTC 15:00 or until Hardcap is met.</strong></p>
+
+        <p>Public sale is scheduled for sometime after Uni v3 launch in mid-May.</p>
+
+      </div>
+
+  </div><!-- .presale-details -->
+
+
+
+    </div><!-- #content -->
+
+    <div id="footer">
+      <div class="inner-wrapper">
+      <div class="footer-links">
+        <a class="web" href="https://koji.earth"><i class="fas fa-globe-americas"></i> <strong>KOJI</strong> website</a>
+        <a class="wp" href="https://koji.earth/download/KOJI-whitepaper-2021-pre-release.pdf" target="_blank"><svg
+            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" class="svg-icon" role="img">
+            <defs>
+              <style>
+                .fa-secondary {
+                  opacity: .4
+                }
+              </style>
+            </defs>
+            <path
+              d="M384 128H272a16 16 0 0 1-16-16V0H24A23.94 23.94 0 0 0 0 23.88V488a23.94 23.94 0 0 0 23.88 24H360a23.94 23.94 0 0 0 24-23.88V128zm-67.3 142.7l-38 168A11.9 11.9 0 0 1 267 448h-38a12 12 0 0 1-11.6-9.1c-25.8-103.5-20.8-81.2-25.6-110.5h-.5c-1.1 14.3-2.4 17.4-25.6 110.5a12 12 0 0 1-11.6 9.1H117a12 12 0 0 1-11.7-9.4l-37.8-168A12 12 0 0 1 79.2 256h24.5a12 12 0 0 1 11.8 9.7c15.6 78 20.1 109.5 21 122.2 1.6-10.2 7.3-32.7 29.4-122.7a11.9 11.9 0 0 1 11.7-9.1h29.1a12 12 0 0 1 11.7 9.2c24 100.4 28.8 124 29.6 129.4-.2-11.2-2.6-17.8 21.6-129.2a11.59 11.59 0 0 1 11.5-9.5H305a12 12 0 0 1 12 12 11.8 11.8 0 0 1-.3 2.7z"
+              class="fa-secondary"></path>
+            <path
+              d="M377 105L279.1 7a24 24 0 0 0-17-7H256v112a16 16 0 0 0 16 16h112v-6.1a23.9 23.9 0 0 0-7-16.9zm-72 151h-23.9a11.59 11.59 0 0 0-11.5 9.5c-24.2 111.4-21.8 118-21.6 129.2-.8-5.4-5.6-29-29.6-129.4a12 12 0 0 0-11.7-9.2h-29.1a11.9 11.9 0 0 0-11.7 9.1c-22.1 90-27.8 112.5-29.4 122.7-.9-12.7-5.4-44.2-21-122.2a12 12 0 0 0-11.8-9.7H79.2a12 12 0 0 0-11.7 14.6l37.8 168A12 12 0 0 0 117 448h37.1a12 12 0 0 0 11.6-9.1c23.2-93.1 24.5-96.2 25.6-110.5h.5c4.8 29.3-.2 7 25.6 110.5A12 12 0 0 0 229 448h38a11.9 11.9 0 0 0 11.7-9.3l38-168a11.8 11.8 0 0 0 .3-2.7 12 12 0 0 0-12-12z"
+              class="fa-primary"></path>
+          </svg> <strong>KOJI</strong> whitepaper</a>
+        <a class="cs" href="https://t.me/kojiearth" target="_blank"><svg xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 448 512" class="telegram svg-icon" role="img">
+            <path
+              d="M446.7 98.6l-67.6 318.8c-5.1 22.5-18.4 28.1-37.3 17.5l-103-75.9-49.7 47.8c-5.5 5.5-10.1 10.1-20.7 10.1l7.4-104.9 190.9-172.5c8.3-7.4-1.8-11.5-12.9-4.1L117.8 284 16.2 252.2c-22.1-6.9-22.5-22.1 4.6-32.7L418.2 66.4c18.4-6.9 34.5 4.1 28.5 32.2z">
+            </path>
+          </svg> community support</a>
+        <a class="gh" href="https://github.com/nodezy/kojiearth" target="_blank"><i class="fab fa-github"></i> check out on GitHub</a>
+        <a class="mail" href="mailto:hello@koji.earth"><i class="fas fa-envelope"></i> say hello</a>
+      </div>
+
+    </div><!-- .inner-wrapper -->
+    </div><!-- #footer -->
+      
+
+    </div><!-- #page -->
+
+
+    <script src="https://unpkg.com/web3@latest/dist/web3.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/web3modal"></script>
+    <script type="text/javascript" src="https://unpkg.com/@walletconnect/web3-provider"></script>
+    <script type="text/javascript" src="chaindata.js"></script>
+    <!-- This is our crowsdale code -->
+    <script type="text/javascript" src="./kojisale.js"></script>
+
+    <script src="https://kit.fontawesome.com/0086045a4d.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js" crossorigin="anonymous"></script>
+
+  </body>
+</html>
