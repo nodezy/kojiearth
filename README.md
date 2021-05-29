@@ -21,14 +21,14 @@ range of skills, that have dedicated long hours and hard work to making this
 project a reality
 
 @BillyWizz - Senior Project Manager<br>
-@kojirick - Project Manager & Creative Director<br>
+@A_Adam - Creative Director<br>
 @tonegro - Public Relations Officer & Technical Documentation<br>
-@MounirDirk  - Outreach Manager and Creative Consultant <br>
-Andreas - Web development<br>
-Adam - Project Manager & Tech Dev<br>
+@@AviatorNerd - Charity Coordinator & Outreach<br>
+@MounirDirk  - Charity Coordinator & Outreach<br>
+@KojiAndreas - Web development<br>
 @nodezy - Head Tech Dev
 
-All contracts can be found in the different branches
+All contracts can be found in the main branch
 
 Please visit our awesome website at https://koji.earth
 
