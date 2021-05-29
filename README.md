@@ -23,7 +23,7 @@ project a reality
 @BillyWizz - Senior Project Manager<br>
 @A_Adam - Creative Director<br>
 @tonegro - Public Relations Officer & Technical Documentation<br>
-@@AviatorNerd - Charity Coordinator & Outreach<br>
+@AviatorNerd - Charity Coordinator & Outreach<br>
 @MounirDirk  - Charity Coordinator & Outreach<br>
 @KojiAndreas - Web development<br>
 @nodezy - Head Tech Dev
