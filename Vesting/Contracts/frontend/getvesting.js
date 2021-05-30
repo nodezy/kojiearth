@@ -17,19 +17,31 @@ let provider;
 
 // Address of the selected account
 //let selectedAccount;
+let walletaddress;
+let proxyaddress;
 
 
-var TeamVestingAddress = "0x0bF4728dB874b750da572C105c443118a8bCF913";
+var TeamVestingAddress = "0xc1e5CeeD769D7cB3741AcCdeF31F8d5C43739cda";
 var tokenName = "Koji";
 var tokenSymbol = "KOJI";
 var tokenAddress = "0x1c8266a4369af6d80df2659ba47b3c98f35cb8be";
-var account = "0x0bF4728dB874b750da572C105c443118a8bCF913";
+var account = "0xc1e5CeeD769D7cB3741AcCdeF31F8d5C43739cda";
 
 var TeamVestingABI = JSON.stringify([{"inputs":[{"internalType":"address","name":"_koji","type":"address"},{"internalType":"address","name":"_vestingLogic","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"inputs":[],"name":"KOJI","outputs":[{"internalType":"contract IERC20","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"VESTING_LOGIC","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_account","type":"address"}],"name":"getAllVestings","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_account","type":"address"},{"internalType":"uint256","name":"_start","type":"uint256"},{"internalType":"uint256","name":"_length","type":"uint256"}],"name":"getVestings","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_account","type":"address"}],"name":"getVestingsLength","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_vestingCliffDuration","type":"uint256"}],"name":"setVestingCliffDuration","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_vestingDuration","type":"uint256"}],"name":"setVestingDuration","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"vest","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"vestingCliffDuration","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"vestingDuration","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"}],"name":"vestings","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"withdrawFunds","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"withdrawTokens","outputs":[],"stateMutability":"nonpayable","type":"function"}]);
 var ProxyVestingABI = JSON.stringify([{"inputs":[],"name":"amount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"beneficiary","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"cliff","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"duration","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_koji","type":"address"},{"internalType":"address","name":"_beneficiary","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"},{"internalType":"uint256","name":"_start","type":"uint256"},{"internalType":"uint256","name":"_cliffDuration","type":"uint256"},{"internalType":"uint256","name":"_duration","type":"uint256"}],"name":"initialize","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"koji","outputs":[{"internalType":"contract IERC20","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"releasableAmount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"release","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"released","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"start","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"vestedAmount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}]);
 
-var MainVestingInstance = new web3.eth.Contract(JSON.parse(TeamVestingABI), TeamVestingAddress);
-
+function returnElapsedTime (epoch) {
+  //We are assuming that the epoch is in seconds
+  var hours = epoch / 3600,
+      minutes = (hours % 1) * 60,
+      seconds = (minutes % 1) * 60;
+      if (hours < 0 && minutes < 0 && seconds < 0) {
+        return "0 hours, 0 minutes, 0 seconds";
+      } else {
+        return Math.floor(hours) + " hours, " + Math.floor(minutes) + " minutes, " + Math.round(seconds) + " seconds";
+      }
+  
+}
 
 /**
  * Setup the orchestra
@@ -71,6 +83,9 @@ async function fetchAccountData() {
   
   window.web3 = new Web3(ethereum);
 	 //console.log("Web3 instance is", web3);
+
+   var MainVestingInstance = new web3.eth.Contract(JSON.parse(TeamVestingABI), TeamVestingAddress);
+
   
   // Get connected chain id from Ethereum node
   const chainId = await web3.eth.getChainId(function(err, result) {
@@ -88,13 +103,13 @@ async function fetchAccountData() {
           // obj[i].name is the matched result
           document.querySelector("#network-name").textContent = mydata[i].name;
 
-         // if (mydata[i].name == "Ethereum Mainnet") { // MAINNET
-         if (mydata[i].name == "Ethereum Testnet Ropsten") { // ROPSTEN
+          if (mydata[i].name == "Ethereum Mainnet") { // MAINNET
+         //if (mydata[i].name == "Ethereum Testnet Ropsten") { // ROPSTEN
 
           	var networkname = mydata[i].name
             document.getElementById("my-network").innerText = networkname; 
 
-            document.getElementById("correctnetwork").style.display = 'block';
+           /* document.getElementById("correctnetwork").style.display = 'block';*/
             document.getElementById("incorrectnetwork").style.display = 'none';
 
           } else {
@@ -114,6 +129,7 @@ async function fetchAccountData() {
             await ethereum.enable();
             var account = await web3.eth.getAccounts();
             //console.log(account[0]);
+            walletaddress = account[0];
            
           fetch("session.php?account="+account[0]+"") //Nodezy: saving wallet address as a session variable
 
@@ -161,25 +177,129 @@ async function fetchAccountData() {
 
        
 
-        // get my address, ETH and token balance, and current rate (price)
+        // get my address, ETH and token balance, and vesting info
         function getAccountInfo(account) {
           
             MainVestingInstance.methods.vestings(account, 0).call(function(err,res){
                 if(!err){
-                  //user has vested tokens in the array
+                  //user has vested tokens in the arra
                     
                     document.getElementById("proxyaddress").innerText = res;
+                    document.getElementById("correctnetwork").style.display = "block";
+                    document.getElementById("incorrectnetwork").style.display = 'none';
+
+                    proxyaddress = res;
+                    //now we can get our proxy instance for this wallets tokens
+                    var ProxyVestingInstance = new web3.eth.Contract(JSON.parse(ProxyVestingABI), res);
+                  
+
+                    ProxyVestingInstance.methods.start().call(function(err,res){
+                      var starttime = +res;
+                      var output = new Date(starttime * 1000).toISOString().slice(0, 19).replace('T', ' ');
+                       
+                      document.getElementById("start").innerText = output + " UTC";
+
+                        ProxyVestingInstance.methods.duration().call(function(err,res){
+                        var durationtime = +res;
+
+                        var days = durationtime / 86400; 
+                        document.getElementById("duration").innerText = days + " days";
+
+
+                          var timenow = Date.now() / 1000;
+                          var timeleft = (starttime + durationtime) - timenow;
+
+                          var percentleft = parseFloat((timeleft / durationtime) * 100).toFixed(2);
+
+                         //get time remaining
+
+                          var unixtimeleft = timeleft;
+
+                          timeleft = returnElapsedTime(timeleft);
+
+                           //console.log(percentleft);
+
+                          document.getElementById("remainingtime").innerHTML = timeleft;
+
+                          if (timenow > (starttime + durationtime)) {
+                            document.getElementById("remainingpercent").style.width = "0%";
+                          } else {
+                            document.getElementById("remainingpercent").style.width = percentleft + "%";
+                          }
+                          
+
+                       }); //duration   
+
+                     }); //start
+
+                      ProxyVestingInstance.methods.amount().call(function(err,res){
+
+                        var totalamount = web3.utils.fromWei(res);
+
+                        totalamount = +totalamount;
+
+                        document.getElementById("totalamt").innerText = totalamount + " " + tokenSymbol;
+
+                          ProxyVestingInstance.methods.vestedAmount().call(function(err,res){
+
+                            var vestedamount = parseFloat(web3.utils.fromWei(res)).toFixed(2);
+
+                            vestedamount = +vestedamount;
+
+                             document.getElementById("vestedamt").innerText = vestedamount + " " + tokenSymbol;
+
+                             var vestedpercent = parseFloat((vestedamount / totalamount) * 100).toFixed(2);
+
+                             document.getElementById("vestedpercent").style.width = vestedpercent + "%";
+
+
+                          }); //vestedamount
+
+                      }); //amount
+
+                      ProxyVestingInstance.methods.released().call(function(err,res){
+
+                        var releasedtotal = parseFloat(web3.utils.fromWei(res)).toFixed(2);
+
+                        document.getElementById("releasedamt").innerText = releasedtotal + " " + tokenSymbol;
+
+
+                      }); //released
+
+
+                      ProxyVestingInstance.methods.releasableAmount().call(function(err,res){
+
+                        var tobereleased = parseFloat(web3.utils.fromWei(res)).toFixed(2);
+
+                        tobereleased = +tobereleased;
+
+                         document.getElementById("releasableamt").innerText = tobereleased + " " + tokenSymbol;
+
+                         if (tobereleased > 0) {
+
+                          document.getElementById("withdraw").style.display = "block";
+                          //document.getElementById("finalizedwd").style.display = "block";
+
+
+                         } else {
+                          document.getElementById("withdraw").style.display = "none";
+                         }
+                      }); //releasableAmount
+
                     
-                    //document.getElementById("my-token-balance").innerText = web3.utils.fromWei(res) + " " + tokenSymbol;
-                    //document.getElementById("token-name").innerText = tokenName + " (" + tokenSymbol + ")";
+
                     
                     
 
                 } else {
                     //console.log(err);
+                    //console will show "execution reverted message no matter what"
+                    document.getElementById("correctnetwork").style.display = "none";
+                    document.getElementById("proxyaddress").innerText = "You have no tokens vested at this address";
+
                 }
               
-            });
+            });//vestings
           
         }
 
@@ -351,30 +471,41 @@ for (var i = 1; i < 99999; i++)
 
 
   // allows user to withdraw tokens from escrow
-	async function release() {
+async function releasefunds() {
 
 	   // const web3 = new Web3(provider);
-	   window.web3 = new Web3(ethereum);
-
-	    var ProxyVestingInstance = new web3.eth.Contract(JSON.parse(ProxyVestingABI), 'pull address from Main based on wallet');
-	    
+	   window.web3 = new Web3(ethereum);/*
 
 	  // Get list of accounts of the connected wallet
 	   try {
 	            await ethereum.enable();
 	            var account = await web3.eth.getAccounts();
+
+              //console.log(account[0])
 	    } catch {
 	      //console.log(err);
 	    }
 
+      var MainVestingInstance = new web3.eth.Contract(JSON.parse(TeamVestingABI), TeamVestingAddress);
+
+      MainVestingInstance.methods.vestings(account[0], 0).call(function(err,res){
+      if(!err){
+        //user has vested tokens in the arra
+          
+          var proxyaddress = res;*/
+          try {
+
+          //now we can get our proxy instance for this wallets tokens
+          var ProxyVestingInstance = new web3.eth.Contract(JSON.parse(ProxyVestingABI), proxyaddress);
+                  
 
 	    web3.eth.sendTransaction(
-	          {from: account[0],
-	          to: crowdsaleAddress,
+	          {from: walletaddress,
+	          to: proxyaddress,
 	          //value: web3.utils.toWei(amount),
 	          gasprice: 100000, // 100000 = 10 gwei
 	          //gas: 300000,   // gas limit
-	          data: CrowdsaleInstance.methods.withdrawTokens(account[0]).encodeABI()   //New method calculates gas properly!!!
+	          data: ProxyVestingInstance.methods.release().encodeABI()   //New method calculates gas properly!!!
 	              }, function(err, transactionHash) {
 	        if (err) {
 	          //document.getElementById("").style.display = 'block';
@@ -407,8 +538,15 @@ for (var i = 1; i < 99999; i++)
 	    document.getElementById("troubleshooting").style.display = 'none';*/
 	    
 	    fetchAccountData();
-		});
+		}); //send tx
+
+   /* } //if (!err)
+
+    });*/ //mainvesting
+  } catch {
+
 	 }
+  }
 
 
   
