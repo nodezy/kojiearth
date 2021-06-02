@@ -596,11 +596,6 @@ contract KojiToken is Context, IERC20, Ownable {
     ) external onlyOwner {
         totalTaxAlloc = _holderTaxAlloc.add(_charityTaxAlloc).add(_burnTaxAlloc).add(_adminTaxAlloc);
         
-        require(_holderTaxAlloc >= 5 && _holderTaxAlloc <= 10, "_holderTaxAlloc is outside of range 5-10");
-        require(_burnTaxAlloc >= 5 && _burnTaxAlloc <= 10, "_burnTaxAlloc is outside of range 5-10");
-        require(_charityTaxAlloc <= 10, "_charityTaxAlloc is greater than 10");
-        require(_adminTaxAlloc <= 10, "_adminTaxAlloc is greater than 10");
-
         holderTaxAlloc = _holderTaxAlloc;
         charityTaxAlloc = _charityTaxAlloc;
         burnTaxAlloc = _burnTaxAlloc;
