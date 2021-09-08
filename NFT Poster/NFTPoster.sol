@@ -90,6 +90,8 @@ contract KojiPosterNFT is ERC721Enumerable, ERC165Storage, Ownable, Whitelisted 
     uint public mintedtier1;
     uint public mintedtier2;
 
+    uint royaltyNumerator = 1;
+
     uint256 public timestart; //unix block timestamp for opening of mint window
     uint256 public timeend; //unix block timestamp for closing of mint window
 
@@ -289,7 +291,7 @@ contract KojiPosterNFT is ERC721Enumerable, ERC165Storage, Ownable, Whitelisted 
 
     function royaltyInfo(uint256 _tokenId, uint256 _salePrice) external view returns(address,uint256){
     
-    uint256 royaltyAmount = _salePrice.mul(1).div(100);
+    uint256 royaltyAmount = _salePrice.mul(royaltyNumerator).div(100);
     _tokenId = _tokenId;
 
     return (receiver, royaltyAmount);
@@ -352,5 +354,13 @@ contract KojiPosterNFT is ERC721Enumerable, ERC165Storage, Ownable, Whitelisted 
        
         IERC20(_tokenAddr).transfer(_to, _amount);
     }
+
+    function getRoyaltyNumerator() external view returns(uint) {
+        return royaltyNumerator;
+    }
+
+    function setRoyaltyNumerator(uint _number) external onlyowner {
+        royaltyNumerator = _mumber;
+    } 
 }
 
