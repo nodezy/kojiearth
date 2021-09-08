@@ -214,11 +214,11 @@ contract KojiPosterNFT is ERC721Enumerable, ERC165Storage, Ownable, Whitelisted 
             }
 
             if (mintlimitsenabled) {
-                require(!tier1mintLimitReached(), "The mint limit for the NFT has been reached");
+                require(!tier2mintLimitReached(), "The mint limit for the NFT has been reached");
             }
 
             if (walletbalanceenabled) {
-                require(token.balanceOf(recipient) >= tier1balance, "$KOJI token balance insufficient for this tier");
+                require(token.balanceOf(recipient) >= tier2balance, "$KOJI token balance insufficient for this tier");
             }
 
         }
@@ -363,5 +363,15 @@ contract KojiPosterNFT is ERC721Enumerable, ERC165Storage, Ownable, Whitelisted 
         require(_number >= 1 && _number <= 10, "Royalty fee must be no less than 1% and no greater than 10%");
         royaltyNumerator = _number;
     } 
+
+    function updateTier1balance(uint256 _amount) external onlyOwner {
+        require(_amount > 0, "Amount must be greater than zero");
+        tier1balance = _amount;
+    }
+
+    function updateTier2balance(uint256 _amount) external onlyOwner {
+        require(_amount > 0, "Amount must be greater than zero");
+        tier2balance = _amount;
+    }
 }
 
