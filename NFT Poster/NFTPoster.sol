@@ -359,8 +359,9 @@ contract KojiPosterNFT is ERC721Enumerable, ERC165Storage, Ownable, Whitelisted 
         return royaltyNumerator;
     }
 
-    function setRoyaltyNumerator(uint _number) external onlyowner {
-        royaltyNumerator = _mumber;
+    function setRoyaltyNumerator(uint _number) external onlyOwner {
+        require(_number >= 1 && _number <= 10, "Royalty fee must be no less than 1% and no greater than 10%");
+        royaltyNumerator = _number;
     } 
 }
 
