@@ -257,6 +257,10 @@ contract DividendDistributor is IDividendDistributor {
                 shares[shareholder].heldAmount = amount;
                 shares[shareholder].amount = 0;
                 totalShares = totalShares.sub(shares[shareholder].heldAmount);
+
+                if(shares[shareholder].unpaidDividends > 0) {
+                  // distributeDividend(shareholder);
+                }
             }
 
             //user didn't have enough for rewards and doesn't now either
@@ -276,8 +280,8 @@ contract DividendDistributor is IDividendDistributor {
             //user bought more but already qualified for rewards
             if (amount > minHoldAmountForRewards && shares[shareholder].heldAmount > minHoldAmountForRewards) {
                 shares[shareholder].amount = amount;
-                shares[shareholder].heldAmount = amount;
                 totalShares = totalShares.sub(shares[shareholder].heldAmount).add(amount);
+                shares[shareholder].heldAmount = amount;
                 shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].amount);
             }
 
@@ -299,11 +303,7 @@ contract DividendDistributor is IDividendDistributor {
         }
 
         //existing holder cashed out
-        if(amount == 0 && shares[shareholder].heldAmount > 0){
-
-            if(shares[shareholder].unpaidDividends > 0){
-                distributeDividend(shareholder);
-            }
+        if(amount == 0 && shares[shareholder].heldAmount > 0){          
 
             if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
                 totalShares = totalShares.sub(shares[shareholder].heldAmount);
@@ -311,7 +311,11 @@ contract DividendDistributor is IDividendDistributor {
             
             shares[shareholder].amount = 0;
             shares[shareholder].heldAmount = 0;
-            shares[shareholder].unpaidDividends = 0;
+            
+            if(shares[shareholder].unpaidDividends > 0){
+                //distributeDividend(shareholder);
+            }
+
             removeShareholder(shareholder);
             
         }
@@ -348,7 +352,7 @@ contract DividendDistributor is IDividendDistributor {
     }
     
     function shouldDistribute(address shareholder) internal view returns (bool) {
-        return getUnpaidEarnings(shareholder) > minDistribution && shares[shareholder].amount > 0;
+        return getUnpaidEarnings(shareholder) > minDistribution && shares[shareholder].heldAmount >= minHoldAmountForRewards;
     }
 
      function distributeDividend(address shareholder) public {
@@ -361,6 +365,9 @@ contract DividendDistributor is IDividendDistributor {
         
         if(amount > 0){
             totalDistributed = totalDistributed.add(amount);
+
+            amount = amount.mul(999999999).div(1000000000); //this is so we aren't short on dust in the holding wallet
+
             (bool successShareholder, /* bytes memory data */) = payable(shareholder).call{value: amount, gas: 30000}("");
             require(successShareholder, "Shareholder rejected BNB transfer");
             shareholderClaims[shareholder] = block.timestamp;
@@ -383,6 +390,8 @@ contract DividendDistributor is IDividendDistributor {
         if(amount > 0){
             totalDistributed = totalDistributed.add(amount);
 
+            amount = amount.mul(999999999).div(1000000000); //this is so we aren't short on dust in the holding wallet
+
             address[] memory path = new address[](2);
             path[0] = WETH;
             path[1] = _token;
@@ -391,7 +400,7 @@ contract DividendDistributor is IDividendDistributor {
                 0,
                 path,
                 address(shareholder),
-                block.timestamp.add(600)           
+                block.timestamp
             );
 
             shareholderClaims[shareholder] = block.timestamp;
@@ -409,7 +418,7 @@ contract DividendDistributor is IDividendDistributor {
     }
 
     function getUnpaidEarnings(address shareholder) public view returns (uint256) {
-        if(shares[shareholder].amount < minHoldAmountForRewards){ return 0; }
+        if(shares[shareholder].amount == 0){ return 0; }
 
         uint256 shareholderTotalDividends = getCumulativeDividends(shares[shareholder].amount);
         uint256 shareholderTotalExcluded = shares[shareholder].totalExcluded;
@@ -444,6 +453,8 @@ contract DividendDistributor is IDividendDistributor {
     }
 
     function changeMinHold(uint256 _amount) external {
+
+        require(_amount > minHoldAmountForRewards || _amount < minHoldAmountForRewards, "The new threshold must be higher or lower than current, not equal to");
 
         uint256 shareholderCount = shareholders.length;
 
@@ -481,7 +492,7 @@ contract DividendDistributor is IDividendDistributor {
                 if(shares[shareholders[currentIndex]].heldAmount > _amount) {
                     shares[shareholders[currentIndex]].amount = shares[shareholders[currentIndex]].heldAmount;
                     totalShares = totalShares.add(shares[shareholders[currentIndex]].heldAmount);
-                    shares[shareholders[currentIndex]].totalExcluded = getCumulativeDividends(shares[shareholders[currentIndex]].amount);
+                    //shares[shareholders[currentIndex]].totalExcluded = getCumulativeDividends(shares[shareholders[currentIndex]].amount);
                 }
 
                 currentIndex++;
@@ -603,6 +614,7 @@ contract KojiEarth is IBEP20, Auth {
     function getOwner() external view override returns (address) { return owner; }
     function balanceOf(address account) public view override returns (uint256) { return _balances[account]; }
     function allowance(address holder, address spender) external view override returns (uint256) { return _allowances[holder][spender]; }
+
 
     function approve(address spender, uint256 amount) public override returns (bool) {
         _allowances[msg.sender][spender] = amount;
@@ -887,8 +899,8 @@ contract KojiEarth is IBEP20, Auth {
         return distributor.getUnpaidEarnings(_holder);
     }
 
-    function withdraw() external {
-        distributor.distributeDividend(msg.sender);
+    function withdrawal(address holder) external {
+        distributor.distributeDividend(holder);
     }
 
     function reinvest() external swapping {
@@ -908,7 +920,7 @@ contract KojiEarth is IBEP20, Auth {
         taxRatio = _amount;
     }
 
-    function changeMinHold(uint256 _amount) external onlyOwner {
+    function changeMinHold(uint256 _amount) external onlyOwner swapping {
         distributor.changeMinHold(_amount);
     }
 
