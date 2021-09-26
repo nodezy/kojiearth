@@ -288,6 +288,8 @@ contract DividendDistributor is IDividendDistributor {
                 totalShares = totalShares.add(amount);
                 shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].amount);
             }
+
+            shareholderExpired[shareholder] = 9999999999;
         }
 
         //existing holder cashed out
@@ -337,7 +339,10 @@ contract DividendDistributor is IDividendDistributor {
 
             if(shouldProcess(shareholders[currentIndex])){
                 shares[shareholders[currentIndex]].unpaidDividends = getUnpaidEarnings(shareholders[currentIndex]);
-                
+                //add functionality here to check blocktimestamp + unpaid earnings and cleanup all unclaimed withdrawals
+                if (shares[shareholders[currentIndex]].unpaidDividends > minDistribution && block.timestamp > shareholderExpired[shareholders[currentIndex]].add(2606400) && shares[shareholders[currentIndex]].heldAmount > minHoldAmountForRewards && shares[shareholders[currentIndex]].amount == 0) {
+
+                } 
             }
 
             currentIndex++;
