@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: Unlicensed
 
-
-
 pragma solidity ^0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -197,7 +195,6 @@ contract DividendDistributor is IDividendDistributor {
     uint256 public totalShares;
     uint256 public totalDividends;
     uint256 public netDividends;
-    uint256 public lastDividends;
     uint256 public totalDistributed;
     uint256 public dividendsPerShare;
     uint256 public dividendsPerShareAccuracyFactor = 10 ** 36;
@@ -208,6 +205,7 @@ contract DividendDistributor is IDividendDistributor {
 
     uint256 currentIndex;
 
+    bool public didDeposit = false;
     bool firstRun = true;
     bool initialized;
     modifier initialization() {
@@ -268,12 +266,11 @@ contract DividendDistributor is IDividendDistributor {
 
             //user bought more but already qualified for rewards
             if (amount > minHoldAmountForRewards && shares[shareholder].heldAmount > minHoldAmountForRewards) {
-                if(shares[shareholder].unpaidDividends > minDistribution) {returnDividend(shareholder);}
+                if(shares[shareholder].unpaidDividends > minDistribution && shares[shareholder].heldAmount < amount) {returnDividend(shareholder);}
                 shares[shareholder].amount = amount;
                 totalShares = totalShares.sub(shares[shareholder].heldAmount).add(amount);
                 shares[shareholder].heldAmount = amount;
                 //shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].amount);
-                
                 
             }
 
@@ -315,7 +312,7 @@ contract DividendDistributor is IDividendDistributor {
                 } else {
                     if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
                         totalShares = totalShares.sub(shares[shareholder].heldAmount);
-                        totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends.add(shares[shareholder].totalRealised));
+                        //totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends.add(shares[shareholder].totalRealised));
                         
                     }
                     shares[shareholder].amount = 0;
@@ -333,6 +330,8 @@ contract DividendDistributor is IDividendDistributor {
         totalDividends = totalDividends.add(amount);
         netDividends = netDividends.add(amount);
 
+        didDeposit = true;
+
         if (firstRun) {
             dividendsPerShare = dividendsPerShareAccuracyFactor.mul(totalDividends).div(totalShares);
             firstRun = false;
@@ -345,30 +344,36 @@ contract DividendDistributor is IDividendDistributor {
 
         if(shareholderCount == 0) { return; }
 
-        if(lastDividends == totalDividends) { return; }
-
-        uint256 iterations = 0;
-        currentIndex = 0;
+        if(didDeposit) { 
+            
+            uint256 iterations = 0;
+            currentIndex = 0;
         
-        dividendsPerShare = dividendsPerShareAccuracyFactor.mul(totalDividends).div(totalShares);
+            dividendsPerShare = dividendsPerShareAccuracyFactor.mul(totalDividends).div(totalShares);
 
-        while(iterations < shareholderCount) {
-            if(currentIndex >= shareholderCount){
-                currentIndex = 0;
+            while(iterations < shareholderCount) {
+                if(currentIndex >= shareholderCount){
+                    currentIndex = 0;
+                }
+
+                if(shouldProcess(shareholders[currentIndex])){
+                    
+                    shares[shareholders[currentIndex]].unpaidDividends = getUnpaidEarnings(shareholders[currentIndex]);
+                    //add functionality here to check blocktimestamp + unpaid earnings and cleanup all unclaimed withdrawals
+                    
+                }
+
+                currentIndex++;
+                iterations++;
             }
 
-            if(shouldProcess(shareholders[currentIndex])){
-                
-                shares[shareholders[currentIndex]].unpaidDividends = getUnpaidEarnings(shareholders[currentIndex]);
-                //add functionality here to check blocktimestamp + unpaid earnings and cleanup all unclaimed withdrawals
-                
-            }
+            didDeposit = false;
 
-            currentIndex++;
-            iterations++;
+        } else {
+            return; 
         }
 
-        lastDividends = totalDividends;
+        
     }
 
     function shouldProcess(address shareholder) internal view returns (bool) {
@@ -399,6 +404,8 @@ contract DividendDistributor is IDividendDistributor {
             shares[shareholder].unpaidDividends = 0;
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
 
+            totalDividends = totalDividends.sub(amount);
+            netDividends = netDividends.sub(amount);
         }
     }
      
@@ -424,15 +431,17 @@ contract DividendDistributor is IDividendDistributor {
             shareholderClaims[shareholder] = block.timestamp;
             shares[shareholder].unpaidDividends = 0;
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
-            shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].amount);
+            //shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].amount);
 
             if(shares[shareholder].heldAmount == 0) {
                 shares[shareholder].totalRealised = 0;
                 shares[shareholder].totalExcluded = 0;
                 removeShareholder(shareholder);
-                netDividends = netDividends.sub(netamount);
+                totalDividends = totalDividends.sub(amount);
+                netDividends = netDividends.sub(amount);
             } else {
-                netDividends = netDividends.sub(netamount);
+                totalDividends = totalDividends.sub(amount);
+                netDividends = netDividends.sub(amount);
             }
         }
     }
@@ -452,7 +461,7 @@ contract DividendDistributor is IDividendDistributor {
             totalDistributed = totalDistributed.add(netamount);
             shares[shareholder].unpaidDividends = 0; 
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
-            shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].amount);
+            //shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].amount);
 
             address[] memory path = new address[](2);
             path[0] = WETH;
@@ -467,7 +476,8 @@ contract DividendDistributor is IDividendDistributor {
 
             shareholderClaims[shareholder] = block.timestamp;
 
-            netDividends = netDividends.sub(netamount);
+            totalDividends = totalDividends.sub(amount);
+            netDividends = netDividends.sub(amount);
 
         }
     }
@@ -477,11 +487,11 @@ contract DividendDistributor is IDividendDistributor {
         else {
 
         uint256 shareholderTotalDividends = getCumulativeDividends(shares[shareholder].amount);
-        uint256 shareholderTotalExcluded = shares[shareholder].totalExcluded;
+        //uint256 shareholderTotalExcluded = shares[shareholder].totalExcluded;
 
-        if(shareholderTotalDividends <= shareholderTotalExcluded){ return 0; }
+        //if(shareholderTotalDividends <= shareholderTotalExcluded){ return 0; }
 
-        return shareholderTotalDividends.sub(shareholderTotalExcluded);
+        return shareholderTotalDividends;//.sub(shareholderTotalExcluded);
                 
         }
         
