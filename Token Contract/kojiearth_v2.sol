@@ -312,8 +312,7 @@ contract DividendDistributor is IDividendDistributor {
                 } else {
                     if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
                         totalShares = totalShares.sub(shares[shareholder].heldAmount);
-                        //totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends.add(shares[shareholder].totalRealised));
-                        
+                        totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
                     }
                     shares[shareholder].amount = 0;
                     shares[shareholder].heldAmount = 0;
@@ -437,7 +436,6 @@ contract DividendDistributor is IDividendDistributor {
                 shares[shareholder].totalRealised = 0;
                 shares[shareholder].totalExcluded = 0;
                 removeShareholder(shareholder);
-                totalDividends = totalDividends.sub(amount);
                 netDividends = netDividends.sub(amount);
             } else {
                 totalDividends = totalDividends.sub(amount);
