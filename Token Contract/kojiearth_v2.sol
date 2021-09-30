@@ -258,7 +258,7 @@ contract DividendDistributor is IDividendDistributor {
                 shares[shareholder].unpaidDividends = getUnpaidEarnings(shareholder);
                 if(shares[shareholder].unpaidDividends > minDistribution) {
                     totalShares = totalShares.sub(shares[shareholder].heldAmount);
-                    totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends.add(shares[shareholder].totalRealised));
+                    totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
                     }
                 shares[shareholder].heldAmount = amount;
                 shares[shareholder].amount = 0;
@@ -376,7 +376,7 @@ contract DividendDistributor is IDividendDistributor {
     }
 
     function shouldProcess(address shareholder) internal view returns (bool) {
-        return shares[shareholder].amount > 0;
+        return shares[shareholder].amount > 0 || shares[shareholder].heldAmount > 0;
     }
     
     function shouldDistribute(address shareholder) internal view returns (bool) {
