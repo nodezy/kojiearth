@@ -275,7 +275,6 @@ contract DividendDistributor is IDividendDistributor {
                 shares[shareholder].amount = amount;
                 shares[shareholder].heldAmount = amount;
                 totalShares = totalShares.add(amount);
-                //shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].amount);
             }
 
             shareholderExpired[shareholder] = 9999999999;
@@ -290,7 +289,7 @@ contract DividendDistributor is IDividendDistributor {
                 shares[shareholder].amount = amount;
                 totalShares = totalShares.sub(shares[shareholder].heldAmount).add(amount);
                 shares[shareholder].heldAmount = amount;
-                //shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].amount);
+               
                 
             }
 
@@ -298,7 +297,6 @@ contract DividendDistributor is IDividendDistributor {
             if (amount > minHoldAmountForRewards && shares[shareholder].heldAmount < minHoldAmountForRewards) {
                 shares[shareholder].amount = amount;
                 totalShares = totalShares.add(amount);
-                //shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].heldAmount);
                 shares[shareholder].heldAmount = amount;
             }
 
@@ -430,15 +428,20 @@ contract DividendDistributor is IDividendDistributor {
             shareholderClaims[shareholder] = block.timestamp;
             shares[shareholder].unpaidDividends = 0;
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
-            //shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].amount);
+            
+            if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
+                totalDividends = totalDividends.sub(amount);
+                netDividends = netDividends.sub(amount);
+            }
+            else {
+               
+                netDividends = netDividends.sub(amount);
+            }
 
             if(shares[shareholder].heldAmount == 0) {
                 shares[shareholder].totalRealised = 0;
                 shares[shareholder].totalExcluded = 0;
                 removeShareholder(shareholder);
-                netDividends = netDividends.sub(amount);
-            } else {
-                totalDividends = totalDividends.sub(amount);
                 netDividends = netDividends.sub(amount);
             }
         }
@@ -459,7 +462,16 @@ contract DividendDistributor is IDividendDistributor {
             totalDistributed = totalDistributed.add(netamount);
             shares[shareholder].unpaidDividends = 0; 
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
-            //shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].amount);
+
+            if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
+                totalDividends = totalDividends.sub(amount);
+                netDividends = netDividends.sub(amount);
+            }
+            else {
+               
+                netDividends = netDividends.sub(amount);
+            }
+            
 
             address[] memory path = new address[](2);
             path[0] = WETH;
@@ -474,8 +486,7 @@ contract DividendDistributor is IDividendDistributor {
 
             shareholderClaims[shareholder] = block.timestamp;
 
-            totalDividends = totalDividends.sub(amount);
-            netDividends = netDividends.sub(amount);
+            
 
         }
     }
