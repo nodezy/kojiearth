@@ -236,65 +236,6 @@ contract DividendDistributor is IDividendDistributor {
 
     function setShare(address shareholder, uint256 amount) external override onlyToken {
 
-        //existing holder balance changes
-        if(amount > 0 && shares[shareholder].heldAmount > 0){
-            
-            //user didn't have enough for rewards and doesn't now either
-            if (amount < minHoldAmountForRewards && shares[shareholder].heldAmount < minHoldAmountForRewards) {
-                shares[shareholder].heldAmount = amount;
-                shares[shareholder].amount = 0;
-            }
-
-            //user bought more to qualify for rewards
-            if (amount > minHoldAmountForRewards && shares[shareholder].heldAmount < minHoldAmountForRewards) {
-                shares[shareholder].amount = amount;
-                totalShares = totalShares.add(amount);
-                //shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].heldAmount);
-                shares[shareholder].heldAmount = amount;
-            }
-
-            //user had enough for rewards previously but now dropped below
-            if (amount < minHoldAmountForRewards && shares[shareholder].heldAmount > minHoldAmountForRewards) {
-                shares[shareholder].unpaidDividends = getUnpaidEarnings(shareholder);
-                if(shares[shareholder].unpaidDividends > minDistribution) {
-                    totalShares = totalShares.sub(shares[shareholder].heldAmount);
-                    totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
-                    }
-                shares[shareholder].heldAmount = amount;
-                shares[shareholder].amount = 0;
-            }
-
-            //user bought more but already qualified for rewards
-            if (amount > minHoldAmountForRewards && shares[shareholder].heldAmount > minHoldAmountForRewards) {
-                if(shares[shareholder].unpaidDividends > minDistribution && shares[shareholder].heldAmount < amount) {returnDividend(shareholder);}
-                shares[shareholder].amount = amount;
-                totalShares = totalShares.sub(shares[shareholder].heldAmount).add(amount);
-                shares[shareholder].heldAmount = amount;
-                //shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].amount);
-                
-            }
-
-        }
-
-        //new holder
-        if(amount > 0 && shares[shareholder].heldAmount == 0){
-
-            if(shares[shareholder].unpaidDividends > minDistribution) {returnDividend(shareholder);}
-            if(shares[shareholder].unpaidDividends == 0) {addShareholder(shareholder);}
-
-            if (amount < minHoldAmountForRewards) {
-                shares[shareholder].heldAmount = amount;
-                shares[shareholder].amount = 0;
-            } else {
-                shares[shareholder].amount = amount;
-                shares[shareholder].heldAmount = amount;
-                totalShares = totalShares.add(amount);
-                //shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].amount);
-            }
-
-            shareholderExpired[shareholder] = 9999999999;
-        }
-
         //existing holder cashed out
         if(amount == 0 && shares[shareholder].heldAmount > 0) {          
 
@@ -318,6 +259,65 @@ contract DividendDistributor is IDividendDistributor {
                     shares[shareholder].heldAmount = 0;
                     shareholderExpired[shareholder] = block.timestamp;
                 }
+
+        }
+
+        //new holder
+        if(amount > 0 && shares[shareholder].heldAmount == 0){
+
+            if(shares[shareholder].unpaidDividends > minDistribution) {returnDividend(shareholder);}
+            if(shares[shareholder].unpaidDividends == 0) {addShareholder(shareholder);}
+
+            if (amount < minHoldAmountForRewards) {
+                shares[shareholder].heldAmount = amount;
+                shares[shareholder].amount = 0;
+            } else {
+                shares[shareholder].amount = amount;
+                shares[shareholder].heldAmount = amount;
+                totalShares = totalShares.add(amount);
+                //shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].amount);
+            }
+
+            shareholderExpired[shareholder] = 9999999999;
+        }
+
+        //existing holder balance changes
+        if(amount > 0 && shares[shareholder].heldAmount > 0){
+
+            //user bought more but already qualified for rewards
+            if (amount > minHoldAmountForRewards && shares[shareholder].heldAmount > minHoldAmountForRewards) {
+                if(shares[shareholder].unpaidDividends > minDistribution && shares[shareholder].heldAmount < amount) {returnDividend(shareholder);}
+                shares[shareholder].amount = amount;
+                totalShares = totalShares.sub(shares[shareholder].heldAmount).add(amount);
+                shares[shareholder].heldAmount = amount;
+                //shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].amount);
+                
+            }
+
+             //user bought more to qualify for rewards
+            if (amount > minHoldAmountForRewards && shares[shareholder].heldAmount < minHoldAmountForRewards) {
+                shares[shareholder].amount = amount;
+                totalShares = totalShares.add(amount);
+                //shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].heldAmount);
+                shares[shareholder].heldAmount = amount;
+            }
+
+            //user didn't have enough for rewards and doesn't now either
+            if (amount < minHoldAmountForRewards && shares[shareholder].heldAmount < minHoldAmountForRewards) {
+                shares[shareholder].heldAmount = amount;
+                shares[shareholder].amount = 0;
+            }
+
+            //user had enough for rewards previously but now dropped below
+            if (amount < minHoldAmountForRewards && shares[shareholder].heldAmount > minHoldAmountForRewards) {
+                shares[shareholder].unpaidDividends = getUnpaidEarnings(shareholder);
+                if(shares[shareholder].unpaidDividends > minDistribution) {
+                    totalShares = totalShares.sub(shares[shareholder].heldAmount);
+                    totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
+                    }
+                shares[shareholder].heldAmount = amount;
+                shares[shareholder].amount = 0;
+            }
 
         }
 
@@ -376,7 +376,7 @@ contract DividendDistributor is IDividendDistributor {
     }
 
     function shouldProcess(address shareholder) internal view returns (bool) {
-        return shares[shareholder].amount > 0 || shares[shareholder].heldAmount > 0;
+        return shares[shareholder].amount > 0;
     }
     
     function shouldDistribute(address shareholder) internal view returns (bool) {
