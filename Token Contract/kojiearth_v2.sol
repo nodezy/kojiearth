@@ -311,7 +311,9 @@ contract DividendDistributor is IDividendDistributor {
                 if(shares[shareholder].unpaidDividends > minDistribution) {
                     totalShares = totalShares.sub(shares[shareholder].heldAmount);
                     totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
-                    }
+                } else {
+                    totalShares = totalShares.sub(shares[shareholder].heldAmount);
+                }
                 shares[shareholder].heldAmount = amount;
                 shares[shareholder].amount = 0;
             }
