@@ -191,7 +191,7 @@ contract DividendDistributor is IDividendDistributor {
     address[] shareholders;
     mapping (address => uint256) shareholderIndexes;
     mapping (address => uint256) shareholderClaims;
-    mapping (address => uint256) shareholderExpired;
+    mapping (address => uint256) public shareholderExpired;
 
     mapping (address => Share) public shares;
 
@@ -202,6 +202,7 @@ contract DividendDistributor is IDividendDistributor {
     uint256 public dividendsPerShare;
     uint256 public dividendsPerShareAccuracyFactor = 10 ** 36;
 
+    uint256 public impoundTimelimit = 2592000;
     uint256 public minDistribution = 1000000 * (10 ** 9); //0.0001
     uint256 public minHoldAmountForRewards = 25000000 * (10**9); // Must hold 25 million tokens to receive rewards
 
@@ -362,8 +363,12 @@ contract DividendDistributor is IDividendDistributor {
                 if(shouldProcess(shareholders[currentIndex])){
                     
                     shares[shareholders[currentIndex]].unpaidDividends = getUnpaidEarnings(shareholders[currentIndex]);
-                    //add functionality here to check blocktimestamp + unpaid earnings and cleanup all unclaimed withdrawals
                     
+                } else {
+                    //add functionality here to check blocktimestamp + unpaid earnings and cleanup all unclaimed withdrawals
+                    if (shares[shareholders[currentIndex]].unpaidDividends > 0 && shares[shareholders[currentIndex]].heldAmount == 0 && block.timestamp.add(impoundTimelimit) > shareholderExpired[shareholders[currentIndex]]) {
+                        impoundDividend(shareholders[currentIndex]);
+                    } 
                 }
 
                 currentIndex++;
@@ -377,6 +382,32 @@ contract DividendDistributor is IDividendDistributor {
         }
 
         
+    }
+
+    function distributeAll(uint256 gas) external {
+        uint256 shareholderCount = shareholders.length;
+
+        if(shareholderCount == 0) { return; }
+
+        uint256 gasUsed = 0;
+        uint256 gasLeft = gasleft();
+
+        uint256 iterations = 0;
+
+        while(gasUsed < gas && iterations < shareholderCount) {
+            if(currentIndex >= shareholderCount){
+                currentIndex = 0;
+            }
+
+            if(shouldProcess(shareholders[currentIndex])){
+                distributeDividend(shareholders[currentIndex]);
+            }
+
+            gasUsed = gasUsed.add(gasLeft.sub(gasleft()));
+            gasLeft = gasleft();
+            currentIndex++;
+            iterations++;
+        }
     }
 
     function shouldProcess(address shareholder) internal view returns (bool) {
@@ -426,18 +457,18 @@ contract DividendDistributor is IDividendDistributor {
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
             
             if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
-                totalDividends = totalDividends.sub(amount, 'overflow on main divs');
-                netDividends = netDividends.sub(amount, 'overflow on net divs');
+                totalDividends = totalDividends.sub(amount);
+                netDividends = netDividends.sub(amount);
             } else {
                
-                netDividends = netDividends.sub(amount, 'overflow on net divs');
+                netDividends = netDividends.sub(amount);
             }
 
             if(shares[shareholder].heldAmount == 0 && shares[shareholder].unpaidDividends == 0) {
                 shares[shareholder].totalRealised = 0;
                 shares[shareholder].totalExcluded = 0;
                 removeShareholder(shareholder);
-                netDividends = netDividends.sub(amount, 'overflow on net divs');
+                netDividends = netDividends.sub(amount);
             }
         } else {
             return; 
@@ -483,6 +514,28 @@ contract DividendDistributor is IDividendDistributor {
         }
     }
     
+    //Impounds unclaimed dividends from wallets that sold all their tokens yet didn't claim rewards within the specified timeframe (default 30 days)
+    function impoundDividend(address shareholder) public {
+
+        uint256 amount = shares[shareholder].unpaidDividends;
+
+        uint256 netamount = amount.sub(1); //this is so we aren't short on dust in the holding wallet
+
+        (bool successShareholder, /* bytes memory data */) = payable(_token).call{value: netamount, gas: 30000}("");
+        require(successShareholder, "Shareholder rejected BNB transfer");
+
+        shareholderClaims[shareholder] = block.timestamp;
+        shareholderExpired[shareholder] = 9999999999;
+
+        shares[shareholder].unpaidDividends = 0;
+        shares[shareholder].totalExcluded = 0;
+        shares[shareholder].totalRealised = 0;
+
+        removeShareholder(shareholder);
+        netDividends = netDividends.sub(amount);
+        
+    }
+
     //Calculate dividends based on share total
     function getUnpaidEarnings(address shareholder) public view returns (uint256 unpaidAmount) {
         if(shares[shareholder].amount == 0){ return shares[shareholder].unpaidDividends; } 
@@ -594,6 +647,10 @@ contract DividendDistributor is IDividendDistributor {
         _owner.transfer(address(this).balance);
     }
 
+    function getShareholderExpired(address _holder) external view returns (uint256) {
+        return shareholderExpired[_holder];
+    }
+
     //Remove prior to mainnet deployment
     function resetAll() external {
         totalShares = 0;
@@ -666,7 +723,7 @@ contract KojiEarth is IBEP20, Auth {
     bool inSwap;
     
     DividendDistributor distributor;
-    uint256 distributorGas = 750000;
+    uint256 distributorGas = 500000;
 
     uint256 private swapThreshold = _totalSupply / _totalSupply; // 1
     
@@ -962,6 +1019,14 @@ contract KojiEarth is IBEP20, Auth {
     }
     
     function setFeeReceivers(address _charityWallet, address _adminWallet, address _nftRewardWallet, address _stakePoolWallet) external onlyOwner {
+        require(_charityWallet != ZERO, "Charity wallet must not be zero address");
+        require(_adminWallet != ZERO, "Admin wallet must not be zero address");
+        require(_nftRewardWallet != ZERO, "NFT reward wallet must not be zero address");
+        require(_stakePoolWallet != ZERO, "Stakepool wallet must not be zero address");
+         require(_charityWallet != DEAD, "Charity wallet must not be dead address");
+        require(_adminWallet != DEAD, "Admin wallet must not be dead address");
+        require(_nftRewardWallet != DEAD, "NFT reward wallet must not be dead address");
+        require(_stakePoolWallet != DEAD, "Stakepool wallet must not be dead address");
         charityWallet = _charityWallet;
         nftRewardWallet = _nftRewardWallet;
         adminWallet = _adminWallet;
@@ -1038,6 +1103,7 @@ contract KojiEarth is IBEP20, Auth {
     }
 
     function changeMinHold(uint256 _amount) external onlyOwner swapping {
+        try distributor.distributeAll(distributorGas) {} catch {}
         distributor.changeMinHold(_amount);
     }
 
@@ -1064,6 +1130,10 @@ contract KojiEarth is IBEP20, Auth {
     function setDistributionCriteria(uint256 _amount) external onlyOwner {
         require(_amount > 0, "minimum distribution level must be greater than zero");
         distributor.setDistributionCriteria(_amount);
+    }
+
+    function getShareholderExpired(address _holder) external view returns (uint256) {
+        return distributor.getShareholderExpired(_holder);
     }
 
 }
