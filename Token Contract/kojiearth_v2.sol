@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.6;
 
-//import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * Standard SafeMath, stripped down to just add/sub/mul/div
@@ -99,6 +98,12 @@ abstract contract Auth {
     event OwnershipTransferred(address owner);
 }
 
+// This is to create our pair on contract creation
+interface IDEXFactory {
+    function createPair(address tokenA, address tokenB) external returns (address pair);
+}
+
+// This is so we can convert some rewards to WETH and deposit into the pair directly
 interface IWETH {
     function deposit() external payable;
     function transfer(address to, uint value) external returns (bool);
@@ -107,10 +112,7 @@ interface IWETH {
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
 }
 
-interface IDEXFactory {
-    function createPair(address tokenA, address tokenB) external returns (address pair);
-}
-
+// This is so we can swap/reinvest right from the contract using the pair the factory created (router must support FeeOnTransfer)
 interface IDEXRouter {
     function factory() external pure returns (address);
     function WETH() external pure returns (address);
@@ -159,6 +161,7 @@ interface IDEXRouter {
     ) external;
 }
 
+// Interface for the internal distributor
 interface IDividendDistributor {
     function setDistributionCriteria(uint256 _minDistribution) external;
     function setShare(address shareholder, uint256 amount) external;
@@ -200,7 +203,7 @@ contract DividendDistributor is IDividendDistributor {
     uint256 public dividendsPerShareAccuracyFactor = 10 ** 36;
 
     uint256 public minDistribution = 1000000 * (10 ** 9); //0.0001
-    uint256 public minHoldAmountForRewards = 25000000 * (10**9); // Must hold 25 million tokens to receive BNB rewards.
+    uint256 public minHoldAmountForRewards = 25000000 * (10**9); // Must hold 25 million tokens to receive rewards
 
     uint256 currentIndex;
 
@@ -222,7 +225,7 @@ contract DividendDistributor is IDividendDistributor {
     constructor (address _router, address _dividendToken) {
         router = _router != address(0)
             ? IDEXRouter(_router)
-            : IDEXRouter(0xCc7aDc94F3D80127849D2b41b6439b7CF1eB4Ae0);  // 0x10ED43C718714eb63d5aA57B78B54704E256024E  0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
+            : IDEXRouter(0xCc7aDc94F3D80127849D2b41b6439b7CF1eB4Ae0);  //Pancake v2: 0x10ED43C718714eb63d5aA57B78B54704E256024E Uniswap: 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
         _token = msg.sender;
         dividendToken = IBEP20(_dividendToken);
         WETH = router.WETH();
@@ -330,13 +333,15 @@ contract DividendDistributor is IDividendDistributor {
 
         didDeposit = true;
 
-        if (firstRun) {
+        //In case first transaction is a sell, we can get divs per share right away (typically handled on the buy side)
+        if (firstRun) { 
             dividendsPerShare = dividendsPerShareAccuracyFactor.mul(totalDividends).div(totalShares);
             firstRun = false;
             }
         
     }
 
+    //After each buy, this function refactors the dividends of the holders above the min threshold
     function process() external override onlyToken {
         uint256 shareholderCount = shareholders.length;
 
@@ -378,8 +383,8 @@ contract DividendDistributor is IDividendDistributor {
         return shares[shareholder].amount > 0;
     }
     
-    
-     function returnDividend(address shareholder) public {
+    //For holders that buy more we return their dividends to them and reset their total shares going forward
+    function returnDividend(address shareholder) public {
         
         uint256 amount = shares[shareholder].unpaidDividends;
         
@@ -403,7 +408,7 @@ contract DividendDistributor is IDividendDistributor {
     }
      
 
-
+     //withdraw dividends
      function distributeDividend(address shareholder) public {
         
         uint256 amount = shares[shareholder].unpaidDividends;
@@ -439,6 +444,7 @@ contract DividendDistributor is IDividendDistributor {
         }
     }
 
+    //Reinvest dividends
     function reinvestDividend(address shareholder) public {
         
         uint256 amount = shares[shareholder].unpaidDividends;
@@ -477,6 +483,7 @@ contract DividendDistributor is IDividendDistributor {
         }
     }
     
+    //Calculate dividends based on share total
     function getUnpaidEarnings(address shareholder) public view returns (uint256 unpaidAmount) {
         if(shares[shareholder].amount == 0){ return shares[shareholder].unpaidDividends; } 
         else {
@@ -487,6 +494,10 @@ contract DividendDistributor is IDividendDistributor {
                 
         }
         
+    }
+
+    function getUnpaidDividends(address shareholder) public view returns (uint256 unpaidDividends) {
+        return shares[shareholder].unpaidDividends;
     }
 
     function getCumulativeDividends(uint256 share) internal view returns (uint256) {
@@ -513,6 +524,7 @@ contract DividendDistributor is IDividendDistributor {
         return address(dividendToken);
     }
 
+    //Change the min hold requirement for rewards. Must distribute all divs prior to this function being called
     function changeMinHold(uint256 _amount) external {
 
         require(_amount > minHoldAmountForRewards || _amount < minHoldAmountForRewards, "The new threshold must be higher or lower than current, not equal to");
@@ -553,7 +565,7 @@ contract DividendDistributor is IDividendDistributor {
                 if(shares[shareholders[currentIndex]].heldAmount > _amount) {
                     shares[shareholders[currentIndex]].amount = shares[shareholders[currentIndex]].heldAmount;
                     totalShares = totalShares.add(shares[shareholders[currentIndex]].heldAmount);
-                    shares[shareholders[currentIndex]].totalExcluded = getCumulativeDividends(shares[shareholders[currentIndex]].amount);
+                    
                 }
 
                 currentIndex++;
@@ -576,12 +588,13 @@ contract DividendDistributor is IDividendDistributor {
         return (totalShares, totalDividends, netDividends, totalDistributed, dividendsPerShare, dividendsPerShareAccuracyFactor);
     }
 
-    // This will allow to rescue ETH held in the interface address
+    // This will allow to rescue ETH held in the distributor interface address
     function rescueETHFromContract() external {
         address payable _owner = payable(_token);
         _owner.transfer(address(this).balance);
     }
 
+    //Remove prior to mainnet deployment
     function resetAll() external {
         totalShares = 0;
         totalDividends = 0;
@@ -599,9 +612,10 @@ contract KojiEarth is IBEP20, Auth {
     address DEAD = 0x000000000000000000000000000000000000dEaD;
     address ZERO = 0x0000000000000000000000000000000000000000;
 
+    IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI";
+    string constant _symbol = "KOJI Beta v1.0";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
@@ -628,6 +642,7 @@ contract KojiEarth is IBEP20, Auth {
     uint256 burnFee = 10;
     uint256 burnRatio = 167;
     uint256 taxRatio = 150;
+
     uint256 public totalFee = 60;
     uint256 public feeDenominator = 1000;
     uint256 public WETHaddedToPool;
@@ -638,31 +653,29 @@ contract KojiEarth is IBEP20, Auth {
     address public stakePoolWallet;
 
     IDEXRouter public router;
-    IWETH public WETHrouter;
+    
     address public pair;
 
     uint256 public launchedAt;
 
+    bool public swapEnabled = true;
     bool public stakePoolActive = false;
     bool public distributorDeposit = true;
     bool public teamWalletDeposit = true;
     bool public addToLiquid = true;
-    bool public iwethsection = true;
-    bool public swapsection = true;
-    bool public burnsection = true;
-
-    DividendDistributor distributor;
-    //uint256 distributorGas = 750000;
-
-    bool public swapEnabled = true;
-    uint256 private swapThreshold = _totalSupply / _totalSupply; // 1
     bool inSwap;
+    
+    DividendDistributor distributor;
+    uint256 distributorGas = 750000;
+
+    uint256 private swapThreshold = _totalSupply / _totalSupply; // 1
+    
     modifier swapping() { inSwap = true; _; inSwap = false; }
 
     constructor () Auth(msg.sender) {
         router = IDEXRouter(0xCc7aDc94F3D80127849D2b41b6439b7CF1eB4Ae0);
-        //router = IDEXRouter(0x10ED43C718714eb63d5aA57B78B54704E256024E); //main  
-        //router = IDEXRouter(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D); //test
+        //router = IDEXRouter(0x10ED43C718714eb63d5aA57B78B54704E256024E); //pcs  
+        //router = IDEXRouter(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D); //uni
             
         address _presaler = msg.sender;
             
@@ -846,7 +859,7 @@ contract KojiEarth is IBEP20, Auth {
 
         //set the total shares
         if (distributorDeposit) {
-            //try distributor.deposit(amountBNBReflection) {} catch {}
+
             try distributor.deposit{value: amountBNBReflection}() {} catch {}
         }
         
@@ -981,23 +994,15 @@ contract KojiEarth is IBEP20, Auth {
         addToLiquid = _status;
     }
 
-    function setiwethsection(bool _status) external onlyOwner {
-        iwethsection = _status;
-    }
-
-    function setswapsection(bool _status) external onlyOwner {
-        swapsection = _status;
-    }
-    
-    function setburnsection(bool _status) external onlyOwner {
-        burnsection = _status;
-    }
-    
-
     // This will allow to rescue ETH sent by mistake directly to the contract
     function rescueETHFromContract() external onlyOwner {
         address payable _owner = payable(msg.sender);
         _owner.transfer(address(this).balance);
+    }
+
+    // This allows us to get any ETH out of the distributor address (in case of rewards reset)
+    function rescueETHfromDistributor() external onlyOwner {
+        distributor.rescueETHFromContract();
     }
 
     // Function to allow admin to claim *other* ERC20 tokens sent to this contract (by mistake)
@@ -1007,7 +1012,7 @@ contract KojiEarth is IBEP20, Auth {
     }
 
     function getPending(address _holder) external view returns (uint256 pending) {
-        return distributor.getUnpaidEarnings(_holder);
+        return distributor.getUnpaidDividends(_holder);
     }
 
     function withdrawal() external {
@@ -1021,11 +1026,7 @@ contract KojiEarth is IBEP20, Auth {
     function setburnRatio(uint256 _amount) external onlyOwner {
         require(_amount <= 500, "burn ratio cannot be more than 50 percent of total tax");
         taxRatio = _amount;
-    }
-
-    function rescueETHfromDistributor() external onlyOwner {
-        distributor.rescueETHFromContract();
-    }
+    } 
 
     function resetAll() external onlyOwner {
         distributor.resetAll();
@@ -1048,7 +1049,6 @@ contract KojiEarth is IBEP20, Auth {
         return distributor.holderInfo(_address);
     }
     
-    //totalShares, totalDividends, totalDistributed, dividendsPerShare, dividendsPerShareAccuracyFactor
     function viewMathInfo() external view returns (uint256 totalshares, uint256 totaldividends, uint256 netdividends, uint256 totaldistributed, uint256 dividendspershare, uint256 accuracyfactor) {
         return distributor.mathInfo();
     }
