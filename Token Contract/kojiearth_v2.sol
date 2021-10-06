@@ -342,6 +342,10 @@ contract DividendDistributor is IDividendDistributor {
         
     }
 
+    function shouldProcess(address shareholder) internal view returns (bool) {
+        return shares[shareholder].amount > 0;
+    }
+
     //After each buy, this function refactors the dividends of the holders above the min threshold
     function process() external override onlyToken {
         uint256 shareholderCount = shareholders.length;
@@ -364,12 +368,7 @@ contract DividendDistributor is IDividendDistributor {
                     
                     shares[shareholders[currentIndex]].unpaidDividends = getUnpaidEarnings(shareholders[currentIndex]);
                     
-                } else {
-                    //add functionality here to check blocktimestamp + unpaid earnings and cleanup all unclaimed withdrawals
-                    if (shares[shareholders[currentIndex]].unpaidDividends > 0 && shares[shareholders[currentIndex]].heldAmount == 0 && block.timestamp.add(impoundTimelimit) > shareholderExpired[shareholders[currentIndex]]) {
-                        impoundDividend(shareholders[currentIndex]);
-                    } 
-                }
+                } 
 
                 currentIndex++;
                 iterations++;
@@ -381,6 +380,31 @@ contract DividendDistributor is IDividendDistributor {
             return; 
         }
 
+        
+    }
+
+    function sweep() public {
+        uint256 shareholderCount = shareholders.length;
+
+        if(shareholderCount == 0) { return; }
+
+        uint256 iterations = 0;
+        currentIndex = 0;
+    
+        while(iterations < shareholderCount) {
+            if(currentIndex >= shareholderCount){
+                currentIndex = 0;
+            }
+
+                if (shouldProcess(shareholders[currentIndex]) 
+                    && shares[shareholders[currentIndex]].heldAmount == 0 
+                    && block.timestamp.add(impoundTimelimit) > shareholderExpired[shareholders[currentIndex]]) {
+                    impoundDividend(shareholders[currentIndex]);
+                } 
+
+            currentIndex++;
+            iterations++;
+        }
         
     }
 
@@ -410,9 +434,6 @@ contract DividendDistributor is IDividendDistributor {
         }
     }
 
-    function shouldProcess(address shareholder) internal view returns (bool) {
-        return shares[shareholder].amount > 0;
-    }
     
     //For holders that buy more we return their dividends to them and reset their total shares going forward
     function returnDividend(address shareholder) public {
@@ -615,11 +636,14 @@ contract DividendDistributor is IDividendDistributor {
                 }
 
                 //if holder now qualifies
-                if(shares[shareholders[currentIndex]].heldAmount > _amount) {
-                    shares[shareholders[currentIndex]].amount = shares[shareholders[currentIndex]].heldAmount;
-                    totalShares = totalShares.add(shares[shareholders[currentIndex]].heldAmount);
+                if(shares[shareholders[currentIndex]].heldAmount > 0 && shares[shareholders[currentIndex]].amount == 0) {
+                    if(shares[shareholders[currentIndex]].heldAmount > _amount) {
+                        shares[shareholders[currentIndex]].amount = shares[shareholders[currentIndex]].heldAmount;
+                        totalShares = totalShares.add(shares[shareholders[currentIndex]].heldAmount);
                     
+                    }
                 }
+                
 
                 currentIndex++;
                 iterations++;
@@ -651,6 +675,10 @@ contract DividendDistributor is IDividendDistributor {
         return shareholderExpired[_holder];
     }
 
+    function changeImpoundTimelimit(uint256 _timelimit) external {
+        impoundTimelimit = _timelimit;
+    }
+
     //Remove prior to mainnet deployment
     function resetAll() external {
         totalShares = 0;
@@ -672,7 +700,7 @@ contract KojiEarth is IBEP20, Auth {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI Beta v1.0";
+    string constant _symbol = "KOJI Beta v1.02";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
@@ -754,8 +782,8 @@ contract KojiEarth is IBEP20, Auth {
 
         charityWallet = 0x3E596691f96f44055a3718c10C37Fc093998EC74;
         adminWallet = 0x6A3Ca89608c2c9153daddb93589Fe27A98C30639;
-        stakePoolWallet = 0xe4C97046c10ba4C1803403Df78cFe3a2E3481722;
         nftRewardWallet = 0x105ae2202A44b3C81C7865B508765Ae4E4b2c033;
+        stakePoolWallet = 0xe4C97046c10ba4C1803403Df78cFe3a2E3481722;
 
         _balances[_presaler] = _totalSupply;
         emit Transfer(address(0), _presaler, _totalSupply);
@@ -1136,4 +1164,15 @@ contract KojiEarth is IBEP20, Auth {
         return distributor.getShareholderExpired(_holder);
     }
 
+    function changeImpoundTimelimit(uint256 _timelimit) external onlyOwner {
+        distributor.changeImpoundTimelimit(_timelimit);
+    }
+
+    function sweepDivs() external onlyOwner {
+        distributor.sweep();
+    }
+
+    function setStakePoolActive(bool _status) external onlyOwner {
+        stakePoolActive = _status; 
+    }
 }
