@@ -396,7 +396,7 @@ contract DividendDistributor is IDividendDistributor {
                 currentIndex = 0;
             }
 
-                if (shouldProcess(shareholders[currentIndex]) 
+                if (!shouldProcess(shareholders[currentIndex]) 
                     && shares[shareholders[currentIndex]].heldAmount == 0 
                     && block.timestamp.add(impoundTimelimit) > shareholderExpired[shareholders[currentIndex]]) {
                     impoundDividend(shareholders[currentIndex]);
@@ -700,7 +700,7 @@ contract KojiEarth is IBEP20, Auth {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI Beta v1.02";
+    string constant _symbol = "KOJI Beta v1.03";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
