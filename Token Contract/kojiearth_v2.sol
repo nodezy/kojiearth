@@ -289,7 +289,10 @@ contract DividendDistributor is IDividendDistributor {
 
             //user bought/sold more but still qualifies for rewards
             if (amount > minHoldAmountForRewards && shares[shareholder].heldAmount > minHoldAmountForRewards) {
-                if(shares[shareholder].unpaidDividends > minDistribution) {returnDividend(shareholder);}
+                if(shares[shareholder].unpaidDividends > minDistribution) {
+                    totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
+                    returnDividend(shareholder);
+                    }
                 shares[shareholder].amount = amount;
                 totalShares = totalShares.sub(shares[shareholder].heldAmount).add(amount);
                 shares[shareholder].heldAmount = amount;
