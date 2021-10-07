@@ -245,8 +245,6 @@ contract DividendDistributor is IDividendDistributor {
         //existing holder cashed out
         if(amount == 0 && shares[shareholder].heldAmount > 0) {          
 
-                //if(shares[shareholder].unpaidDividends == 0){shares[shareholder].unpaidDividends = getUnpaidEarnings(shareholder);}
-                
                 if(shares[shareholder].unpaidDividends < minDistribution){
                     if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
                         totalShares = totalShares.sub(shares[shareholder].heldAmount);
@@ -259,7 +257,7 @@ contract DividendDistributor is IDividendDistributor {
                 } else {
                     if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
                         totalShares = totalShares.sub(shares[shareholder].heldAmount);
-                        //totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
+                        totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
                     }
                     shares[shareholder].amount = 0;
                     shares[shareholder].heldAmount = 0;
@@ -312,12 +310,12 @@ contract DividendDistributor is IDividendDistributor {
 
             //user had enough for rewards previously but now dropped below
             if (amount < minHoldAmountForRewards && shares[shareholder].heldAmount > minHoldAmountForRewards) {
-                //if(shares[shareholder].unpaidDividends > minDistribution) {
+                if(shares[shareholder].unpaidDividends > minDistribution) {
                     totalShares = totalShares.sub(shares[shareholder].heldAmount);
-                    //totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
-                //} else {
-                   // totalShares = totalShares.sub(shares[shareholder].heldAmount);
-                //}
+                    totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
+                } else {
+                    totalShares = totalShares.sub(shares[shareholder].heldAmount);
+                }
                 shares[shareholder].heldAmount = amount;
                 shares[shareholder].amount = 0;
             }
@@ -452,7 +450,6 @@ contract DividendDistributor is IDividendDistributor {
             shares[shareholder].unpaidDividends = 0;
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
 
-            totalDividends = totalDividends.sub(amount);
             netDividends = netDividends.sub(amount);
         } else {
             return; 
@@ -477,19 +474,19 @@ contract DividendDistributor is IDividendDistributor {
             shares[shareholder].unpaidDividends = 0;
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
             
-            //if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
+            if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
                 totalDividends = totalDividends.sub(amount);
                 netDividends = netDividends.sub(amount);
-           // } else {
+            } else {
                
-               // netDividends = netDividends.sub(amount);
-            //}
+                netDividends = netDividends.sub(amount);
+            }
 
             if(shares[shareholder].heldAmount == 0 && shares[shareholder].unpaidDividends == 0) {
                 shares[shareholder].totalRealised = 0;
                 shares[shareholder].totalExcluded = 0;
                 removeShareholder(shareholder);
-              //  netDividends = netDividends.sub(amount);
+              
             }
         } else {
             return; 
@@ -509,13 +506,13 @@ contract DividendDistributor is IDividendDistributor {
             shares[shareholder].unpaidDividends = 0; 
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
 
-            //if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
+            if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
                 totalDividends = totalDividends.sub(amount);
                 netDividends = netDividends.sub(amount);
-            //} else {
+            } else {
                
-               // netDividends = netDividends.sub(amount);
-            //}
+                netDividends = netDividends.sub(amount);
+            }
             
 
             address[] memory path = new address[](2);
@@ -552,7 +549,6 @@ contract DividendDistributor is IDividendDistributor {
         shares[shareholder].totalExcluded = 0;
         shares[shareholder].totalRealised = 0;
 
-        totalDividends = totalDividends.sub(amount);
         netDividends = netDividends.sub(amount);
 
         removeShareholder(shareholder);
@@ -704,7 +700,7 @@ contract KojiEarth is IBEP20, Auth {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI Beta v1.03";
+    string constant _symbol = "KOJI Beta v1.04";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
