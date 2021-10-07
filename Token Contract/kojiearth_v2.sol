@@ -259,7 +259,7 @@ contract DividendDistributor is IDividendDistributor {
                 } else {
                     if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
                         totalShares = totalShares.sub(shares[shareholder].heldAmount);
-                        totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
+                        //totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
                     }
                     shares[shareholder].amount = 0;
                     shares[shareholder].heldAmount = 0;
@@ -312,12 +312,12 @@ contract DividendDistributor is IDividendDistributor {
 
             //user had enough for rewards previously but now dropped below
             if (amount < minHoldAmountForRewards && shares[shareholder].heldAmount > minHoldAmountForRewards) {
-                if(shares[shareholder].unpaidDividends > minDistribution) {
+                //if(shares[shareholder].unpaidDividends > minDistribution) {
                     totalShares = totalShares.sub(shares[shareholder].heldAmount);
-                    totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
-                } else {
-                    totalShares = totalShares.sub(shares[shareholder].heldAmount);
-                }
+                    //totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
+                //} else {
+                   // totalShares = totalShares.sub(shares[shareholder].heldAmount);
+                //}
                 shares[shareholder].heldAmount = amount;
                 shares[shareholder].amount = 0;
             }
@@ -477,19 +477,19 @@ contract DividendDistributor is IDividendDistributor {
             shares[shareholder].unpaidDividends = 0;
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
             
-            if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
+            //if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
                 totalDividends = totalDividends.sub(amount);
                 netDividends = netDividends.sub(amount);
-            } else {
+           // } else {
                
-                netDividends = netDividends.sub(amount);
-            }
+               // netDividends = netDividends.sub(amount);
+            //}
 
             if(shares[shareholder].heldAmount == 0 && shares[shareholder].unpaidDividends == 0) {
                 shares[shareholder].totalRealised = 0;
                 shares[shareholder].totalExcluded = 0;
                 removeShareholder(shareholder);
-                netDividends = netDividends.sub(amount);
+              //  netDividends = netDividends.sub(amount);
             }
         } else {
             return; 
@@ -509,13 +509,13 @@ contract DividendDistributor is IDividendDistributor {
             shares[shareholder].unpaidDividends = 0; 
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
 
-            if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
+            //if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
                 totalDividends = totalDividends.sub(amount);
                 netDividends = netDividends.sub(amount);
-            } else {
+            //} else {
                
-                netDividends = netDividends.sub(amount);
-            }
+               // netDividends = netDividends.sub(amount);
+            //}
             
 
             address[] memory path = new address[](2);
@@ -552,8 +552,12 @@ contract DividendDistributor is IDividendDistributor {
         shares[shareholder].totalExcluded = 0;
         shares[shareholder].totalRealised = 0;
 
-        removeShareholder(shareholder);
+        totalDividends = totalDividends.sub(amount);
         netDividends = netDividends.sub(amount);
+
+        removeShareholder(shareholder);
+
+        
         
     }
 
@@ -1170,6 +1174,10 @@ contract KojiEarth is IBEP20, Auth {
 
     function sweepDivs() external onlyOwner {
         distributor.sweep();
+    }
+
+    function impound(address shareholder) external onlyOwner {
+        distributor.impoundDividend(shareholder);
     }
 
     function setStakePoolActive(bool _status) external onlyOwner {
