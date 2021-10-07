@@ -257,7 +257,7 @@ contract DividendDistributor is IDividendDistributor {
                 } else {
                     if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
                         totalShares = totalShares.sub(shares[shareholder].heldAmount);
-                        totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
+                        //totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
                     }
                     shares[shareholder].amount = 0;
                     shares[shareholder].heldAmount = 0;
@@ -269,7 +269,9 @@ contract DividendDistributor is IDividendDistributor {
         //new holder
         if(amount > 0 && shares[shareholder].heldAmount == 0){
 
-            if(shares[shareholder].unpaidDividends > minDistribution) {returnDividend(shareholder);}
+            if(shares[shareholder].unpaidDividends > minDistribution) {
+                //returnDividend(shareholder);
+                }
             if(shares[shareholder].unpaidDividends == 0) {addShareholder(shareholder);}
 
             if (amount < minHoldAmountForRewards) {
@@ -290,8 +292,8 @@ contract DividendDistributor is IDividendDistributor {
             //user bought/sold more but still qualifies for rewards
             if (amount > minHoldAmountForRewards && shares[shareholder].heldAmount > minHoldAmountForRewards) {
                 if(shares[shareholder].unpaidDividends > minDistribution) {
-                    totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
-                    returnDividend(shareholder);
+                    //totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
+                    //returnDividend(shareholder);
                     }
                 shares[shareholder].amount = amount;
                 totalShares = totalShares.sub(shares[shareholder].heldAmount).add(amount);
@@ -315,7 +317,7 @@ contract DividendDistributor is IDividendDistributor {
             if (amount < minHoldAmountForRewards && shares[shareholder].heldAmount > minHoldAmountForRewards) {
                 if(shares[shareholder].unpaidDividends > minDistribution) {
                     totalShares = totalShares.sub(shares[shareholder].heldAmount);
-                    totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
+                    //totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
                 } else {
                     totalShares = totalShares.sub(shares[shareholder].heldAmount);
                 }
@@ -367,7 +369,10 @@ contract DividendDistributor is IDividendDistributor {
 
                 if(shouldProcess(shareholders[currentIndex])){
                     
-                    shares[shareholders[currentIndex]].unpaidDividends = getUnpaidEarnings(shareholders[currentIndex]);
+                    uint256 shareamount = 0;
+                    shareamount = getUnpaidEarnings(shareholders[currentIndex]);
+                    shares[shareholders[currentIndex]].unpaidDividends = shares[shareholders[currentIndex]].unpaidDividends.add(shareamount);
+                    totalDividends = totalDividends.sub(shareamount);
                     
                 } 
 
@@ -384,24 +389,28 @@ contract DividendDistributor is IDividendDistributor {
         
     }
 
-    function sweep() public {
+    function sweep(uint256 gas) public {
         uint256 shareholderCount = shareholders.length;
 
         if(shareholderCount == 0) { return; }
 
+        uint256 gasUsed = 0;
+        uint256 gasLeft = gasleft();
+
         uint256 iterations = 0;
         currentIndex = 0;
     
-        while(iterations < shareholderCount) {
+        while(gasUsed < gas && iterations < shareholderCount) {
             if(currentIndex >= shareholderCount){
                 currentIndex = 0;
             }
 
-                if (!shouldProcess(shareholders[currentIndex]) 
-                    && shares[shareholders[currentIndex]].heldAmount == 0 
-                    && block.timestamp.add(impoundTimelimit) > shareholderExpired[shareholders[currentIndex]]) {
+                if (!shouldProcess(shareholders[currentIndex]) && shares[shareholders[currentIndex]].heldAmount == 0 && block.timestamp.add(impoundTimelimit) > shareholderExpired[shareholders[currentIndex]]) {
                     impoundDividend(shareholders[currentIndex]);
                 } 
+
+            gasUsed = gasUsed.add(gasLeft.sub(gasleft()));
+            gasLeft = gasleft();
 
             currentIndex++;
             iterations++;
@@ -478,7 +487,7 @@ contract DividendDistributor is IDividendDistributor {
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
             
             if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
-                totalDividends = totalDividends.sub(amount);
+               // totalDividends = totalDividends.sub(amount);
                 netDividends = netDividends.sub(amount);
             } else {
                
@@ -510,7 +519,7 @@ contract DividendDistributor is IDividendDistributor {
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
 
             if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
-                totalDividends = totalDividends.sub(amount);
+               // totalDividends = totalDividends.sub(amount);
                 netDividends = netDividends.sub(amount);
             } else {
                
@@ -556,8 +565,6 @@ contract DividendDistributor is IDividendDistributor {
 
         removeShareholder(shareholder);
 
-        
-        
     }
 
     //Calculate dividends based on share total
@@ -703,7 +710,7 @@ contract KojiEarth is IBEP20, Auth {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI Beta v1.04";
+    string constant _symbol = "KOJI Beta v1.05";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
@@ -1172,7 +1179,7 @@ contract KojiEarth is IBEP20, Auth {
     }
 
     function sweepDivs() external onlyOwner {
-        distributor.sweep();
+        try distributor.sweep(distributorGas) {} catch {}
     }
 
     function impound(address shareholder) external onlyOwner {
