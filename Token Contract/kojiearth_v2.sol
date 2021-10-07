@@ -202,7 +202,7 @@ contract DividendDistributor is IDividendDistributor {
     uint256 public dividendsPerShare;
     uint256 public dividendsPerShareAccuracyFactor = 10 ** 36;
 
-    uint256 public impoundTimelimit = 2592000;
+    uint256 public impoundTimelimit = 2592000; //1 month default
     uint256 public minDistribution = 1000000 * (10 ** 9); //0.0001
     uint256 public minHoldAmountForRewards = 25000000 * (10**9); // Must hold 25 million tokens to receive rewards
 
@@ -257,7 +257,6 @@ contract DividendDistributor is IDividendDistributor {
                 } else {
                     if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
                         totalShares = totalShares.sub(shares[shareholder].heldAmount);
-                        //totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
                     }
                     shares[shareholder].amount = 0;
                     shares[shareholder].heldAmount = 0;
@@ -269,9 +268,6 @@ contract DividendDistributor is IDividendDistributor {
         //new holder
         if(amount > 0 && shares[shareholder].heldAmount == 0){
 
-            if(shares[shareholder].unpaidDividends > minDistribution) {
-                //returnDividend(shareholder);
-                }
             if(shares[shareholder].unpaidDividends == 0) {addShareholder(shareholder);}
 
             if (amount < minHoldAmountForRewards) {
@@ -291,10 +287,6 @@ contract DividendDistributor is IDividendDistributor {
 
             //user bought/sold more but still qualifies for rewards
             if (amount > minHoldAmountForRewards && shares[shareholder].heldAmount > minHoldAmountForRewards) {
-                if(shares[shareholder].unpaidDividends > minDistribution) {
-                    //totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
-                    //returnDividend(shareholder);
-                    }
                 shares[shareholder].amount = amount;
                 totalShares = totalShares.sub(shares[shareholder].heldAmount).add(amount);
                 shares[shareholder].heldAmount = amount;
@@ -316,9 +308,6 @@ contract DividendDistributor is IDividendDistributor {
             //user had enough for rewards previously but now dropped below
             if (amount < minHoldAmountForRewards && shares[shareholder].heldAmount > minHoldAmountForRewards) {
                 if(shares[shareholder].unpaidDividends > minDistribution) {
-                    totalShares = totalShares.sub(shares[shareholder].heldAmount);
-                    //totalDividends = totalDividends.sub(shares[shareholder].unpaidDividends);
-                } else {
                     totalShares = totalShares.sub(shares[shareholder].heldAmount);
                 }
                 shares[shareholder].heldAmount = amount;
@@ -444,31 +433,6 @@ contract DividendDistributor is IDividendDistributor {
         }
     }
 
-    
-    //For holders that buy more we return their dividends to them and reset their total shares going forward
-    function returnDividend(address shareholder) public {
-        
-        uint256 amount = shares[shareholder].unpaidDividends;
-        
-        if(amount > 0){
-            
-            uint256 netamount = amount.sub(1); //this is so we aren't short on dust in the holding wallet
-
-            totalDistributed = totalDistributed.add(netamount);
-
-            (bool successShareholder, /* bytes memory data */) = payable(shareholder).call{value: netamount, gas: 30000}("");
-            require(successShareholder, "Shareholder rejected BNB transfer");
-            shareholderClaims[shareholder] = block.timestamp;
-            shares[shareholder].unpaidDividends = 0;
-            shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
-
-            netDividends = netDividends.sub(amount);
-        } else {
-            return; 
-        }
-    }
-     
-
      //withdraw dividends
      function distributeDividend(address shareholder) public {
         
@@ -487,9 +451,6 @@ contract DividendDistributor is IDividendDistributor {
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
             
             if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
-               // totalDividends = totalDividends.sub(amount);
-                netDividends = netDividends.sub(amount);
-            } else {
                
                 netDividends = netDividends.sub(amount);
             }
@@ -519,9 +480,6 @@ contract DividendDistributor is IDividendDistributor {
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
 
             if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
-               // totalDividends = totalDividends.sub(amount);
-                netDividends = netDividends.sub(amount);
-            } else {
                
                 netDividends = netDividends.sub(amount);
             }
