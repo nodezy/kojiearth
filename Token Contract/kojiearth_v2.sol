@@ -701,14 +701,8 @@ contract KojiEarth is IBEP20, Auth {
 
     uint256 initialBlockLimit = 1;
     
-    uint256 reflectionFee = 10;
-    uint256 adminFee = 10;
-    uint256 charityFee = 10;
-    uint256 buybackFee = 10;
-    uint256 cakeFee = 10;
-    uint256 burnFee = 10;
-    uint256 burnRatio = 167;
-    uint256 taxRatio = 150;
+    uint256 public burnRatio = 167;
+    uint256 public taxRatio = 150;
 
     uint256 public totalFee = 60;
     uint256 public feeDenominator = 1000;
@@ -1030,16 +1024,12 @@ contract KojiEarth is IBEP20, Auth {
         isTxLimitExempt[holder] = exempt;
     }
 
-    function setFees(uint256 _reflectionFee, uint256 _adminFee, uint256 _charityFee, uint256 _buybackFee, uint256 _cakeFee, uint256 _burnFee) external onlyOwner {
-        reflectionFee = _reflectionFee;
-        charityFee = _charityFee;
-        buybackFee = _buybackFee;
-        cakeFee = _cakeFee;
-        burnFee = _burnFee;
-        adminFee = _adminFee;
-        totalFee = _reflectionFee.add(_adminFee).add(_charityFee).add(_buybackFee).add(_cakeFee).add(_burnFee);
+    function setFee(uint256 _totalFee) external onlyOwner {
+        
         //Total fees has to be less than 10%
-        require(totalFee < feeDenominator/10, "Total Fee cannot be more than 10%");
+        require(_totalFee < feeDenominator/10, "Total Fee cannot be more than 10%");
+        totalFee = _totalFee;
+        
     }
     
     function setFeeReceivers(address _charityWallet, address _adminWallet, address _nftRewardWallet, address _stakePoolWallet) external onlyOwner {
@@ -1056,10 +1046,6 @@ contract KojiEarth is IBEP20, Auth {
         adminWallet = _adminWallet;
         stakePoolWallet = _stakePoolWallet;
 
-    }
-    
-    function getFees() public view returns (uint256 holders, uint256 admin, uint256 charity, uint256 buyback, uint256 nftrewards, uint256 burn) {
-        return (reflectionFee, adminFee, charityFee, buybackFee, cakeFee, burnFee);
     }
     
     function setSwapBackSettings(bool _enabled, uint256 _amount) external onlyOwner {
