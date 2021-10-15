@@ -48,6 +48,8 @@ let bscchain = false;
 
 let txinprogress = false;
 
+let mobile = false;
+
 const BSC_MAINNET_PARAMS = {
     chainId: '0x38', // A 0x-prefixed hexadecimal chainId
     chainName: 'BSC Mainnet',
@@ -90,7 +92,9 @@ function addBSCNetwork() {
  * Setup the orchestra
  */
 function init() {
-
+	if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+		mobile = true;
+	}
   /*console.log("Initializing example");
   console.log("WalletConnectProvider is", WalletConnectProvider);
   console.log("Fortmatic is", Fortmatic);
@@ -335,19 +339,33 @@ async function fetchAccountData() {
 			       // document.getElementById("koji-bnb").innerHTML = "<em>" +kojibnb+ "BNB</em>";
              		document.getElementById("koji-bnb").innerText = kojibnb;
 
-             		tokencontract.methods.viewMinHold().call(function(err,res){
-					    if(!err){
-
-					    	document.getElementById("minhold").innerText = parseFloat(web3.utils.fromWei(res, "Gwei")).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-					    }
-					});
-
+             		
 	 				tokencontract.methods.balanceOf(selectedAccount).call(function(err,res){
 					    if(!err){
 					       // console.log(web3.utils.fromWei(res));
 					       var balance = web3.utils.fromWei(res, "gwei");
 					       balance = +balance;
 					       balance = parseFloat(balance).toFixed(2);
+
+					       tokencontract.methods.viewMinHold().call(function(err,res){
+							    if(!err){
+
+							    	var minhold = parseFloat(web3.utils.fromWei(res, "Gwei")).toFixed(0);
+
+							    	document.getElementById("minhold").innerText = minhold.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+							    	if (balance >= minhold) {
+							    		document.querySelector('#ineligible').style.display = 'none';
+							    		document.querySelector('#eligible').style.display = 'block';
+							    		document.querySelector('#eligible-info').style.display = 'block';
+							    	} else {
+							    		document.querySelector('#ineligible').style.display = 'block';
+							    		document.querySelector('#eligible').style.display = 'none';
+							    		document.querySelector('#eligible-info').style.display = 'none';
+							    	}
+							    }
+							});
+
 
 					       var kojiusdholdings = parseFloat(kojiusdvalue * balance).toFixed(2);
 					        
@@ -667,6 +685,7 @@ async function getAccountInfo(account) {
 async function withdraw(percent) {
 
 	 //console.log(mintdata);
+	  document.getElementById("withdraw-loader").classList.add('ui-loading');
 
 	 if (percent == 0) {
 	 	percent = 100;
@@ -696,9 +715,13 @@ async function withdraw(percent) {
             if (!err) {
             	 txinprogress = true;
 	             document.getElementById("withdraw-btn").setAttribute("disabled","disabled");
-	             document.getElementById("withdraw-loader").classList.add('ui-loading');
+	            
 	             var message = "<a href='https://testnet.bscscan.com/tx/"+transactionHash+"' target='_blank'>Tx Hash "+transactionHash+"</a>"
-	             openAlert("info", "Transaction Submitted", message);
+
+	             if (!mobile) {
+	             	openAlert("info", "Transaction Submitted", message);
+	             }
+	             
              
             }
              
@@ -707,7 +730,9 @@ async function withdraw(percent) {
 
         //console.log(receipt);
 
-       		 openAlert("success", "Transaction Completed", "Success!");
+        	if (!mobile) {
+       		 	openAlert("success", "Transaction Completed", "Success!");
+       		 }
 
         	document.getElementById("withdraw-loader").classList.remove('ui-loading');
         	       
@@ -761,6 +786,7 @@ document.getElementById("slider").addEventListener("input", function(e){
 async function reinvest(percent, minout) {
 
 	 //console.log(mintdata);
+	 document.getElementById("reinvest-loader").classList.add('ui-loading');
 
 	 if (percent == 0) {
 	 	percent = 100;
@@ -795,9 +821,11 @@ async function reinvest(percent, minout) {
              if (!err) {
             	 txinprogress = true;
 	             document.getElementById("reinvest-btn").setAttribute("disabled","disabled");
-	             document.getElementById("reinvest-loader").classList.add('ui-loading');
+	             
 	             var message = "<a href='https://testnet.bscscan.com/tx/"+transactionHash+"' target='_blank'>Tx Hash "+transactionHash+"</a>"
-	             openAlert("info", "Transaction Submitted", message);
+	             if (!mobile) {
+	             	openAlert("info", "Transaction Submitted", message);
+	             }
              
             }
              
@@ -806,7 +834,9 @@ async function reinvest(percent, minout) {
 
         //console.log(receipt);
 
-	        openAlert("success", "Transaction Completed", "Success!");
+        	if (!mobile) {
+	        	openAlert("success", "Transaction Completed", "Success!");
+	        }
 
         	document.getElementById("reinvest-loader").classList.remove('ui-loading');
 

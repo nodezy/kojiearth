@@ -59,7 +59,7 @@ include 'inc/header.php';
 
 </script>
 
-<div class="inner-wrapper"><small>Open floating alerts: <a href="#" onclick="openAlert('success', 'Transaction Completed', 'Success!')">success</a> | <a href="#" onclick="openAlert('info', 'Transaction Submitted', 'Info!')">info</a> | <a href="#" onclick="openAlert('warning', 'Transaction Reverted', 'Warning!')">warning</a> | <a href="#" onclick="openAlert('danger', 'Transaction Failed!', 'Reverted!')">error</a></small></div>
+<div class="inner-wrapper" style="display:none"><small>Open floating alerts: <a href="#" onclick="openAlert('success', 'Transaction Completed', 'Success!')">success</a> | <a href="#" onclick="openAlert('info', 'Transaction Submitted', 'Info!')">info</a> | <a href="#" onclick="openAlert('warning', 'Transaction Reverted', 'Warning!')">warning</a> | <a href="#" onclick="openAlert('danger', 'Transaction Failed!', 'Reverted!')">error</a></small></div>
 
    
       <div id="prepare">    
@@ -191,27 +191,45 @@ include 'inc/header.php';
 
             <div class="ui-wrapper">
 
-                <span class="ui-title"><i class="far fa-wallet"></i>My Wallet Info</span>
+                <span class="ui-title"><i class="far fa-wallet"></i>Tokenomics & Wallet Info</span>
 
                 <div class="ui-row col-3">
 
-                    <div class="ui-col" style="flex: 66%">
+                	<div class="ui-col">
                         <div class="ui-box">
-                            <div class="data-row clearfix">
-                                <div class="title">My Network: </div>
-                                <div class="value"><span id="network-name"></span></div>
+                            <div class="data-row" style="flex:100%">
+                                <div class="title">Tax per Buy/Sell:</div>
+                                <div class="value"><center><span id="tax">6% KOJI <i class="far fa-arrow-right"></i> 84% BNB / 16% KOJI Burn <i class="far fa-fire" style="color:orange"></i></span></center></div>
                             </div>
 
-                            <div class="data-row clearfix">
-                                <div class="title">My Address:</div>
-                                <div class="value"><span id="selected-account" class="my-address"><span
-                                            id="copy-1"></span><i
-                                            class="fas fa-copy to-clipboard" data-clipboard-target="#copy-1"></i></span></div>
+                            <div class="data-row" style="width:44%;float:left">
+                                <div class="title">Dividends:</div>
+                                <div class="value"><span id="burn">84% BNB = 100% Divs</span></div>
                             </div>
 
-                            <div class="data-row clearfix">
-                                <div class="title">My BNB balance:</div>
-                                <div class="value"><span id="account-balance"></span></div>
+                           <div class="data-row" style="width:44%; float:right; display:inline-block;">
+                                <div class="title">Divs To Holders:</div>
+                                <div class="value"><center><span id="holders">40% <i class="far fa-user" style="color:blue"></i></span></center></div>
+                            </div>
+
+                            <div class="data-row" style="width:44%;float:left">
+                                <div class="title">Divs To Pool:</div>
+                                <div class="value"><center><span id="pool">15% <i class="far fa-tint" style="color:yellow"></i></span></center></div>
+                            </div>
+
+                             <div class="data-row" style="width:44%; float:right; display:inline-block;">
+                                <div class="title">Divs To Charity:</div>
+                                <div class="value"><center><span id="charity">15% <i class="far fa-gift" style="color:green"></i></span></center></div>
+                            </div>
+
+                            <div class="data-row" style="width:44%;float:left">
+                                <div class="title">Divs To Admin/Staking: </div>
+                                <div class="value"><center><span id="admin">15% <i class="far fa-tree" style="color:grey"></i></span></center></div>
+                            </div>
+
+                             <div class="data-row" style="width:44%; float:right; display:inline-block;margin-bottom: 10px">
+                                <div class="title">Divs To NFT Rewards: </div>
+                                <div class="value"><center><span id="nft">15% <i class="far fa-image" style="color:red"></i></span></center></div>
                             </div>
 
                             
@@ -220,17 +238,73 @@ include 'inc/header.php';
 
                     <div class="ui-col">
                         <div class="ui-box">
-                          <span class="iu-note">* must hold minimum <span id="minhold"></span> KOJI to receive dividends</span>
-                          <div class="data-row main clearfix">
-                                <div class="title">My KOJI balance:</div>
-                                <div class="value"><span id="koji-balance" style="float:right"></span></div>
+                            <div class="data-row clearfix">
+                                <div class="title">My Network: </div>
+                                <div class="value"><span id="network-name" style="float:right"></span></div>
                             </div>
 
-                            <div class="data-row main clearfix">
+                            <div class="data-row clearfix" style="line-height: 26px">
+                                <div class="title">My Address:</div>
+                                <div class="value"><span class="my-address">
+                                	<span id="selected-account"></span><i class="fas fa-copy to-clipboard" data-clipboard-target="#selected-account"></i></span></div>
+                            </div>
+
+                            <div class="data-row clearfix" style="line-height: 26px">
+                                <div class="title">My BNB balance:</div>
+                                <div class="value"><span id="account-balance" style="float:right"></span></div>
+                            </div>
+
+                            
+                        </div>
+                    </div>
+
+                    <div class="ui-col">
+                        <div class="ui-box">
+                          
+                          <div id="ineligible" class="alert alert-warning mb0" style="margin-bottom:5px !Important; display:none;">
+				            <div class="alert-container">
+				                <div class="alert-icon">
+				                    <i class="fas fa-exclamation-circle"></i>
+				                </div>
+				                <span class="alert-msg">
+				                    <span class="alert-title">Important:</span>
+				                    <span class="iu-note">You must hold minimum <span id="minhold"></span> KOJI to receive dividends!</span>
+				                </span>
+				            </div>
+				          </div>
+                          
+                          <div class="data-row main clearfix" style="line-height: 26px">
+                                <div class="title">My KOJI balance:</div>
+                                <div class="value"><span id="koji-balance" style="float:right"></span></div>
+                          </div>
+
+				          <div id="eligible" class="alert alert-success mb0" style="margin-bottom:5px !Important; margin-top:5px !Important;padding:10px">
+				            <div class="alert-container">
+				                <div class="alert-icon">
+				                    <i class="icon-check"></i>
+				                </div>
+				                <span class="alert-msg">
+				                    <span class="iu-note">You are receiving dividends.</span>
+				                </span>
+				            </div>
+				          </div>
+
+                            <div class="data-row main clearfix" style="line-height: 26px">
                                 <div class="title">My BNB Dividends:</div>
                                 <div class="value"><span style="float:right"><span id="koji-divs"></span>&nbsp;&nbsp;<span id="koji-divs-usd" style='color:#20b23f6e;'></span></span>
                                     <input type="hidden" id="koji-divs-unrounded" value=""/></div>
                             </div>
+
+                            <div id="eligible-info" class="alert alert-info mb0" style="margin-bottom:5px !Important; margin-top:5px !Important;padding:10px">
+				            <div class="alert-container">
+				                <div class="alert-icon">
+				                    <i class="fas fa-exclamation-circle"></i>
+				                </div>
+				                <span class="alert-msg">
+				                    <span class="iu-note">Dividends are distributed on sells only.</span>
+				                </span>
+				            </div>
+				        </div>
 
 
                         </div>
