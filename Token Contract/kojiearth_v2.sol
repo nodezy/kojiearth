@@ -333,7 +333,7 @@ contract DividendDistributor is IDividendDistributor {
         if (firstRun) { 
             dividendsPerShare = dividendsPerShareAccuracyFactor.mul(totalDividends).div(totalShares);
             firstRun = false;
-            }
+        }
         
     }
 
@@ -599,7 +599,7 @@ contract DividendDistributor is IDividendDistributor {
         return address(dividendToken);
     }
 
-    //Change the min hold requirement for rewards. Must distribute all divs prior to this function being called
+    //Change the min hold requirement for rewards. Optinally can distribute all divs prior to this function being called
     function changeMinHold(uint256 _amount) external {
 
         require(_amount > minHoldAmountForRewards || _amount < minHoldAmountForRewards, "The new threshold must be higher or lower than current, not equal to");
@@ -691,13 +691,24 @@ contract KojiEarth is IBEP20, Auth {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI Beta v1.14";
+    string constant _symbol = "KOJI Beta v1.16";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
     uint256 public _maxTxAmountBuy = _totalSupply;
     uint256 public _maxTxAmountSell = _totalSupply;
     uint256 public _maxWalletToken = _totalSupply; 
+
+    struct Partners {
+        address token_addr;
+        uint256 minHoldAmount;
+        uint256 discount;
+        bool enabled;
+    }
+
+    mapping (uint256 => Partners) public partners;
+    address[] partneraddr;
+    mapping (address => bool) partnerAdded;
 
     mapping (address => uint256) _balances;
     mapping (address => mapping (address => uint256)) _allowances;
@@ -713,6 +724,7 @@ contract KojiEarth is IBEP20, Auth {
     uint256 public taxRatio = 150;
 
     uint256 public totalFee = 60; //(6%)
+    uint256 public partnerFeeLimiter = 50;
     uint256 public feeDenominator = 1000;
     uint256 public WETHaddedToPool;
 
@@ -737,6 +749,8 @@ contract KojiEarth is IBEP20, Auth {
     bool public distributorDeposit = true;
     bool public teamWalletDeposit = true;
     bool public addToLiquid = true;
+    bool public enablePartners = false;
+    bool public freeTransfers = false;
     bool inSwap;
     
     DividendDistributor distributor;
@@ -813,6 +827,8 @@ contract KojiEarth is IBEP20, Auth {
 
     function _tF(address s, address r, uint256 amount) internal returns (bool) {
         if(inSwap){ return _basicTransfer(s, r, amount); }
+
+        uint256 amountReceived;
         
         checkTxLimit(s, r, amount);
 
@@ -822,7 +838,15 @@ contract KojiEarth is IBEP20, Auth {
 
         _balances[s] = _balances[s].sub(amount, "Insufficient Balance");
 
-        uint256 amountReceived = shouldTakeFee(s) && shouldTakeFee(r) ? takeFee(s, amount) : amount;
+        if (freeTransfers && s != pair && r != pair) {
+
+            amountReceived = amount;
+
+        } else {
+
+            amountReceived = shouldTakeFee(s) && shouldTakeFee(r) ? takeFee(s, amount) : amount;
+
+        }
         
         if(r != pair && !isTxLimitExempt[r]){
             uint256 contractBalanceRecepient = balanceOf(r);
@@ -869,7 +893,43 @@ contract KojiEarth is IBEP20, Auth {
     }
 
     function takeFee(address sender, uint256 amount) internal returns (uint256) {
-        uint256 feeAmount = amount.mul(getTotalFee(isBot[sender])).div(feeDenominator);
+        uint256 feeAmount; 
+        uint256 regularFee = getTotalFee(isBot[sender]);
+        uint256 discountFee = 0;
+
+        if (enablePartners) {
+            //scan wallet for BEP20 tokens matching those in struct array
+
+            uint256 partnerCount = partneraddr.length;
+            
+            for (uint256 x = 0; x <= partnerCount; ++x) {
+
+                Partners storage tokenpartners = partners[x];
+
+                if (tokenpartners.enabled = true) {
+
+                   if(IBEP20(address(tokenpartners.token_addr)).balanceOf(address(sender)) >= tokenpartners.minHoldAmount) {
+
+                       discountFee = discountFee.add(tokenpartners.discount);
+
+                   } 
+
+                } 
+            }
+
+            if (discountFee > regularFee.mul(partnerFeeLimiter).div(100)) {
+                discountFee = regularFee.mul(partnerFeeLimiter).div(100);
+            } else {
+                discountFee = regularFee.sub(discountFee);
+            }
+            
+            feeAmount = amount.mul(discountFee).div(feeDenominator);
+
+        } else {
+
+            feeAmount = amount.mul(regularFee).div(feeDenominator);
+
+        }
 
         _balances[address(this)] = _balances[address(this)].add(feeAmount);
         emit Transfer(sender, address(this), feeAmount);
@@ -1177,5 +1237,108 @@ contract KojiEarth is IBEP20, Auth {
     function changeGas(uint256 _gas) external onlyOwner {
         require(_gas > 0, "Gas cannot be equal to zero");
         distributorGas = _gas;
+    }
+
+    function isContract(address addr) internal view returns (bool) {
+        bytes32 accountHash = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
+
+        bytes32 codehash;
+        assembly {
+            codehash := extcodehash(addr)
+        }
+            return (codehash != 0x0 && codehash != accountHash);
+    }
+
+    function addPartnership(address _tokencontract, uint256 _minHoldAmount, uint256 _discount) external onlyOwner {
+
+        require(_tokencontract != DEAD && _tokencontract != address(this) && _tokencontract != ZERO && _tokencontract != pair, "Please input a valid token contract address");
+        require(isContract(_tokencontract), "Please input an actual token contract");
+        require(!partnerAdded[_tokencontract], "Contract already added. To change parameters please remove first.");
+        require(_minHoldAmount > 0, "min hold must be greater than zero");
+        require(_discount <= totalFee, "discount cannot be greater than total fee");
+
+        uint256 partnerCount = partneraddr.length;
+        bool foundSpot = false;
+
+        for (uint256 x = 0; x <= partnerCount; ++x) {
+
+         Partners storage tokenpartners = partners[x];
+
+            if (!tokenpartners.enabled && !foundSpot) {
+
+                tokenpartners.token_addr = _tokencontract;
+                tokenpartners.minHoldAmount = _minHoldAmount;
+                tokenpartners.discount =_discount;
+                tokenpartners.enabled = true;
+
+                partneraddr[x] = _tokencontract; 
+                partnerAdded[_tokencontract] = true;
+                foundSpot = true;
+            } 
+
+        } 
+
+        if (foundSpot) {
+            
+            return;
+        
+        } else {
+
+                Partners storage tokenpartners = partners[partnerCount.add(1)];
+                tokenpartners.token_addr = _tokencontract;
+                tokenpartners.minHoldAmount = _minHoldAmount;
+                tokenpartners.discount =_discount;
+                tokenpartners.enabled = true;
+                partnerAdded[_tokencontract] = true;
+                partneraddr.push(_tokencontract);
+        } 
+        
+    }
+
+    function removePartnership(address _tokencontract) external onlyOwner {
+
+        uint256 partnerCount = partneraddr.length;
+
+        for (uint256 x = 0; x <= partnerCount; ++x) {
+
+            Partners storage tokenpartners = partners[x];
+
+            if (tokenpartners.token_addr == _tokencontract) {
+
+                tokenpartners.token_addr = DEAD;
+                tokenpartners.minHoldAmount = 0;
+                tokenpartners.discount = 0;
+                tokenpartners.enabled = false;
+
+                partnerAdded[_tokencontract] = false;
+
+                return;
+            }
+
+        }
+        
+    }
+
+    function getPartnershipIndex() external view returns (uint256) {
+        return partneraddr.length;
+    }
+
+    function viewPartnership(uint256 _index) external view returns (address tokencontract, uint256 minHoldAmount, uint256 discount, bool enabled) {
+        Partners storage tokenpartners = partners[_index];
+        return (tokenpartners.token_addr,tokenpartners.minHoldAmount,tokenpartners.discount,tokenpartners.enabled);
+    }
+
+    function setEnablePartners(bool _status) external onlyOwner {
+        enablePartners = _status;
+    }
+
+    function setFreeTransfers(bool _status) external onlyOwner {
+        freeTransfers = _status;
+    }
+
+    //100 allows partner taxes to reduce 100% of total tax, 50 = 50% of total tax (default), 1 allows 99% tax reduction of total tax for partners
+    function setPartnerFeeLimiter(uint256 _limiter) external onlyOwner {
+        require(_limiter <= 100 && _limiter >= 1, "fee limiter must be between 1 and 100");
+        partnerFeeLimiter = _limiter;
     }
 }
