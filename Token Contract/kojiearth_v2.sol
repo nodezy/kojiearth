@@ -192,6 +192,7 @@ contract DividendDistributor is IDividendDistributor {
     mapping (address => uint256) shareholderIndexes;
     mapping (address => uint256) shareholderClaims;
     mapping (address => uint256) public shareholderExpired;
+    mapping (address => bool) shareholderAdded;
 
     mapping (address => Share) public shares;
 
@@ -580,14 +581,21 @@ contract DividendDistributor is IDividendDistributor {
     }
 
     function addShareholder(address shareholder) internal {
-        shareholderIndexes[shareholder] = shareholders.length;
-        shareholders.push(shareholder);
+        if (shareholderAdded[shareholder]) {
+            return;
+        } else {
+            shareholderIndexes[shareholder] = shareholders.length;
+            shareholders.push(shareholder);
+            shareholderAdded[shareholder] = true;
+        }
+        
     }
 
     function removeShareholder(address shareholder) internal {
         shareholders[shareholderIndexes[shareholder]] = shareholders[shareholders.length-1];
         shareholderIndexes[shareholders[shareholders.length-1]] = shareholderIndexes[shareholder];
         shareholders.pop();
+        shareholderAdded[shareholder] = false;
     }
     
     function setDividendToken(address _dividendToken) external override onlyToken {
@@ -691,7 +699,7 @@ contract KojiEarth is IBEP20, Auth {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI Beta v1.16";
+    string constant _symbol = "KOJI Beta v1.19";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
@@ -706,7 +714,7 @@ contract KojiEarth is IBEP20, Auth {
         bool enabled;
     }
 
-    mapping (uint256 => Partners) public partners;
+    mapping (uint256 => Partners) private partners;
     address[] partneraddr;
     mapping (address => bool) partnerAdded;
 
@@ -750,7 +758,7 @@ contract KojiEarth is IBEP20, Auth {
     bool public teamWalletDeposit = true;
     bool public addToLiquid = true;
     bool public enablePartners = false;
-    bool public freeTransfers = false;
+    
     bool inSwap;
     
     DividendDistributor distributor;
@@ -828,25 +836,19 @@ contract KojiEarth is IBEP20, Auth {
     function _tF(address s, address r, uint256 amount) internal returns (bool) {
         if(inSwap){ return _basicTransfer(s, r, amount); }
 
-        uint256 amountReceived;
-        
         checkTxLimit(s, r, amount);
 
-        if(shouldSwapBack()){ swapBack(); }
+        if (r == pair) {
+
+            if(shouldSwapBack()){ swapBack(); }
+        }
 
         if(!launched() && r == pair){ require(_balances[s] > 0); launch(); }
 
         _balances[s] = _balances[s].sub(amount, "Insufficient Balance");
 
-        if (freeTransfers && s != pair && r != pair) {
+        uint256 amountReceived = shouldTakeFee(s) && shouldTakeFee(r) ? takeFee(s, r, amount) : amount;
 
-            amountReceived = amount;
-
-        } else {
-
-            amountReceived = shouldTakeFee(s) && shouldTakeFee(r) ? takeFee(s, amount) : amount;
-
-        }
         
         if(r != pair && !isTxLimitExempt[r]){
             uint256 contractBalanceRecepient = balanceOf(r);
@@ -892,13 +894,13 @@ contract KojiEarth is IBEP20, Auth {
         return totalFee;
     }
 
-    function takeFee(address sender, uint256 amount) internal returns (uint256) {
+    function takeFee(address sender, address recipient, uint256 amount) internal returns (uint256) {
         uint256 feeAmount; 
         uint256 regularFee = getTotalFee(isBot[sender]);
         uint256 discountFee = 0;
 
-        if (enablePartners) {
-            //scan wallet for BEP20 tokens matching those in struct array
+        if (enablePartners && recipient != pair && sender == pair) {
+            //scan wallet for BEP20 tokens matching those in struct 
 
             uint256 partnerCount = partneraddr.length;
             
@@ -906,9 +908,9 @@ contract KojiEarth is IBEP20, Auth {
 
                 Partners storage tokenpartners = partners[x];
 
-                if (tokenpartners.enabled = true) {
+                if (tokenpartners.enabled) {
 
-                   if(IBEP20(address(tokenpartners.token_addr)).balanceOf(address(sender)) >= tokenpartners.minHoldAmount) {
+                   if(IBEP20(address(tokenpartners.token_addr)).balanceOf(address(recipient)) >= tokenpartners.minHoldAmount) {
 
                        discountFee = discountFee.add(tokenpartners.discount);
 
@@ -1159,7 +1161,7 @@ contract KojiEarth is IBEP20, Auth {
     }
 
     // This allows us to get any ETH out of the distributor address (in case of rewards reset)
-    function rescueETHfromDistributor() external onlyOwner {
+    function rescueBNBfromDistributor() external onlyOwner {
         distributor.rescueETHFromContract();
     }
 
@@ -1254,44 +1256,60 @@ contract KojiEarth is IBEP20, Auth {
         require(_tokencontract != DEAD && _tokencontract != address(this) && _tokencontract != ZERO && _tokencontract != pair, "Please input a valid token contract address");
         require(isContract(_tokencontract), "Please input an actual token contract");
         require(!partnerAdded[_tokencontract], "Contract already added. To change parameters please remove first.");
-        require(_minHoldAmount > 0, "min hold must be greater than zero");
-        require(_discount <= totalFee, "discount cannot be greater than total fee");
+        require(_minHoldAmount > 0, "Min hold must be greater than zero");
+        require(_discount <= totalFee, "Discount cannot be greater than total fee");
 
         uint256 partnerCount = partneraddr.length;
         bool foundSpot = false;
 
-        for (uint256 x = 0; x <= partnerCount; ++x) {
+        if (partnerCount > 0) {
+            for (uint256 x = 0; x < partnerCount; ++x) {
 
-         Partners storage tokenpartners = partners[x];
+                Partners storage tokenpartners = partners[x];
 
-            if (!tokenpartners.enabled && !foundSpot) {
+                if (!tokenpartners.enabled && !foundSpot) {
 
-                tokenpartners.token_addr = _tokencontract;
-                tokenpartners.minHoldAmount = _minHoldAmount;
-                tokenpartners.discount =_discount;
-                tokenpartners.enabled = true;
+                    tokenpartners.token_addr = _tokencontract;
+                    tokenpartners.minHoldAmount = _minHoldAmount;
+                    tokenpartners.discount =_discount;
+                    tokenpartners.enabled = true;
 
-                partneraddr[x] = _tokencontract; 
-                partnerAdded[_tokencontract] = true;
-                foundSpot = true;
+                    partneraddr[x] = _tokencontract; 
+                    partnerAdded[_tokencontract] = true;
+                    foundSpot = true;
+                } 
+
             } 
 
-        } 
-
-        if (foundSpot) {
+            if (foundSpot) {
             
             return;
         
-        } else {
+            } else {
 
-                Partners storage tokenpartners = partners[partnerCount.add(1)];
+                Partners storage tokenpartners = partners[partnerCount];
+
                 tokenpartners.token_addr = _tokencontract;
                 tokenpartners.minHoldAmount = _minHoldAmount;
                 tokenpartners.discount =_discount;
                 tokenpartners.enabled = true;
+
                 partnerAdded[_tokencontract] = true;
                 partneraddr.push(_tokencontract);
-        } 
+            } 
+        } else {
+
+            Partners storage tokenpartners = partners[partnerCount];
+
+            tokenpartners.token_addr = _tokencontract;
+            tokenpartners.minHoldAmount = _minHoldAmount;
+            tokenpartners.discount =_discount;
+            tokenpartners.enabled = true;
+
+            partnerAdded[_tokencontract] = true;
+            partneraddr.push(_tokencontract);
+
+        }
         
     }
 
@@ -1299,24 +1317,26 @@ contract KojiEarth is IBEP20, Auth {
 
         uint256 partnerCount = partneraddr.length;
 
-        for (uint256 x = 0; x <= partnerCount; ++x) {
+        if (partnerCount > 0) {
+            for (uint256 x = 0; x < partnerCount; ++x) {
 
-            Partners storage tokenpartners = partners[x];
+                Partners storage tokenpartners = partners[x];
 
-            if (tokenpartners.token_addr == _tokencontract) {
+                if (tokenpartners.token_addr == _tokencontract) {
 
-                tokenpartners.token_addr = DEAD;
-                tokenpartners.minHoldAmount = 0;
-                tokenpartners.discount = 0;
-                tokenpartners.enabled = false;
+                    tokenpartners.token_addr = ZERO;
+                    tokenpartners.minHoldAmount = 0;
+                    tokenpartners.discount = 0;
+                    tokenpartners.enabled = false;
 
-                partnerAdded[_tokencontract] = false;
+                    partnerAdded[_tokencontract] = false;
 
-                return;
+                    return;
+                }
             }
-
+        } else {
+            return;
         }
-        
     }
 
     function getPartnershipIndex() external view returns (uint256) {
@@ -1330,10 +1350,6 @@ contract KojiEarth is IBEP20, Auth {
 
     function setEnablePartners(bool _status) external onlyOwner {
         enablePartners = _status;
-    }
-
-    function setFreeTransfers(bool _status) external onlyOwner {
-        freeTransfers = _status;
     }
 
     //100 allows partner taxes to reduce 0% of totalFee tax, 50 = 50% of total tax (default), 1 allows 99% tax reduction of total tax for partners
