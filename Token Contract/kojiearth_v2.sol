@@ -1336,7 +1336,7 @@ contract KojiEarth is IBEP20, Auth {
         freeTransfers = _status;
     }
 
-    //100 allows partner taxes to reduce 100% of total tax, 50 = 50% of total tax (default), 1 allows 99% tax reduction of total tax for partners
+    //100 allows partner taxes to reduce 0% of totalFee tax, 50 = 50% of total tax (default), 1 allows 99% tax reduction of total tax for partners
     function setPartnerFeeLimiter(uint256 _limiter) external onlyOwner {
         require(_limiter <= 100 && _limiter >= 1, "fee limiter must be between 1 and 100");
         partnerFeeLimiter = _limiter;
