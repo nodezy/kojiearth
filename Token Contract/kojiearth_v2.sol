@@ -699,7 +699,7 @@ contract KojiEarth is IBEP20, Auth {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI Beta v1.19";
+    string constant _symbol = "KOJI";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
@@ -1260,46 +1260,8 @@ contract KojiEarth is IBEP20, Auth {
         require(_discount <= totalFee, "Discount cannot be greater than total fee");
 
         uint256 partnerCount = partneraddr.length;
-        bool foundSpot = false;
-
-        if (partnerCount > 0) {
-            for (uint256 x = 0; x < partnerCount; ++x) {
-
-                Partners storage tokenpartners = partners[x];
-
-                if (!tokenpartners.enabled && !foundSpot) {
-
-                    tokenpartners.token_addr = _tokencontract;
-                    tokenpartners.minHoldAmount = _minHoldAmount;
-                    tokenpartners.discount =_discount;
-                    tokenpartners.enabled = true;
-
-                    partneraddr[x] = _tokencontract; 
-                    partnerAdded[_tokencontract] = true;
-                    foundSpot = true;
-                } 
-
-            } 
-
-            if (foundSpot) {
-            
-            return;
         
-            } else {
-
-                Partners storage tokenpartners = partners[partnerCount];
-
-                tokenpartners.token_addr = _tokencontract;
-                tokenpartners.minHoldAmount = _minHoldAmount;
-                tokenpartners.discount =_discount;
-                tokenpartners.enabled = true;
-
-                partnerAdded[_tokencontract] = true;
-                partneraddr.push(_tokencontract);
-            } 
-        } else {
-
-            Partners storage tokenpartners = partners[partnerCount];
+        Partners storage tokenpartners = partners[partnerCount];
 
             tokenpartners.token_addr = _tokencontract;
             tokenpartners.minHoldAmount = _minHoldAmount;
@@ -1308,8 +1270,6 @@ contract KojiEarth is IBEP20, Auth {
 
             partnerAdded[_tokencontract] = true;
             partneraddr.push(_tokencontract);
-
-        }
         
     }
 
@@ -1322,18 +1282,42 @@ contract KojiEarth is IBEP20, Auth {
 
                 Partners storage tokenpartners = partners[x];
 
-                if (tokenpartners.token_addr == _tokencontract) {
+                if (address(tokenpartners.token_addr) == address(_tokencontract)) {
 
-                    tokenpartners.token_addr = ZERO;
-                    tokenpartners.minHoldAmount = 0;
-                    tokenpartners.discount = 0;
-                    tokenpartners.enabled = false;
+                    if (x == partnerCount) {
+                        tokenpartners.token_addr = ZERO;
+                        tokenpartners.minHoldAmount = 0;
+                        tokenpartners.discount = 0;
+                        tokenpartners.enabled = false;
 
-                    partnerAdded[_tokencontract] = false;
+                        partnerAdded[_tokencontract] = false;
 
-                    return;
+                        partneraddr.pop();
+                        
+                    } else {
+
+                        Partners storage tokenpartnerscopy = partners[partneraddr.length-1];
+
+                        tokenpartners.token_addr = tokenpartnerscopy.token_addr;
+                        tokenpartners.minHoldAmount = tokenpartnerscopy.minHoldAmount;
+                        tokenpartners.discount = tokenpartnerscopy.discount;
+                        tokenpartners.enabled = true;
+
+                        partnerAdded[_tokencontract] = false;
+
+                        tokenpartnerscopy.token_addr = ZERO;
+                        tokenpartnerscopy.minHoldAmount = 0;
+                        tokenpartnerscopy.discount = 0;
+                        tokenpartnerscopy.enabled = false;
+
+                        partneraddr[x] = partneraddr[partneraddr.length-1];
+                        partneraddr.pop();
+
+                    }
+                    
                 }
             }
+
         } else {
             return;
         }
