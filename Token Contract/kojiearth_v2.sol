@@ -205,6 +205,9 @@ contract DividendDistributor is IDividendDistributor {
     uint256 public dividendsPerShare;
     uint256 public dividendsPerShareAccuracyFactor = 10 ** 36;
 
+    uint256 distribWalletGas = 32500;
+    uint256 distribReinvestGas = 450000;
+
     uint256 public impoundTimelimit = 1; //2592000; //1 month default
     uint256 public minDistribution = 1000000 * (10 ** 9); //0.001
     uint256 public minHoldAmountForRewards = 25000000 * (10**9); // Must hold 25 million tokens to receive rewards
@@ -254,7 +257,6 @@ contract DividendDistributor is IDividendDistributor {
                     }
                     shares[shareholder].amount = 0;
                     shares[shareholder].heldAmount = 0;
-                    //shares[shareholder].totalRealised = 0;
                     shares[shareholder].totalExcluded = 0;
                     removeShareholder(shareholder);
                 } else {
@@ -481,7 +483,7 @@ contract DividendDistributor is IDividendDistributor {
 
             totalDistributed = totalDistributed.add(netamount);
 
-            (bool successShareholder, /* bytes memory data */) = payable(shareholder).call{value: netamount, gas: 32500}("");
+            (bool successShareholder, /* bytes memory data */) = payable(shareholder).call{value: netamount, gas: distribWalletGas}("");
             require(successShareholder, "Shareholder rejected BNB transfer");
             shareholderClaims[shareholder] = block.timestamp;
             shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.sub(amount);
@@ -491,7 +493,6 @@ contract DividendDistributor is IDividendDistributor {
             netDividends = netDividends.sub(amount);          
 
             if(shares[shareholder].heldAmount == 0 && shares[shareholder].unpaidDividends == 0) {
-                //shares[shareholder].totalRealised = 0;
                 shares[shareholder].totalExcluded = 0;
                 removeShareholder(shareholder);
               
@@ -518,7 +519,7 @@ contract DividendDistributor is IDividendDistributor {
             path[0] = WETH;
             path[1] = _token;
 
-            router.swapExactETHForTokensSupportingFeeOnTransferTokens{value:netamount, gas:300000}(
+            router.swapExactETHForTokensSupportingFeeOnTransferTokens{value:netamount, gas:distribReinvestGas}(
                 minOut,
                 path,
                 address(shareholder),
@@ -545,7 +546,7 @@ contract DividendDistributor is IDividendDistributor {
 
         uint256 netamount = amount.sub(1); //this is so we aren't short on dust in the holding wallet
 
-        (bool successShareholder, /* bytes memory data */) = payable(_token).call{value: netamount, gas: 32500}("");
+        (bool successShareholder, /* bytes memory data */) = payable(_token).call{value: netamount, gas: distribWalletGas}("");
         require(successShareholder, "Shareholder rejected BNB transfer");
 
         shareholderClaims[shareholder] = block.timestamp;
@@ -630,6 +631,7 @@ contract DividendDistributor is IDividendDistributor {
                 if(shares[shareholders[currentIndex]].heldAmount < _amount) {
                     shares[shareholders[currentIndex]].amount = 0;
                     totalShares = totalShares.sub(shares[shareholders[currentIndex]].heldAmount);
+                    removeShareholder(shareholders[currentIndex]);
                 }
 
                 currentIndex++;
@@ -649,7 +651,7 @@ contract DividendDistributor is IDividendDistributor {
                     if(shares[shareholders[currentIndex]].heldAmount > _amount) {
                         shares[shareholders[currentIndex]].amount = shares[shareholders[currentIndex]].heldAmount;
                         totalShares = totalShares.add(shares[shareholders[currentIndex]].heldAmount);
-                    
+                        addShareholder(shareholders[currentIndex]);
                     }
                 }
                 
@@ -659,6 +661,11 @@ contract DividendDistributor is IDividendDistributor {
         }
 
         minHoldAmountForRewards = _amount;
+    }
+
+    // Function to allow admin to claim *other* ERC20 tokens sent to this contract (by mistake)
+    function transferBEP20Tokens(address _tokenAddr, address _to, uint _amount) external {
+        IBEP20(_tokenAddr).transfer(_to, _amount);
     }
 
     // This will allow to rescue ETH held in the distributor interface address
@@ -685,6 +692,11 @@ contract DividendDistributor is IDividendDistributor {
 
     function changeImpoundTimelimit(uint256 _timelimit) external {
         impoundTimelimit = _timelimit;
+    }
+
+    function changeDistribGas(uint256 _walletGas, uint256 _reinvestGas) external {
+        distribWalletGas = _walletGas;
+        distribReinvestGas = _reinvestGas;
     }
     
 }
@@ -763,6 +775,7 @@ contract KojiEarth is IBEP20, Auth {
     
     DividendDistributor distributor;
     uint256 distributorGas = 750000;
+    uint256 walletGas = 32500;
 
     uint256 private swapThreshold = _totalSupply / _totalSupply; // 1
     
@@ -1001,12 +1014,12 @@ contract KojiEarth is IBEP20, Auth {
         
         //Deposit to the team wallets
         if (teamWalletDeposit) {
-        (bool successTeam1, /* bytes memory data */) = payable(charityWallet).call{value: amountBNBcharity, gas: 32500}("");
+        (bool successTeam1, /* bytes memory data */) = payable(charityWallet).call{value: amountBNBcharity, gas: walletGas}("");
         require(successTeam1, "Charity wallet rejected BNB transfer");
 
         totalCharity = totalCharity.add(amountBNBcharity);
 
-        (bool successTeam2, /* bytes memory data */) = payable(nftRewardWallet).call{value: amountBNBnft, gas: 32500}("");
+        (bool successTeam2, /* bytes memory data */) = payable(nftRewardWallet).call{value: amountBNBnft, gas: walletGas}("");
         require(successTeam2, "Cake wallet rejected BNB transfer");
 
         totalNFTrewards = totalNFTrewards.add(amountBNBnft);
@@ -1015,18 +1028,18 @@ contract KojiEarth is IBEP20, Auth {
                 uint256 amountBNBstakepool = amountBNBadmin.div(2);
                 amountBNBadmin = amountBNBstakepool;
 
-                (bool successTeam3, /* bytes memory data */) = payable(adminWallet).call{value: amountBNBadmin, gas: 32500}("");
+                (bool successTeam3, /* bytes memory data */) = payable(adminWallet).call{value: amountBNBadmin, gas: walletGas}("");
                 require(successTeam3, "Cake wallet rejected BNB transfer");
 
                 totalAdmin = totalAdmin.add(amountBNBadmin);
 
-                (bool successTeam4, /* bytes memory data */) = payable(stakePoolWallet).call{value: amountBNBstakepool, gas: 32500}("");
+                (bool successTeam4, /* bytes memory data */) = payable(stakePoolWallet).call{value: amountBNBstakepool, gas: walletGas}("");
                 require(successTeam4, "Stake pool wallet rejected BNB transfer");
 
                 totalStakepool = totalStakepool.add(amountBNBstakepool);
 
             } else {
-                (bool successTeam3, /* bytes memory data */) = payable(adminWallet).call{value: amountBNBadmin, gas: 32500}("");
+                (bool successTeam3, /* bytes memory data */) = payable(adminWallet).call{value: amountBNBadmin, gas: walletGas}("");
                 require(successTeam3, "Admin wallet rejected BNB transfer");
 
                 totalAdmin = totalAdmin.add(amountBNBadmin);
@@ -1165,6 +1178,11 @@ contract KojiEarth is IBEP20, Auth {
         distributor.rescueETHFromContract();
     }
 
+    // Function to allow admin to claim *other* ERC20 tokens sent to the distributor  (by mistake)
+    function TransferBEP20fromDistributor(address _tokenAddr, address _to, uint _amount) external onlyOwner {
+        distributor.transferBEP20Tokens(_tokenAddr, _to, _amount);
+    }
+
     function getPending(address _holder) external view returns (uint256 pending) {
         return distributor.getUnpaidDividends(_holder);
     }
@@ -1236,9 +1254,18 @@ contract KojiEarth is IBEP20, Auth {
         stakePoolActive = _status; 
     }
 
-    function changeGas(uint256 _gas) external onlyOwner {
-        require(_gas > 0, "Gas cannot be equal to zero");
-        distributorGas = _gas;
+    function changeGas(uint256 _distributorgas, uint256 _walletgas) external onlyOwner {
+        require(_distributorgas > 0, "distributor cannot be equal to zero");
+        require(_walletgas > 0, "distributor cannot be equal to zero");
+        
+        distributorGas = _distributorgas;
+        walletGas = _walletgas;
+    }
+
+    function changeDistribGas(uint256 _walletGas, uint256 _reinvestGas) external onlyOwner {
+         require(_walletGas > 0, "distributor cannot be equal to zero");
+         require(_reinvestGas > 0, "distributor cannot be equal to zero");
+         distributor.changeDistribGas(_walletGas, _reinvestGas);
     }
 
     function isContract(address addr) internal view returns (bool) {
