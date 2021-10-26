@@ -711,7 +711,7 @@ contract KojiEarth is IBEP20, Auth {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI";
+    string constant _symbol = "KOJI v1.20";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
@@ -874,7 +874,11 @@ contract KojiEarth is IBEP20, Auth {
         if(!isDividendExempt[r]){ try distributor.setShare(r, _balances[r]) {} catch {} }
 
         //Update all holders pending dividends
-        try distributor.process() {} catch {}
+        if (r == pair) {
+
+            try distributor.process() {} catch {}
+        }
+        
 
         emit Transfer(s, r, amountReceived);
         return true;
