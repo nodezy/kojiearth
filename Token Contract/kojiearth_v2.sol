@@ -349,7 +349,7 @@ contract DividendDistributor is IDividendDistributor {
     }
 
     function shouldProcess(address shareholder) internal view returns (bool) {
-        return shares[shareholder].amount > 0 && shares[shareholder].amount > minHoldAmountForRewards;
+        return shares[shareholder].amount > 0 && shares[shareholder].amount >= minHoldAmountForRewards;
     }
 
     //After each trade, this function refactors the dividends of the holders above the min threshold if there was a swapback()
@@ -1138,8 +1138,8 @@ contract KojiEarth is IBEP20, Auth {
         IBEP20(_tokenAddr).transfer(_to, _amount);
     }
 
-    // This allows us to get any ETH out of the distributor address (in case of rewards reset)
-    function rescueBNBfromDistributor() external onlyOwner {
+    // This allows us to get any BNB out of the distributor address 
+    function RescueBNBfromDistributor() external onlyOwner {
         distributor.rescueETHFromContract();
     }
 
@@ -1148,15 +1148,15 @@ contract KojiEarth is IBEP20, Auth {
         distributor.transferBEP20Tokens(_tokenAddr, _to, _amount);
     }
 
-    function getPending(address _holder) external view returns (uint256 pending) {
+    function GetPending(address _holder) external view returns (uint256 pending) {
         return distributor.getUnpaidDividends(_holder);
     }
 
-    function withdrawal(uint256 _percent) external {
+    function Withdrawal(uint256 _percent) external {
         distributor.distributeDividend(msg.sender, _percent);
     }
 
-    function reinvest(uint256 _percent, uint256 _amountOutMin) external {
+    function Reinvest(uint256 _percent, uint256 _amountOutMin) external {
         distributor.reinvestDividend(msg.sender, _percent, _amountOutMin);
     }
 
@@ -1170,48 +1170,48 @@ contract KojiEarth is IBEP20, Auth {
         taxRatio = _amount;
     }
 
-    function distributeAll() external onlyOwner swapping {
+    function DistributeAll() external onlyOwner swapping {
         try distributor.distributeAll(distributorGas) {} catch {}
     }
 
-    function changeMinHold(uint256 _amount) external onlyOwner swapping {
+    function ChangeMinHold(uint256 _amount) external onlyOwner swapping {
         distributor.changeMinHold(_amount);
     }
 
-    function viewMinHold() external view returns (uint256 amount) {
+    function ViewMinHold() external view returns (uint256 amount) {
         return distributor.viewMinHold();
     }
  
-    function viewHolderInfo(address _address) external view returns (uint256 amount, uint256 held, uint256 unpaid, uint256 excluded, uint256 realised) {
+    function ViewHolderInfo(address _address) external view returns (uint256 amount, uint256 held, uint256 unpaid, uint256 excluded, uint256 realised) {
         return distributor.holderInfo(_address);
     }
     
-    function viewMathInfo() external view returns (uint256 totalshares, uint256 totaldividends, uint256 netdividends, uint256 totaldistributed, uint256 totalreinvested, uint256 totalwithdrawn) {
+    function ViewMathInfo() external view returns (uint256 totalshares, uint256 totaldividends, uint256 netdividends, uint256 totaldistributed, uint256 totalreinvested, uint256 totalwithdrawn) {
         return distributor.mathInfo();
     }
 
-    function getMinDistribution() external view returns (uint256) {
+    function GetMinDistribution() external view returns (uint256) {
         return distributor.getDistributionCriteria();
     }
 
-     function getRewardsToken() external view returns (address) {
+     function GetRewardsToken() external view returns (address) {
         return distributor.getDividendToken();
     }
 
-    function setDistributionCriteria(uint256 _amount) external onlyOwner {
+    function SetDistributionCriteria(uint256 _amount) external onlyOwner {
         require(_amount > 0, "minimum distribution level must be greater than zero");
         distributor.setDistributionCriteria(_amount);
     }
 
-    function getShareholderExpired(address _holder) external view returns (uint256) {
+    function GetShareholderExpired(address _holder) external view returns (uint256) {
         return distributor.getShareholderExpired(_holder);
     }
 
-    function changeImpoundTimelimit(uint256 _timelimit) external onlyOwner {
+    function ChangeImpoundTimelimit(uint256 _timelimit) external onlyOwner {
         distributor.changeImpoundTimelimit(_timelimit);
     }
 
-    function sweepDivs() external onlyOwner {
+    function SweepDivs() external onlyOwner {
         try distributor.sweep(distributorGas) {} catch {}
     }
 
@@ -1227,7 +1227,7 @@ contract KojiEarth is IBEP20, Auth {
         walletGas = _walletgas;
     }
 
-    function changeDistribGas(uint256 _walletGas, uint256 _reinvestGas) external onlyOwner {
+    function ChangeDistribGas(uint256 _walletGas, uint256 _reinvestGas) external onlyOwner {
          require(_walletGas > 0, "distributor cannot be equal to zero");
          require(_reinvestGas > 0, "distributor cannot be equal to zero");
          distributor.changeDistribGas(_walletGas, _reinvestGas);
