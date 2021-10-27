@@ -285,7 +285,7 @@ contract DividendDistributor is IDividendDistributor {
                 shares[shareholder].amount = amount;
                 shares[shareholder].heldAmount = amount;
                 totalShares = totalShares.add(amount);
-                //we only want to add the holder to the index if he is eligible for rewards, this will save gas
+                //we only want to add the holder to the index if he is eligible for rewards, this should save gas
                 addShareholder(shareholder);
             }
 
