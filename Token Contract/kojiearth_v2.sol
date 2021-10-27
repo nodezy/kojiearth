@@ -266,6 +266,7 @@ contract DividendDistributor is IDividendDistributor {
                     shares[shareholder].amount = 0;
                     shares[shareholder].heldAmount = 0;
                     shareholderExpired[shareholder] = block.timestamp;
+                    
                 }
 
         }
@@ -273,7 +274,6 @@ contract DividendDistributor is IDividendDistributor {
         //New holder
         if(amount > 0 && shares[shareholder].heldAmount == 0){
 
-            if(shares[shareholder].unpaidDividends == 0) {addShareholder(shareholder);}
 
             if (amount < minHoldAmountForRewards) {
                 shares[shareholder].heldAmount = amount;
@@ -282,6 +282,7 @@ contract DividendDistributor is IDividendDistributor {
                 shares[shareholder].amount = amount;
                 shares[shareholder].heldAmount = amount;
                 totalShares = totalShares.add(amount);
+                addShareholder(shareholder);
             }
 
             shareholderExpired[shareholder] = 9999999999;
@@ -302,6 +303,7 @@ contract DividendDistributor is IDividendDistributor {
                 shares[shareholder].amount = amount;
                 totalShares = totalShares.add(amount);
                 shares[shareholder].heldAmount = amount;
+                addShareholder(shareholder);
             }
 
             //User didn't have enough for rewards and doesn't now either
@@ -317,6 +319,7 @@ contract DividendDistributor is IDividendDistributor {
                 }
                 shares[shareholder].heldAmount = amount;
                 shares[shareholder].amount = 0;
+                removeShareholder(shareholder);
             }
 
         }
@@ -341,7 +344,7 @@ contract DividendDistributor is IDividendDistributor {
     }
 
     function shouldProcess(address shareholder) internal view returns (bool) {
-        return shares[shareholder].amount > 0;
+        return shares[shareholder].amount > 0 && shares[shareholder].amount > minHoldAmountForRewards;
     }
 
     //After each trade, this function refactors the dividends of the holders above the min threshold if there was a swapback()
@@ -554,7 +557,6 @@ contract DividendDistributor is IDividendDistributor {
 
         shares[shareholder].unpaidDividends = 0;
         shares[shareholder].totalExcluded = 0;
-        //shares[shareholder].totalRealised = 0;
 
         netDividends = netDividends.sub(amount);
 
@@ -611,54 +613,8 @@ contract DividendDistributor is IDividendDistributor {
     //Change the min hold requirement for rewards. Optinally can distribute all divs prior to this function being called
     function changeMinHold(uint256 _amount) external {
 
+        require(_amount > 1000000000 && _amount < 1000000000000000000, "Min hold amount should be between 1 and 1B KOJI");
         require(_amount > minHoldAmountForRewards || _amount < minHoldAmountForRewards, "The new threshold must be higher or lower than current, not equal to");
-
-        uint256 shareholderCount = shareholders.length;
-
-        if(shareholderCount == 0) { return; }
-
-        uint256 iterations = 0;
-        currentIndex = 0;
-
-        //Holding requirement is higher
-        if (_amount > minHoldAmountForRewards) {
-            while(iterations < shareholderCount) {
-                if(currentIndex >= shareholderCount){
-                    currentIndex = 0;
-                }
-
-                //If holder isn't holding above the new amount, doesn't qualify
-                if(shares[shareholders[currentIndex]].heldAmount < _amount) {
-                    shares[shareholders[currentIndex]].amount = 0;
-                    totalShares = totalShares.sub(shares[shareholders[currentIndex]].heldAmount);
-                    removeShareholder(shareholders[currentIndex]);
-                }
-
-                currentIndex++;
-                iterations++;
-            }
-        }
-
-        //Holding requirement is lower
-        if (_amount < minHoldAmountForRewards) {
-            while(iterations < shareholderCount) {
-                if(currentIndex >= shareholderCount){
-                    currentIndex = 0;
-                }
-
-                //If holder now qualifies
-                if(shares[shareholders[currentIndex]].heldAmount > 0 && shares[shareholders[currentIndex]].amount == 0) {
-                    if(shares[shareholders[currentIndex]].heldAmount > _amount) {
-                        shares[shareholders[currentIndex]].amount = shares[shareholders[currentIndex]].heldAmount;
-                        totalShares = totalShares.add(shares[shareholders[currentIndex]].heldAmount);
-                        addShareholder(shareholders[currentIndex]);
-                    }
-                }
-                
-                currentIndex++;
-                iterations++;
-            }
-        }
 
         minHoldAmountForRewards = _amount;
     }
@@ -711,7 +667,7 @@ contract KojiEarth is IBEP20, Auth {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI v1.20";
+    string constant _symbol = "KOJI v1.21";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
