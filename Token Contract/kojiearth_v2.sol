@@ -263,6 +263,9 @@ contract DividendDistributor is IDividendDistributor {
                     if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
                         totalShares = totalShares.sub(shares[shareholder].heldAmount);
                     }
+                    if (shares[shareholder].unpaidDividends > 0 && !shareholderAdded[shareholder]) {
+                        addShareholder(shareholder); //add back into the index so we can sweep his divs if not taken within 30 days
+                    }
                     shares[shareholder].amount = 0;
                     shares[shareholder].heldAmount = 0;
                     shareholderExpired[shareholder] = block.timestamp;
@@ -282,6 +285,7 @@ contract DividendDistributor is IDividendDistributor {
                 shares[shareholder].amount = amount;
                 shares[shareholder].heldAmount = amount;
                 totalShares = totalShares.add(amount);
+                //we only want to add the holder to the index if he is eligible for rewards, this will save gas
                 addShareholder(shareholder);
             }
 
@@ -319,6 +323,7 @@ contract DividendDistributor is IDividendDistributor {
                 }
                 shares[shareholder].heldAmount = amount;
                 shares[shareholder].amount = 0;
+                //let's remove this guy from the array now for gas savings, then add back in if he dumps the rest so we can sweep his divs if he abandons them!
                 removeShareholder(shareholder);
             }
 
