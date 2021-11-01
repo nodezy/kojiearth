@@ -179,8 +179,14 @@ contract DividendDistributor is IDividendDistributor {
         uint256 amount;
         uint256 heldAmount;
         uint256 unpaidDividends;
-        uint256 totalExcluded;
         uint256 totalRealised;
+        uint256 timestamp;
+    }
+
+    struct Period {
+        uint256 start;
+        uint256 end;
+        uint256 divsPerShare;
     }
 
     IBEP20 dividendToken;
@@ -195,6 +201,11 @@ contract DividendDistributor is IDividendDistributor {
     mapping (address => bool) shareholderAdded;
 
     mapping (address => Share) public shares;
+    mapping (uint256 => Period) public period;
+
+    uint256 public periodRange = 900; //15 mins default
+    uint256 public periodLimit = 36000; //roughly 1 year
+    uint256 periodIndex = 1;
 
     uint256 public totalShares;
     uint256 public totalDividends;
@@ -251,13 +262,15 @@ contract DividendDistributor is IDividendDistributor {
         //Existing holder cashed out
         if(amount == 0 && shares[shareholder].heldAmount > 0) {          
 
+                shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
+
                 if(shares[shareholder].unpaidDividends < minDistribution){
                     if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
                         totalShares = totalShares.sub(shares[shareholder].heldAmount);
                     }
                     shares[shareholder].amount = 0;
                     shares[shareholder].heldAmount = 0;
-                    shares[shareholder].totalExcluded = 0;
+                    shares[shareholder].timestamp = 0;
                     removeShareholder(shareholder);
                 } else {
                     if (shares[shareholder].heldAmount > minHoldAmountForRewards) {
@@ -268,6 +281,7 @@ contract DividendDistributor is IDividendDistributor {
                     }
                     shares[shareholder].amount = 0;
                     shares[shareholder].heldAmount = 0;
+                    shares[shareholder].timestamp = 0;
                     shareholderExpired[shareholder] = block.timestamp;
                     
                 }
@@ -277,13 +291,13 @@ contract DividendDistributor is IDividendDistributor {
         //New holder
         if(amount > 0 && shares[shareholder].heldAmount == 0){
 
-
             if (amount < minHoldAmountForRewards) {
                 shares[shareholder].heldAmount = amount;
                 shares[shareholder].amount = 0;
             } else {
                 shares[shareholder].amount = amount;
                 shares[shareholder].heldAmount = amount;
+                shares[shareholder].timestamp = block.timestamp;
                 totalShares = totalShares.add(amount);
                 //we only want to add the holder to the index if he is eligible for rewards, this should save gas
                 addShareholder(shareholder);
@@ -297,6 +311,8 @@ contract DividendDistributor is IDividendDistributor {
 
             //User bought/sold more but still qualifies for rewards
             if (amount > minHoldAmountForRewards && shares[shareholder].heldAmount > minHoldAmountForRewards) {
+                shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
+                shares[shareholder].timestamp = block.timestamp;
                 shares[shareholder].amount = amount;
                 totalShares = totalShares.sub(shares[shareholder].heldAmount).add(amount);
                 shares[shareholder].heldAmount = amount;
@@ -304,6 +320,8 @@ contract DividendDistributor is IDividendDistributor {
 
              //User bought more to qualify for rewards
             if (amount > minHoldAmountForRewards && shares[shareholder].heldAmount < minHoldAmountForRewards) {
+                shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
+                shares[shareholder].timestamp = block.timestamp;
                 shares[shareholder].amount = amount;
                 totalShares = totalShares.add(amount);
                 shares[shareholder].heldAmount = amount;
@@ -318,6 +336,9 @@ contract DividendDistributor is IDividendDistributor {
 
             //User had enough for rewards previously but now dropped below
             if (amount < minHoldAmountForRewards && shares[shareholder].heldAmount > minHoldAmountForRewards) {
+                shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
+                shares[shareholder].timestamp = block.timestamp;
+                
                 if(shares[shareholder].unpaidDividends > minDistribution) {
                     totalShares = totalShares.sub(shares[shareholder].heldAmount);
                 }
@@ -341,10 +362,7 @@ contract DividendDistributor is IDividendDistributor {
         didDeposit = true;
 
         //In case first transaction is a sell, we can get divs per share right away (typically handled on the buy side)
-        if (firstRun) { 
-            dividendsPerShare = dividendsPerShareAccuracyFactor.mul(totalDividends).div(totalShares);
-            firstRun = false;
-        }
+        
         
     }
 
@@ -354,42 +372,39 @@ contract DividendDistributor is IDividendDistributor {
 
     //After each trade, this function refactors the dividends of the holders above the min threshold if there was a swapback()
     function process() external override onlyToken {
-        uint256 shareholderCount = shareholders.length;
 
-        if(shareholderCount == 0) { return; }
-
-        if(didDeposit) { 
+        if (firstRun) { 
             
-            uint256 iterations = 0;
-            currentIndex = 0;
-        
-            dividendsPerShare = dividendsPerShareAccuracyFactor.mul(totalDividends).div(totalShares);
+            period[periodIndex].start = block.timestamp;
 
-            while(iterations < shareholderCount) {
-                if(currentIndex >= shareholderCount){
-                    currentIndex = 0;
-                }
-
-                if(shouldProcess(shareholders[currentIndex])){
-                    
-                    uint256 shareamount = 0;
-                    shareamount = getUnpaidEarnings(shareholders[currentIndex]);
-                    shares[shareholders[currentIndex]].unpaidDividends = shares[shareholders[currentIndex]].unpaidDividends.add(shareamount);
-                    totalDividends = totalDividends.sub(shareamount);
-                    
-                } 
-
-                currentIndex++;
-                iterations++;
-            }
-
-            didDeposit = false;
-
-        } else {
-            return; 
+            firstRun = false;
         }
 
-        
+        if (block.timestamp.sub(periodRange) >= period[periodIndex].start) {
+
+            if (totalDividends > 0) {
+       
+                period[periodIndex].divsPerShare = dividendsPerShareAccuracyFactor.mul(totalDividends).div(totalShares);
+
+                totalDividends = 0;
+
+                period[periodIndex].end = block.timestamp;
+
+                    if(periodIndex == periodLimit) {
+                        periodIndex = 1;
+                    } else {
+                        periodIndex ++;
+                    }
+
+                period[periodIndex].start = block.timestamp.add(1);
+
+            } else {
+
+                period[periodIndex].start = block.timestamp;
+
+            }
+
+        }
     }
 
     //Impounds all divs from non-KOJI holders that sold all, yet didn't claim rewards within time limit
@@ -481,7 +496,7 @@ contract DividendDistributor is IDividendDistributor {
 
          require(percent >= 25 && percent <= 100, "Percent of withdrawal is outside of parameters");
         
-        uint256 amount = shares[shareholder].unpaidDividends;
+         uint256 amount = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
 
         amount = amount.mul(percent).div(100);
         
@@ -496,14 +511,14 @@ contract DividendDistributor is IDividendDistributor {
             shareholderClaims[shareholder] = block.timestamp;
             shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.sub(amount);
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
+            shares[shareholder].timestamp = block.timestamp;
 
             totalWithdrawn = totalWithdrawn.add(netamount);
             netDividends = netDividends.sub(amount);          
 
             if(shares[shareholder].heldAmount == 0 && shares[shareholder].unpaidDividends == 0) {
-                shares[shareholder].totalExcluded = 0;
                 removeShareholder(shareholder);
-              
+                shares[shareholder].timestamp = 0;
             }
         } else {
             return; 
@@ -515,7 +530,7 @@ contract DividendDistributor is IDividendDistributor {
 
         require(percent >= 25 && percent <= 100, "Percent of reinvestment is outside of parameters");
         
-        uint256 amount = shares[shareholder].unpaidDividends;
+        uint256 amount = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
 
         amount = amount.mul(percent).div(100);  
 
@@ -537,6 +552,7 @@ contract DividendDistributor is IDividendDistributor {
             totalDistributed = totalDistributed.add(netamount);
             shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.sub(amount); 
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
+            shares[shareholder].timestamp = block.timestamp;
 
             totalReinvested = totalReinvested.add(netamount);
             shareholderClaims[shareholder] = block.timestamp;
@@ -561,7 +577,6 @@ contract DividendDistributor is IDividendDistributor {
         shareholderExpired[shareholder] = 9999999999;
 
         shares[shareholder].unpaidDividends = 0;
-        shares[shareholder].totalExcluded = 0;
 
         netDividends = netDividends.sub(amount);
 
@@ -571,8 +586,14 @@ contract DividendDistributor is IDividendDistributor {
     function getUnpaidEarnings(address shareholder) public view returns (uint256 unpaidAmount) {
         if(shares[shareholder].amount == 0){ return shares[shareholder].unpaidDividends; } 
         else {
+            uint256 shareholderTotalDividends;
 
-        uint256 shareholderTotalDividends = getCumulativeDividends(shares[shareholder].amount);
+            for (uint i = periodIndex; i > 0; i--) {
+                if (shares[shareholder].timestamp < period[i].end) {
+                    shareholderTotalDividends = shareholderTotalDividends.add(shares[shareholder].amount.mul(period[i].divsPerShare).div(dividendsPerShareAccuracyFactor));
+                }
+                
+            }
         
         return shareholderTotalDividends;
                 
@@ -639,8 +660,8 @@ contract DividendDistributor is IDividendDistributor {
         return minHoldAmountForRewards;
     }
 
-    function holderInfo(address _holder) external view returns (uint256, uint256, uint256, uint256, uint256) {
-        return (shares[_holder].amount, shares[_holder].heldAmount, shares[_holder].unpaidDividends, shares[_holder].totalExcluded, shares[_holder].totalRealised);
+    function holderInfo(address _holder) external view returns (uint256, uint256, uint256, uint256) {
+        return (shares[_holder].amount, shares[_holder].heldAmount, shares[_holder].unpaidDividends, shares[_holder].totalRealised);
     }
 
     function mathInfo() external view returns (uint256, uint256, uint256, uint256, uint256, uint256) {
@@ -835,10 +856,12 @@ contract KojiEarth is IBEP20, Auth {
         if(!isDividendExempt[r]){ try distributor.setShare(r, _balances[r]) {} catch {} }
 
         //Update all holders pending dividends
-        if (r == pair) {
+        /*if (r == pair) {
 
             try distributor.process() {} catch {}
-        }
+        }*/
+
+        distributor.process(); 
         
 
         emit Transfer(s, r, amountReceived);
@@ -1182,7 +1205,7 @@ contract KojiEarth is IBEP20, Auth {
         return distributor.viewMinHold();
     }
  
-    function ViewHolderInfo(address _address) external view returns (uint256 amount, uint256 held, uint256 unpaid, uint256 excluded, uint256 realised) {
+    function ViewHolderInfo(address _address) external view returns (uint256 amount, uint256 held, uint256 unpaid, uint256 realised) {
         return distributor.holderInfo(_address);
     }
     
