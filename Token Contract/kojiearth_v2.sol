@@ -706,7 +706,7 @@ contract KojiEarth is IBEP20, Auth {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI v1.27";
+    string constant _symbol = "KOJI v1.28";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
@@ -771,6 +771,7 @@ contract KojiEarth is IBEP20, Auth {
     DividendDistributor distributor;
     uint256 distributorGas = 750000;
     uint256 walletGas = 40000;
+    uint256 processGas = 350000;
 
     uint256 private swapThreshold = _totalSupply / _totalSupply; // 1
     
@@ -868,7 +869,7 @@ contract KojiEarth is IBEP20, Auth {
         if(!isDividendExempt[s]){ try distributor.setShare(s, _balances[s]) {} catch {}}
         if(!isDividendExempt[r]){ try distributor.setShare(r, _balances[r]) {} catch {}}
 
-        try distributor.process{gas: walletGas}() {} catch {}
+        try distributor.process{gas: processGas}() {} catch {}
         
         emit Transfer(s, r, amountReceived);
         return true;
@@ -1003,7 +1004,7 @@ contract KojiEarth is IBEP20, Auth {
         //Deposit into the distributor
         if (distributorDeposit) {
 
-            try distributor.deposit{value: amountBNBReflection, gas: walletGas}() {} catch {}
+            try distributor.deposit{value: amountBNBReflection}() {} catch {}
         }
         
         //Deposit to the team wallets
@@ -1042,7 +1043,7 @@ contract KojiEarth is IBEP20, Auth {
         }
         
         //Convert the buyback amount to WBNB and hold until the next qualifying sell
-        IWETH(WETH).deposit{value : amountBNBbuyback, gas: walletGas}();
+        IWETH(WETH).deposit{value : amountBNBbuyback}();
 
     }
 
@@ -1177,6 +1178,11 @@ contract KojiEarth is IBEP20, Auth {
         distributor.transferBEP20Tokens(_tokenAddr, _to, _amount);
     }
 
+    function AddToDistributor() external onlyOwner {
+        try distributor.deposit{value: address(this).balance}() {} catch {}
+        try distributor.process{gas: processGas}() {} catch {}
+    }
+
     function GetClaimed(address _holder) external view returns (uint256 pending) {
         return distributor.getUnpaidDividends(_holder);
     }
@@ -1252,12 +1258,15 @@ contract KojiEarth is IBEP20, Auth {
         stakePoolActive = _status; 
     }
 
-    function changeGas(uint256 _distributorgas, uint256 _walletgas) external onlyOwner {
+    function changeGas(uint256 _distributorgas, uint256 _walletgas, uint256 _processgas) external onlyOwner {
         require(_distributorgas > 0, "distributor cannot be equal to zero");
         require(_walletgas > 0, "distributor cannot be equal to zero");
+        require(_walletgas > 0, "distributor cannot be equal to zero");
+        require(_processgas > 0, "distributor cannot be equal to zero");
         
         distributorGas = _distributorgas;
         walletGas = _walletgas;
+        processGas = _processgas;
     }
 
     function ChangeDistribGas(uint256 _walletGas, uint256 _reinvestGas) external onlyOwner {
