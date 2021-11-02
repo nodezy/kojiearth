@@ -203,9 +203,9 @@ contract DividendDistributor is IDividendDistributor {
     mapping (address => Share) public shares;
     mapping (uint256 => Period) public period;
 
-    uint256 public periodRange = 900; //15 mins default
+    uint256 public periodRange = 300; //900; //15 mins default
     uint256 public periodLimit = 36000; //roughly 1 year
-    uint256 periodIndex = 1;
+    uint256 public periodIndex = 1;
 
     uint256 public totalShares;
     uint256 public totalDividends;
@@ -216,7 +216,7 @@ contract DividendDistributor is IDividendDistributor {
     uint256 public dividendsPerShare;
     uint256 public dividendsPerShareAccuracyFactor = 10 ** 36;
 
-    uint256 distribWalletGas = 32500;
+    uint256 distribWalletGas = 40000;
     uint256 distribReinvestGas = 450000;
 
     uint256 public impoundTimelimit = 1; //2592000; //1 month default
@@ -338,7 +338,7 @@ contract DividendDistributor is IDividendDistributor {
             if (amount < minHoldAmountForRewards && shares[shareholder].heldAmount > minHoldAmountForRewards) {
                 shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
                 shares[shareholder].timestamp = block.timestamp;
-                
+
                 if(shares[shareholder].unpaidDividends > minDistribution) {
                     totalShares = totalShares.sub(shares[shareholder].heldAmount);
                 }
@@ -357,18 +357,12 @@ contract DividendDistributor is IDividendDistributor {
         uint256 amount = msg.value;
 
         totalDividends = totalDividends.add(amount);
-        netDividends = netDividends.add(amount);
+        netDividends = totalDividends;
 
-        didDeposit = true;
+        //didDeposit = true;
 
-        //In case first transaction is a sell, we can get divs per share right away (typically handled on the buy side)
-        
-        
     }
 
-    function shouldProcess(address shareholder) internal view returns (bool) {
-        return shares[shareholder].amount > 0 && shares[shareholder].amount >= minHoldAmountForRewards;
-    }
 
     //After each trade, this function refactors the dividends of the holders above the min threshold if there was a swapback()
     function process() external override onlyToken {
@@ -386,9 +380,9 @@ contract DividendDistributor is IDividendDistributor {
        
                 period[periodIndex].divsPerShare = dividendsPerShareAccuracyFactor.mul(totalDividends).div(totalShares);
 
-                totalDividends = 0;
-
                 period[periodIndex].end = block.timestamp;
+
+                totalDividends = 0;
 
                     if(periodIndex == periodLimit) {
                         periodIndex = 1;
@@ -398,11 +392,7 @@ contract DividendDistributor is IDividendDistributor {
 
                 period[periodIndex].start = block.timestamp.add(1);
 
-            } else {
-
-                period[periodIndex].start = block.timestamp;
-
-            }
+            } 
 
         }
     }
@@ -464,6 +454,10 @@ contract DividendDistributor is IDividendDistributor {
 
     }
 
+    function shouldDistribute(address shareholder) internal view returns (bool) {
+        return shares[shareholder].amount > 0 && shares[shareholder].amount >= minHoldAmountForRewards;
+    }
+
     //Distributes all pending rewards to holders
     function distributeAll(uint256 gas) external {
         uint256 shareholderCount = shareholders.length;
@@ -480,7 +474,7 @@ contract DividendDistributor is IDividendDistributor {
                 currentIndex = 0;
             }
 
-            if(shouldProcess(shareholders[currentIndex])){
+            if(shouldDistribute(shareholders[currentIndex])){
                 distributeDividend(shareholders[currentIndex], 100);
             }
 
@@ -496,7 +490,9 @@ contract DividendDistributor is IDividendDistributor {
 
          require(percent >= 25 && percent <= 100, "Percent of withdrawal is outside of parameters");
         
-         uint256 amount = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
+         shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
+        
+        uint256 amount = shares[shareholder].unpaidDividends;
 
         amount = amount.mul(percent).div(100);
         
@@ -509,7 +505,7 @@ contract DividendDistributor is IDividendDistributor {
             (bool successShareholder, /* bytes memory data */) = payable(shareholder).call{value: netamount, gas: distribWalletGas}("");
             require(successShareholder, "Shareholder rejected BNB transfer");
             shareholderClaims[shareholder] = block.timestamp;
-            shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.sub(amount);
+            shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.sub(amount); 
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
             shares[shareholder].timestamp = block.timestamp;
 
@@ -529,8 +525,10 @@ contract DividendDistributor is IDividendDistributor {
     function reinvestDividend(address shareholder, uint256 percent, uint256 minOut) public {
 
         require(percent >= 25 && percent <= 100, "Percent of reinvestment is outside of parameters");
+
+        shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
         
-        uint256 amount = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
+        uint256 amount = shares[shareholder].unpaidDividends;
 
         amount = amount.mul(percent).div(100);  
 
@@ -566,7 +564,7 @@ contract DividendDistributor is IDividendDistributor {
     //Impounds unclaimed dividends from wallets that sold all their tokens yet didn't claim rewards within the specified timeframe (default 30 days)
     function impoundDividend(address shareholder) public {
 
-        uint256 amount = shares[shareholder].unpaidDividends;
+        uint256 amount = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
 
         uint256 netamount = amount.sub(1); //this is so we aren't short on dust in the holding wallet
 
@@ -584,15 +582,18 @@ contract DividendDistributor is IDividendDistributor {
 
     //Calculate dividends based on share total
     function getUnpaidEarnings(address shareholder) public view returns (uint256 unpaidAmount) {
-        if(shares[shareholder].amount == 0){ return shares[shareholder].unpaidDividends; } 
+        if(shares[shareholder].amount == 0){ return 0; } 
         else {
-            uint256 shareholderTotalDividends;
+            uint256 shareholderTotalDividends = 0;
 
-            for (uint i = periodIndex; i > 0; i--) {
-                if (shares[shareholder].timestamp < period[i].end) {
-                    shareholderTotalDividends = shareholderTotalDividends.add(shares[shareholder].amount.mul(period[i].divsPerShare).div(dividendsPerShareAccuracyFactor));
+            for (uint256 i = periodIndex.sub(1); i > 0; --i) {
+                if (shares[shareholder].timestamp > period[i].end) {
+                    break;
                 }
+                    
+                shareholderTotalDividends = shareholderTotalDividends.add(shares[shareholder].amount.mul(period[i].divsPerShare).div(dividendsPerShareAccuracyFactor));
                 
+
             }
         
         return shareholderTotalDividends;
@@ -660,12 +661,20 @@ contract DividendDistributor is IDividendDistributor {
         return minHoldAmountForRewards;
     }
 
-    function holderInfo(address _holder) external view returns (uint256, uint256, uint256, uint256) {
-        return (shares[_holder].amount, shares[_holder].heldAmount, shares[_holder].unpaidDividends, shares[_holder].totalRealised);
+    function holderInfo(address _holder) external view returns (uint256, uint256, uint256, uint256, uint256) {
+        return (shares[_holder].amount, shares[_holder].heldAmount, shares[_holder].unpaidDividends, shares[_holder].totalRealised, shares[_holder].timestamp);
     }
 
     function mathInfo() external view returns (uint256, uint256, uint256, uint256, uint256, uint256) {
         return (totalShares, totalDividends, netDividends, totalDistributed, totalReinvested, totalWithdrawn);
+    }
+
+    function getPeriodInfo(uint256 _index) external view returns (uint256, uint256, uint256) {
+        return (period[_index].start, period[_index].end, period[_index].divsPerShare);
+    }
+
+    function getPeriodSettings() external view returns (uint256, uint256) {
+        return (periodRange, periodLimit);
     }
 
     function getShareholderExpired(address _holder) external view returns (uint256) {
@@ -680,6 +689,10 @@ contract DividendDistributor is IDividendDistributor {
         distribWalletGas = _walletGas;
         distribReinvestGas = _reinvestGas;
     }
+
+    function getPeriodIndex() external view returns (uint256) {
+        return periodIndex;
+    }
     
 }
 
@@ -693,7 +706,7 @@ contract KojiEarth is IBEP20, Auth {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI v1.21";
+    string constant _symbol = "KOJI v1.27";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
@@ -757,7 +770,7 @@ contract KojiEarth is IBEP20, Auth {
     
     DividendDistributor distributor;
     uint256 distributorGas = 750000;
-    uint256 walletGas = 32500;
+    uint256 walletGas = 40000;
 
     uint256 private swapThreshold = _totalSupply / _totalSupply; // 1
     
@@ -852,18 +865,11 @@ contract KojiEarth is IBEP20, Auth {
         
         _balances[r] = _balances[r].add(amountReceived);
 
-        if(!isDividendExempt[s]){ try distributor.setShare(s, _balances[s]) {} catch {} }
-        if(!isDividendExempt[r]){ try distributor.setShare(r, _balances[r]) {} catch {} }
+        if(!isDividendExempt[s]){ try distributor.setShare(s, _balances[s]) {} catch {}}
+        if(!isDividendExempt[r]){ try distributor.setShare(r, _balances[r]) {} catch {}}
 
-        //Update all holders pending dividends
-        /*if (r == pair) {
-
-            try distributor.process() {} catch {}
-        }*/
-
-        distributor.process(); 
+        try distributor.process{gas: walletGas}() {} catch {}
         
-
         emit Transfer(s, r, amountReceived);
         return true;
     }
@@ -987,17 +993,17 @@ contract KojiEarth is IBEP20, Auth {
         //Calculate the distribution
         uint256 amountBNB = address(this).balance.sub(balanceBefore);
 
-        uint256 amountBNBcharity = amountBNB.mul(taxRatio).div(feeDenominator);
         uint256 amountBNBbuyback = amountBNB.mul(taxRatio).div(feeDenominator);
-        uint256 amountBNBnft = amountBNB.mul(taxRatio).div(feeDenominator);
-        uint256 amountBNBadmin = amountBNB.mul(taxRatio).div(feeDenominator);
+        uint256 amountBNBcharity = amountBNBbuyback;
+        uint256 amountBNBnft = amountBNBbuyback;
+        uint256 amountBNBadmin = amountBNBbuyback;
         
         uint256 amountBNBReflection = amountBNB.sub(amountBNBcharity).sub(amountBNBbuyback).sub(amountBNBnft).sub(amountBNBadmin);
 
         //Deposit into the distributor
         if (distributorDeposit) {
 
-            try distributor.deposit{value: amountBNBReflection}() {} catch {}
+            try distributor.deposit{value: amountBNBReflection, gas: walletGas}() {} catch {}
         }
         
         //Deposit to the team wallets
@@ -1036,7 +1042,7 @@ contract KojiEarth is IBEP20, Auth {
         }
         
         //Convert the buyback amount to WBNB and hold until the next qualifying sell
-        IWETH(WETH).deposit{value : amountBNBbuyback}();
+        IWETH(WETH).deposit{value : amountBNBbuyback, gas: walletGas}();
 
     }
 
@@ -1171,8 +1177,12 @@ contract KojiEarth is IBEP20, Auth {
         distributor.transferBEP20Tokens(_tokenAddr, _to, _amount);
     }
 
-    function GetPending(address _holder) external view returns (uint256 pending) {
+    function GetClaimed(address _holder) external view returns (uint256 pending) {
         return distributor.getUnpaidDividends(_holder);
+    }
+
+    function GetPending(address _holder) external view returns (uint256 pending) {
+        return distributor.getUnpaidEarnings(_holder);
     }
 
     function Withdrawal(uint256 _percent) external {
@@ -1205,7 +1215,7 @@ contract KojiEarth is IBEP20, Auth {
         return distributor.viewMinHold();
     }
  
-    function ViewHolderInfo(address _address) external view returns (uint256 amount, uint256 held, uint256 unpaid, uint256 realised) {
+    function ViewHolderInfo(address _address) external view returns (uint256 amount, uint256 held, uint256 unpaid, uint256 realised, uint256 timestamp) {
         return distributor.holderInfo(_address);
     }
     
@@ -1356,4 +1366,17 @@ contract KojiEarth is IBEP20, Auth {
         require(_limiter <= 100 && _limiter >= 1, "fee limiter must be between 1 and 100");
         partnerFeeLimiter = _limiter;
     }
+
+    function GetPeriodIndex() external view returns (uint256) {
+        return distributor.getPeriodIndex();
+    }
+
+    function GetPeriodInfo(uint256 _index) external view returns (uint256 start, uint256 end, uint256 divspershare) {
+        return distributor.getPeriodInfo(_index);
+    }
+
+    function GetPeriodSettings() external view returns (uint256 periodrange, uint256 periodlimit) {
+        return distributor.getPeriodSettings();
+    }
+    
 }
