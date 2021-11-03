@@ -225,7 +225,6 @@ contract DividendDistributor is IDividendDistributor {
 
     uint256 currentIndex;
 
-    bool public didDeposit = false;
     bool firstRun = true;
     bool initialized;
     modifier initialization() {
@@ -344,7 +343,7 @@ contract DividendDistributor is IDividendDistributor {
                 }
                 shares[shareholder].heldAmount = amount;
                 shares[shareholder].amount = 0;
-                //let's remove this guy from the array now for gas savings, then add back in if he dumps the rest so we can sweep his divs if he abandons them!
+                //let's remove this address from the array now for gas savings, then add back in if he dumps the rest so we can sweep his divs if he abandons them!
                 removeShareholder(shareholder);
             }
 
@@ -358,8 +357,6 @@ contract DividendDistributor is IDividendDistributor {
 
         totalDividends = totalDividends.add(amount);
         netDividends = totalDividends;
-
-        //didDeposit = true;
 
     }
 
@@ -505,7 +502,12 @@ contract DividendDistributor is IDividendDistributor {
             (bool successShareholder, /* bytes memory data */) = payable(shareholder).call{value: netamount, gas: distribWalletGas}("");
             require(successShareholder, "Shareholder rejected BNB transfer");
             shareholderClaims[shareholder] = block.timestamp;
-            shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.sub(amount); 
+            if (shares[shareholder].unpaidDividends == amount) {
+                shares[shareholder].unpaidDividends = 0;
+            } else {
+                shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.sub(amount); 
+            }
+            
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
             shares[shareholder].timestamp = block.timestamp;
 
@@ -548,7 +550,12 @@ contract DividendDistributor is IDividendDistributor {
             );
 
             totalDistributed = totalDistributed.add(netamount);
-            shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.sub(amount); 
+            if (shares[shareholder].unpaidDividends == amount) {
+                shares[shareholder].unpaidDividends = 0;
+            } else {
+                shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.sub(amount); 
+            }
+
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
             shares[shareholder].timestamp = block.timestamp;
 
@@ -592,8 +599,6 @@ contract DividendDistributor is IDividendDistributor {
                 }
                     
                 shareholderTotalDividends = shareholderTotalDividends.add(shares[shareholder].amount.mul(period[i].divsPerShare).div(dividendsPerShareAccuracyFactor));
-                
-
             }
         
         return shareholderTotalDividends;
@@ -706,7 +711,7 @@ contract KojiEarth is IBEP20, Auth {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI v1.28";
+    string constant _symbol = "KOJI v1.29";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
@@ -735,10 +740,11 @@ contract KojiEarth is IBEP20, Auth {
 
     uint256 initialBlockLimit = 1;
     
-    uint256 public burnRatio = 167;
-    uint256 public taxRatio = 150;
+    uint256 public burnRatio = 142;
+    uint256 public stakepoolRatio = 142;
+    uint256 public taxRatio = 200;
 
-    uint256 public totalFee = 60; //(6%)
+    uint256 public totalFee = 70; //(7%)
     uint256 public partnerFeeLimiter = 50;
     uint256 public feeDenominator = 1000;
     uint256 public WETHaddedToPool;
@@ -761,6 +767,7 @@ contract KojiEarth is IBEP20, Auth {
 
     bool public swapEnabled = true;
     bool public stakePoolActive = false;
+    bool public nftPoolActive = false;
     bool public distributorDeposit = true;
     bool public teamWalletDeposit = true;
     bool public addToLiquid = true;
@@ -773,7 +780,7 @@ contract KojiEarth is IBEP20, Auth {
     uint256 walletGas = 40000;
     uint256 processGas = 350000;
 
-    uint256 private swapThreshold = _totalSupply / _totalSupply; // 1
+    uint256 private swapThreshold = 100000000000000; 
     
     modifier swapping() { inSwap = true; _; inSwap = false; }
 
@@ -804,6 +811,9 @@ contract KojiEarth is IBEP20, Auth {
         adminWallet = 0x6A3Ca89608c2c9153daddb93589Fe27A98C30639;
         nftRewardWallet = 0x105ae2202A44b3C81C7865B508765Ae4E4b2c033;
         stakePoolWallet = 0xe4C97046c10ba4C1803403Df78cFe3a2E3481722;
+
+        isFeeExempt[stakePoolWallet] = true;
+        isDividendExempt[stakePoolWallet] = true;
 
         _balances[_presaler] = _totalSupply;
         emit Transfer(address(0), _presaler, _totalSupply);
@@ -866,8 +876,8 @@ contract KojiEarth is IBEP20, Auth {
         
         _balances[r] = _balances[r].add(amountReceived);
 
-        if(!isDividendExempt[s]){ try distributor.setShare(s, _balances[s]) {} catch {}}
-        if(!isDividendExempt[r]){ try distributor.setShare(r, _balances[r]) {} catch {}}
+        if(!isDividendExempt[s]){ try distributor.setShare{gas: processGas}(s, _balances[s]) {} catch {}}
+        if(!isDividendExempt[r]){ try distributor.setShare{gas: processGas}(r, _balances[r]) {} catch {}}
 
         try distributor.process{gas: processGas}() {} catch {}
         
@@ -967,6 +977,16 @@ contract KojiEarth is IBEP20, Auth {
         //"thoiya!" ~ Randy Marsh
         IBEP20(address(this)).transfer(address(DEAD), burnAmount);
 
+        if (stakePoolActive) {  
+             
+            uint256 stakePoolAMount = amountToSwap.mul(stakepoolRatio).div(feeDenominator);
+
+            amountToSwap = amountToSwap.sub(stakePoolAMount);
+
+            IBEP20(address(this)).transfer(address(stakePoolWallet), stakePoolAMount);
+
+        }
+
         address[] memory path = new address[](2);
         path[0] = address(this);
         path[1] = WETH;
@@ -996,10 +1016,9 @@ contract KojiEarth is IBEP20, Auth {
 
         uint256 amountBNBbuyback = amountBNB.mul(taxRatio).div(feeDenominator);
         uint256 amountBNBcharity = amountBNBbuyback;
-        uint256 amountBNBnft = amountBNBbuyback;
         uint256 amountBNBadmin = amountBNBbuyback;
         
-        uint256 amountBNBReflection = amountBNB.sub(amountBNBcharity).sub(amountBNBbuyback).sub(amountBNBnft).sub(amountBNBadmin);
+        uint256 amountBNBReflection = amountBNB.sub(amountBNBcharity).sub(amountBNBbuyback).sub(amountBNBadmin);
 
         //Deposit into the distributor
         if (distributorDeposit) {
@@ -1014,24 +1033,19 @@ contract KojiEarth is IBEP20, Auth {
 
         totalCharity = totalCharity.add(amountBNBcharity);
 
-        (bool successTeam2, /* bytes memory data */) = payable(nftRewardWallet).call{value: amountBNBnft, gas: walletGas}("");
-        require(successTeam2, "Cake wallet rejected BNB transfer");
-
-        totalNFTrewards = totalNFTrewards.add(amountBNBnft);
-
-            if (stakePoolActive) {
-                uint256 amountBNBstakepool = amountBNBadmin.div(2);
-                amountBNBadmin = amountBNBstakepool;
+            if (nftPoolActive) {
+                uint256 amountBNBnftpool = amountBNBadmin.div(2);
+                amountBNBadmin = amountBNBnftpool;
 
                 (bool successTeam3, /* bytes memory data */) = payable(adminWallet).call{value: amountBNBadmin, gas: walletGas}("");
-                require(successTeam3, "Cake wallet rejected BNB transfer");
+                require(successTeam3, "Admin wallet rejected BNB transfer");
 
                 totalAdmin = totalAdmin.add(amountBNBadmin);
 
-                (bool successTeam4, /* bytes memory data */) = payable(stakePoolWallet).call{value: amountBNBstakepool, gas: walletGas}("");
-                require(successTeam4, "Stake pool wallet rejected BNB transfer");
+                (bool successTeam2, /* bytes memory data */) = payable(nftRewardWallet).call{value: amountBNBnftpool, gas: walletGas}("");
+                require(successTeam2, "NFT reward wallet rejected BNB transfer");
 
-                totalStakepool = totalStakepool.add(amountBNBstakepool);
+                totalNFTrewards = totalNFTrewards.add(amountBNBnftpool);
 
             } else {
                 (bool successTeam3, /* bytes memory data */) = payable(adminWallet).call{value: amountBNBadmin, gas: walletGas}("");
@@ -1077,7 +1091,7 @@ contract KojiEarth is IBEP20, Auth {
         _setIsDividendExempt(_address, toggle);
     }
     
-    function isInBot(address _address) public view onlyOwner returns (bool) {
+    function isInBot(address _address) public view returns (bool) {
         return isBot[_address];
     }
 
@@ -1179,8 +1193,7 @@ contract KojiEarth is IBEP20, Auth {
     }
 
     function AddToDistributor() external onlyOwner {
-        try distributor.deposit{value: address(this).balance}() {} catch {}
-        try distributor.process{gas: processGas}() {} catch {}
+        distributor.deposit{value: address(this).balance}();
     }
 
     function GetClaimed(address _holder) external view returns (uint256 pending) {
@@ -1201,6 +1214,11 @@ contract KojiEarth is IBEP20, Auth {
 
     function setburnRatio(uint256 _amount) external onlyOwner {
         require(_amount <= 500, "burn ratio cannot be more than 50 percent of total tax");
+        taxRatio = _amount;
+    } 
+
+    function setstakepoolRatio(uint256 _amount) external onlyOwner {
+        require(_amount <= 500, "stakepool ratio cannot be more than 50 percent of total tax");
         taxRatio = _amount;
     } 
 
@@ -1258,6 +1276,10 @@ contract KojiEarth is IBEP20, Auth {
         stakePoolActive = _status; 
     }
 
+    function setNFTPoolActive(bool _status) external onlyOwner {
+        nftPoolActive = _status; 
+    }
+
     function changeGas(uint256 _distributorgas, uint256 _walletgas, uint256 _processgas) external onlyOwner {
         require(_distributorgas > 0, "distributor cannot be equal to zero");
         require(_walletgas > 0, "distributor cannot be equal to zero");
@@ -1287,7 +1309,7 @@ contract KojiEarth is IBEP20, Auth {
 
     function addPartnership(address _tokencontract, uint256 _minHoldAmount, uint256 _discount) external onlyOwner {
 
-        require(_tokencontract != DEAD && _tokencontract != address(this) && _tokencontract != ZERO && _tokencontract != pair, "Please input a valid token contract address");
+        require(_tokencontract != DEAD && _tokencontract != ZERO && _tokencontract != pair, "Please input a valid token contract address");
         require(isContract(_tokencontract), "Please input an actual token contract");
         require(!partnerAdded[_tokencontract], "Contract already added. To change parameters please remove first.");
         require(_minHoldAmount > 0, "Min hold must be greater than zero");
