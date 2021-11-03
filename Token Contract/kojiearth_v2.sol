@@ -487,32 +487,27 @@ contract DividendDistributor is IDividendDistributor {
 
          require(percent >= 25 && percent <= 100, "Percent of withdrawal is outside of parameters");
         
-         shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
+         uint256 fullamount = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
         
-        uint256 amount = shares[shareholder].unpaidDividends;
-
-        amount = amount.mul(percent).div(100);
+         uint256 netamount = fullamount.mul(percent).div(100);
         
-        if(amount > 0){
+        if(netamount > 0){
             
-            uint256 netamount = amount.sub(1); //this is so we aren't short on dust in the holding wallet
+            netamount = netamount.sub(1); //this is so we aren't short on dust in the holding wallet
 
             totalDistributed = totalDistributed.add(netamount);
 
             (bool successShareholder, /* bytes memory data */) = payable(shareholder).call{value: netamount, gas: distribWalletGas}("");
             require(successShareholder, "Shareholder rejected BNB transfer");
             shareholderClaims[shareholder] = block.timestamp;
-            if (shares[shareholder].unpaidDividends == amount) {
-                shares[shareholder].unpaidDividends = 0;
-            } else {
-                shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.sub(amount); 
-            }
+            
+            shares[shareholder].unpaidDividends = fullamount.sub(netamount); 
             
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
             shares[shareholder].timestamp = block.timestamp;
 
             totalWithdrawn = totalWithdrawn.add(netamount);
-            netDividends = netDividends.sub(amount);          
+            netDividends = netDividends.sub(netamount);          
 
             if(shares[shareholder].heldAmount == 0 && shares[shareholder].unpaidDividends == 0) {
                 removeShareholder(shareholder);
@@ -528,15 +523,13 @@ contract DividendDistributor is IDividendDistributor {
 
         require(percent >= 25 && percent <= 100, "Percent of reinvestment is outside of parameters");
 
-        shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
+        uint256 fullamount = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
         
-        uint256 amount = shares[shareholder].unpaidDividends;
+        uint256 netamount = fullamount.mul(percent).div(100);
 
-        amount = amount.mul(percent).div(100);  
+        if(netamount >= minDistribution){
 
-        if(amount >= minDistribution){
-
-            uint256 netamount = amount.sub(1); //this is so we aren't short on dust in the holding wallet
+           netamount = netamount.sub(1); //this is so we aren't short on dust in the holding wallet
 
             address[] memory path = new address[](2);
             path[0] = WETH;
@@ -550,18 +543,15 @@ contract DividendDistributor is IDividendDistributor {
             );
 
             totalDistributed = totalDistributed.add(netamount);
-            if (shares[shareholder].unpaidDividends == amount) {
-                shares[shareholder].unpaidDividends = 0;
-            } else {
-                shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.sub(amount); 
-            }
+            
+            shares[shareholder].unpaidDividends = fullamount.sub(netamount); 
 
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
             shares[shareholder].timestamp = block.timestamp;
 
             totalReinvested = totalReinvested.add(netamount);
             shareholderClaims[shareholder] = block.timestamp;
-            netDividends = netDividends.sub(amount);
+            netDividends = netDividends.sub(netamount);
             
         } else {
             return; 
@@ -711,7 +701,7 @@ contract KojiEarth is IBEP20, Auth {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI v1.29";
+    string constant _symbol = "KOJI v1.30";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
@@ -972,19 +962,23 @@ contract KojiEarth is IBEP20, Auth {
         //Lets burn the 1% 
         uint256 burnAmount = amountToSwap.mul(burnRatio).div(feeDenominator);
 
-        amountToSwap = amountToSwap.sub(burnAmount);
-
         //"thoiya!" ~ Randy Marsh
         IBEP20(address(this)).transfer(address(DEAD), burnAmount);
 
         if (stakePoolActive) {  
              
-            uint256 stakePoolAMount = amountToSwap.mul(stakepoolRatio).div(feeDenominator);
+            uint256 stakePoolAmount = amountToSwap.mul(stakepoolRatio).div(feeDenominator);
 
-            amountToSwap = amountToSwap.sub(stakePoolAMount);
+            amountToSwap = amountToSwap.sub(stakePoolAmount);
 
-            IBEP20(address(this)).transfer(address(stakePoolWallet), stakePoolAMount);
+            IBEP20(address(this)).transfer(address(stakePoolWallet), stakePoolAmount);
 
+            totalStakepool = totalStakepool.add(stakePoolAmount);
+
+            amountToSwap = amountToSwap.sub(burnAmount);
+
+        } else {
+            amountToSwap = amountToSwap.sub(burnAmount);
         }
 
         address[] memory path = new address[](2);
@@ -1017,9 +1011,23 @@ contract KojiEarth is IBEP20, Auth {
         uint256 amountBNBbuyback = amountBNB.mul(taxRatio).div(feeDenominator);
         uint256 amountBNBcharity = amountBNBbuyback;
         uint256 amountBNBadmin = amountBNBbuyback;
-        
-        uint256 amountBNBReflection = amountBNB.sub(amountBNBcharity).sub(amountBNBbuyback).sub(amountBNBadmin);
+        uint256 amountBNBReflection;
+        uint256 amountBNBnft;
 
+        if (nftPoolActive) {
+            amountBNBnft = amountBNBbuyback;
+            amountBNBReflection = amountBNB.sub(amountBNBcharity).sub(amountBNBbuyback).sub(amountBNBadmin).sub(amountBNBnft);
+
+            (bool successTeam3, /* bytes memory data */) = payable(nftRewardWallet).call{value: amountBNBnft, gas: walletGas}("");
+            require(successTeam3, "NFT reward wallet rejected BNB transfer");
+
+            totalNFTrewards = totalNFTrewards.add(amountBNBnft);
+
+        } else {
+
+            amountBNBReflection = amountBNB.sub(amountBNBcharity).sub(amountBNBbuyback).sub(amountBNBadmin);
+        }
+        
         //Deposit into the distributor
         if (distributorDeposit) {
 
@@ -1033,26 +1041,10 @@ contract KojiEarth is IBEP20, Auth {
 
         totalCharity = totalCharity.add(amountBNBcharity);
 
-            if (nftPoolActive) {
-                uint256 amountBNBnftpool = amountBNBadmin.div(2);
-                amountBNBadmin = amountBNBnftpool;
+        (bool successTeam2, /* bytes memory data */) = payable(adminWallet).call{value: amountBNBadmin, gas: walletGas}("");
+        require(successTeam2, "Admin wallet rejected BNB transfer");
 
-                (bool successTeam3, /* bytes memory data */) = payable(adminWallet).call{value: amountBNBadmin, gas: walletGas}("");
-                require(successTeam3, "Admin wallet rejected BNB transfer");
-
-                totalAdmin = totalAdmin.add(amountBNBadmin);
-
-                (bool successTeam2, /* bytes memory data */) = payable(nftRewardWallet).call{value: amountBNBnftpool, gas: walletGas}("");
-                require(successTeam2, "NFT reward wallet rejected BNB transfer");
-
-                totalNFTrewards = totalNFTrewards.add(amountBNBnftpool);
-
-            } else {
-                (bool successTeam3, /* bytes memory data */) = payable(adminWallet).call{value: amountBNBadmin, gas: walletGas}("");
-                require(successTeam3, "Admin wallet rejected BNB transfer");
-
-                totalAdmin = totalAdmin.add(amountBNBadmin);
-            }
+        totalAdmin = totalAdmin.add(amountBNBadmin);
         
         }
         
@@ -1307,13 +1299,13 @@ contract KojiEarth is IBEP20, Auth {
             return (codehash != 0x0 && codehash != accountHash);
     }
 
-    function addPartnership(address _tokencontract, uint256 _minHoldAmount, uint256 _discount) external onlyOwner {
+    function addPartnership(address _tokencontract, uint256 _minHoldAmount, uint256 _percent) external onlyOwner {
 
         require(_tokencontract != DEAD && _tokencontract != ZERO && _tokencontract != pair, "Please input a valid token contract address");
         require(isContract(_tokencontract), "Please input an actual token contract");
         require(!partnerAdded[_tokencontract], "Contract already added. To change parameters please remove first.");
         require(_minHoldAmount > 0, "Min hold must be greater than zero");
-        require(_discount <= totalFee, "Discount cannot be greater than total fee");
+        require(_percent <= totalFee, "Discount cannot be greater than total tax");
 
         uint256 partnerCount = partneraddr.length;
         
@@ -1321,7 +1313,7 @@ contract KojiEarth is IBEP20, Auth {
 
             tokenpartners.token_addr = _tokencontract;
             tokenpartners.minHoldAmount = _minHoldAmount;
-            tokenpartners.discount =_discount;
+            tokenpartners.discount =_percent;
             tokenpartners.enabled = true;
 
             partnerAdded[_tokencontract] = true;
