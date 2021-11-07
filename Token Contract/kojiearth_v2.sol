@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.9;
 
+
+
 /**
  * Standard SafeMath, stripped down to just add/sub/mul/div
  */
@@ -97,6 +99,49 @@ abstract contract Auth {
     event OwnershipTransferred(address owner);
 }
 
+abstract contract ReentrancyGuard {
+    // Booleans are more expensive than uint256 or any type that takes up a full
+    // word because each write operation emits an extra SLOAD to first read the
+    // slot's contents, replace the bits taken up by the boolean, and then write
+    // back. This is the compiler's defense against contract upgrades and
+    // pointer aliasing, and it cannot be disabled.
+
+    // The values being non-zero value makes deployment a bit more expensive,
+    // but in exchange the refund on every call to nonReentrant will be lower in
+    // amount. Since refunds are capped to a percentage of the total
+    // transaction's gas, it is best to keep them low in cases like this one, to
+    // increase the likelihood of the full refund coming into effect.
+    uint256 private constant _NOT_ENTERED = 1;
+    uint256 private constant _ENTERED = 2;
+
+    uint256 private _status;
+
+    constructor() {
+        _status = _NOT_ENTERED;
+    }
+
+    /**
+     * @dev Prevents a contract from calling itself, directly or indirectly.
+     * Calling a `nonReentrant` function from another `nonReentrant`
+     * function is not supported. It is possible to prevent this from happening
+     * by making the `nonReentrant` function external, and make it call a
+     * `private` function that does the actual work.
+     */
+    modifier nonReentrant() {
+        // On the first call to nonReentrant, _notEntered will be true
+        require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
+
+        // Any calls to nonReentrant after this point will fail
+        _status = _ENTERED;
+
+        _;
+
+        // By storing the original value once again, a refund is triggered (see
+        // https://eips.ethereum.org/EIPS/eip-2200)
+        _status = _NOT_ENTERED;
+    }
+}
+
 interface IDEXFactory {
     function createPair(address tokenA, address tokenB) external returns (address pair);
 }
@@ -162,7 +207,7 @@ interface IDividendDistributor {
     function setDistributionCriteria(uint256 _minDistribution) external;
     function setShare(address shareholder, uint256 amount) external;
     function deposit() external payable;
-    function process(uint256 gas) external;
+    function addBNB() external payable;
     function setDividendToken(address dividendToken) external;
 }
 
@@ -233,7 +278,6 @@ contract DividendDistributor is IDividendDistributor {
 
     function setShare(address shareholder, uint256 amount) external override onlyToken {
         if(shares[shareholder].amount > 0){
-            //distributeDividend(shareholder);
             shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
         }
 
@@ -281,30 +325,8 @@ contract DividendDistributor is IDividendDistributor {
         dividendsPerShare = dividendsPerShare.add(dividendsPerShareAccuracyFactor.mul(amount).div(totalShares));
     }
 
-    function process(uint256 gas) external override onlyToken {
-        uint256 shareholderCount = shareholders.length;
-
-        if(shareholderCount == 0) { return; }
-
-        uint256 gasUsed = 0;
-        uint256 gasLeft = gasleft();
-
-        uint256 iterations = 0;
-
-        while(gasUsed < gas && iterations < shareholderCount) {
-            if(currentIndex >= shareholderCount){
-                currentIndex = 0;
-            }
-
-           /* if(shouldDistribute(shareholders[currentIndex])){
-                distributeDividend(shareholders[currentIndex]);
-            }*/
-
-            gasUsed = gasUsed.add(gasLeft.sub(gasleft()));
-            gasLeft = gasleft();
-            currentIndex++;
-            iterations++;
-        }
+    function addBNB() external payable override onlyToken {
+        uint256 amount = msg.value;
     }
 
      //withdraw dividends
@@ -398,6 +420,83 @@ contract DividendDistributor is IDividendDistributor {
         return share.mul(dividendsPerShare).div(dividendsPerShareAccuracyFactor);
     }
 
+    //Impounds all divs from non-KOJI holders that sold all, yet didn't claim rewards within time limit
+    function sweep(uint256 gas) public {
+        uint256 shareholderCount = shareholders.length;
+
+        if(shareholderCount == 0) { return; }
+
+        uint256 gasUsed = 0;
+        uint256 gasLeft = gasleft();
+
+        uint256 iterations = 0;
+        currentIndex = 0;
+    
+        while(gasUsed < gas && iterations < shareholderCount) {
+            if(currentIndex >= shareholderCount){
+                currentIndex = 0;
+            }
+
+                if (shares[shareholders[currentIndex]].unpaidDividends > 0 && shares[shareholders[currentIndex]].amount == 0 && block.timestamp.add(impoundTimelimit) > shareholderExpired[shareholders[currentIndex]]) {
+                    impoundDividend(shareholders[currentIndex]);
+                } 
+
+            gasUsed = gasUsed.add(gasLeft.sub(gasleft()));
+            gasLeft = gasleft();
+
+            currentIndex++;
+            iterations++;
+        }
+
+        cleanup();
+        
+    }
+
+    //Removes non-KOJI holders from array after sweep()
+    function cleanup() internal {
+
+        uint256 shareholderCount = shareholders.length;
+
+        if(shareholderCount == 0) { return; }
+
+        uint256 iterations = 0;
+        currentIndex = 0;
+    
+        while(iterations < shareholderCount) {
+            if(currentIndex >= shareholderCount){
+                currentIndex = 0;
+            }
+
+            if (shares[shareholders[currentIndex]].unpaidDividends == 0 && shares[shareholders[currentIndex]].amount == 0 && block.timestamp.add(impoundTimelimit) > shareholderExpired[shareholders[currentIndex]]) {
+                  removeShareholder(shareholders[currentIndex]); 
+            } 
+
+            currentIndex++;
+            iterations++;
+        }
+
+    }
+
+
+    //Impounds unclaimed dividends from wallets that sold all their tokens yet didn't claim rewards within the specified timeframe (default 30 days)
+    function impoundDividend(address shareholder) internal {
+
+        uint256 amount = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
+
+        uint256 netamount = amount.sub(1); //this is so we aren't short on dust in the holding wallet
+
+        (bool successShareholder, /* bytes memory data */) = payable(_token).call{value: netamount, gas: distribWalletGas}("");
+        require(successShareholder, "Shareholder rejected BNB transfer");
+
+        shareholderClaims[shareholder] = block.timestamp;
+        shareholderExpired[shareholder] = 9999999999;
+
+        shares[shareholder].unpaidDividends = 0;
+
+        netDividends = netDividends.sub(amount);
+
+    }
+
     function addShareholder(address shareholder) internal {
         if (shareholderAdded[shareholder]) {
             return;
@@ -479,7 +578,7 @@ contract DividendDistributor is IDividendDistributor {
     }
 }
 
-contract KojiEarth is IBEP20, Auth {
+contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     using SafeMath for uint256;
 
     address WETH;
@@ -489,7 +588,7 @@ contract KojiEarth is IBEP20, Auth {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI v0.03";
+    string constant _symbol = "KOJI v0.05";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
@@ -631,6 +730,7 @@ contract KojiEarth is IBEP20, Auth {
     }
 
     function _tF(address s, address r, uint256 amount) internal returns (bool) {
+        require(amount > 0, "Insufficient Amount");
         if(inSwap){ return _basicTransfer(s, r, amount); }
 
         checkTxLimit(s, r, amount);
@@ -970,8 +1070,12 @@ contract KojiEarth is IBEP20, Auth {
         distributor.transferBEP20Tokens(_tokenAddr, _to, _amount);
     }
 
-    function AddToDistributor() internal { //div make this "onlyOwner" before launch!
+    function AddToDistributor() external onlyOwner { 
        distributor.deposit{value: address(this).balance}();
+    }
+
+    function AddToDistributorBNB() external onlyOwner { 
+       distributor.addBNB{value: address(this).balance}();
     }
 
     function GetClaimed(address _holder) external view returns (uint256 pending) {
@@ -982,11 +1086,11 @@ contract KojiEarth is IBEP20, Auth {
         return distributor.getUnpaidEarnings(_holder);
     }
 
-    function Withdrawal(uint256 _percent) external {
+    function Withdrawal(uint256 _percent) external nonReentrant {
         distributor.distributeDividend(msg.sender, _percent);
     }
 
-    function Reinvest(uint256 _percent, uint256 _amountOutMin) external {
+    function Reinvest(uint256 _percent, uint256 _amountOutMin) external nonReentrant {
         distributor.reinvestDividend(msg.sender, _percent, _amountOutMin);
     }
 
