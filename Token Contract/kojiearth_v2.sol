@@ -1,8 +1,29 @@
 // SPDX-License-Identifier: Unlicensed
 
+/*
+koji.earth project
+launched on Ethereum 6.2021, killed by high gas fees
+relaunching on BSC with new, better contract at original public sale price
+
+Website: https://koji.earth
+Telegram: https://t.me/kojiearth
+Withdraw/Reinvest dividends : https://app.koji.earth
+
+Staking & Full NFT comic book coming Q1 2022 (maybe sooner!)
+
+Tokenomics: 
+25 Million KOJI required to receive divs in BNB
+Supply: 1 Trillion
+                                /   1% KOJI to burn wallet
+                                |   6% left converts to BNB
+7% tax on buy/sell/transfer -   |   40% of BNB to holders
+                                |   20% of BNB to liquidity
+                                |   20% to charity 
+                                \   20% to admin (artwork, marketing, etc..)
+
+*/
+
 pragma solidity ^0.8.9;
-
-
 
 /**
  * Standard SafeMath, stripped down to just add/sub/mul/div
@@ -63,6 +84,7 @@ interface IBEP20 {
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
+
 
 /**
  * Allows for contract ownership along with multi-address authorization
@@ -146,7 +168,6 @@ interface IDEXFactory {
     function createPair(address tokenA, address tokenB) external returns (address pair);
 }
 
-// This is so we can convert some rewards to WETH and deposit into the pair directly
 interface IWETH {
     function deposit() external payable;
     function transfer(address to, uint value) external returns (bool);
@@ -286,7 +307,6 @@ contract DividendDistributor is IDividendDistributor {
                 addShareholder(shareholder);
             }
         }else if(amount == 0 && shares[shareholder].amount > 0){
-            shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
             if (shares[shareholder].unpaidDividends == 1 || shares[shareholder].unpaidDividends == 0) {
                 removeShareholder(shareholder);
             }
@@ -356,6 +376,7 @@ contract DividendDistributor is IDividendDistributor {
             totalWithdrawn = totalWithdrawn.add(netamount);
             netDividends = netDividends.sub(netamount);          
 
+
         } else {
             return; 
         }
@@ -388,7 +409,6 @@ contract DividendDistributor is IDividendDistributor {
             totalDistributed = totalDistributed.add(netamount);
             
             shares[shareholder].unpaidDividends = fullamount.sub(netamount); 
-            //shares[shareholder].totalExcluded = getCumulativeDividends();
 
             shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
             
@@ -524,12 +544,11 @@ contract DividendDistributor is IDividendDistributor {
         return address(dividendToken);
     }
 
-    //Change the min hold requirement for rewards. Optinally can distribute all divs prior to this function being called
+    //Change the min hold requirement for rewards. In this contract, this new value can only be lowered or it will break lots of stuff
     function changeMinHold(uint256 _amount) external {
 
-        require(_amount > 1000000000 && _amount < 1000000000000000000, "Min hold amount should be between 1 and 1B KOJI");
-        require(_amount > minHoldAmountForRewards || _amount < minHoldAmountForRewards, "The new threshold must be higher or lower than current, not equal to");
-
+        require(_amount < minHoldAmountForRewards, "Min hold amount should be lower than current amount");
+        
         minHoldAmountForRewards = _amount;
     }
 
@@ -588,7 +607,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI v0.05";
+    string constant _symbol = "KOJI v0.06";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
@@ -842,13 +861,9 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
 
     function swapBack() internal swapping {
 
-        //Ideally we can exchange the whole balance so it doesn't build to a huge amount
         uint256 amountToSwap = IBEP20(address(this)).balanceOf(address(this));
-
-        //Lets burn the 1% 
         uint256 burnAmount = amountToSwap.mul(burnRatio).div(feeDenominator);
 
-        //"thoiya!" ~ Randy Marsh
         IBEP20(address(this)).transfer(address(DEAD), burnAmount);
 
         if (stakePoolActive) {  
@@ -894,14 +909,15 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         //Calculate the distribution
         uint256 amountBNB = address(this).balance.sub(balanceBefore);
 
-        uint256 amountBNBbuyback = amountBNB.mul(taxRatio).div(feeDenominator);
-        uint256 amountBNBcharity = amountBNBbuyback;
-        uint256 amountBNBadmin = amountBNBbuyback;
+        uint256 taxSplit = amountBNB.mul(taxRatio).div(feeDenominator);
+        uint256 amountBNBcharity = taxSplit;
+        uint256 amountBNBadmin = taxSplit;
+        uint256 amountBNBbuyback = taxSplit;
         uint256 amountBNBReflection;
         uint256 amountBNBnft;
 
         if (nftPoolActive) {
-            amountBNBnft = amountBNBbuyback;
+            amountBNBnft = taxSplit;
             amountBNBReflection = amountBNB.sub(amountBNBcharity).sub(amountBNBbuyback).sub(amountBNBadmin).sub(amountBNBnft);
 
             (bool successTeam3, /* bytes memory data */) = payable(nftRewardWallet).call{value: amountBNBnft, gas: walletGas}("");
@@ -1070,10 +1086,12 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         distributor.transferBEP20Tokens(_tokenAddr, _to, _amount);
     }
 
+    //Depost BNB into the contract, then call this to increase holders dividends
     function AddToDistributor() external onlyOwner { 
        distributor.deposit{value: address(this).balance}();
     }
 
+    //Deposit BNB into the contract, then call this to add BNB to the distributor in case it doesn't have enough to cover withdrawals (shouldn't happen, but just in case)
     function AddToDistributorBNB() external onlyOwner { 
        distributor.addBNB{value: address(this).balance}();
     }
@@ -1109,9 +1127,6 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         taxRatio = _amount;
     }
 
-    function DistributeAll() external onlyOwner swapping {
-      //  try distributor.distributeAll(distributorGas) {} catch {}
-    }
 
     function ChangeMinHold(uint256 _amount) external onlyOwner swapping {
         distributor.changeMinHold(_amount);
@@ -1151,8 +1166,9 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         distributor.changeImpoundTimelimit(_timelimit);
     }
 
+    //reclaim divs from anyone who dumped KOJI over 30 days (default) ago but never withdrew their dividends
     function SweepDivs() external onlyOwner {
-      //  try distributor.sweep(distributorGas) {} catch {}
+      try distributor.sweep(distributorGas) {} catch {}
     }
 
     function setStakePoolActive(bool _status) external onlyOwner {
@@ -1266,16 +1282,19 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         return partneraddr.length;
     }
 
-    function viewPartnership(uint256 _index) external view returns (address tokencontract, uint256 minHoldAmount, uint256 discount, bool enabled) {
+    function viewPartnership(uint256 _index) external view returns (string memory name, string memory symbol, uint8 decimals, address tokencontract, uint256 minHoldAmount, uint256 discount, bool enabled) {
         Partners storage tokenpartners = partners[_index];
-        return (tokenpartners.token_addr,tokenpartners.minHoldAmount,tokenpartners.discount,tokenpartners.enabled);
+        string memory token_name = IBEP20(tokenpartners.token_addr).name();
+        string memory token_symbol = IBEP20(tokenpartners.token_addr).symbol();
+        uint8 token_decimals = IBEP20(tokenpartners.token_addr).decimals();
+        return (token_name, token_symbol, token_decimals, tokenpartners.token_addr,tokenpartners.minHoldAmount,tokenpartners.discount,tokenpartners.enabled);
     }
 
     function setEnablePartners(bool _status) external onlyOwner {
         enablePartners = _status;
     }
 
-    //100 allows partner taxes to reduce 0% of totalFee tax, 50 = 50% of total tax (default), 1 allows 99% tax reduction of total tax for partners
+    //value of 100 allows partner taxes to reduce 0% of totalFee tax, 50 = 50% of total tax (default), 1 allows 99% tax reduction of total tax for partners
     function setPartnerFeeLimiter(uint256 _limiter) external onlyOwner {
         require(_limiter <= 100 && _limiter >= 1, "fee limiter must be between 1 and 100");
         partnerFeeLimiter = _limiter;
