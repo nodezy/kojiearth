@@ -21,12 +21,12 @@ let bnbusd;
 
 // Address of the selected account
 let selectedAccount;
-let kojitoken = "0xE0c010C702939B1881728Ee258038d3F65840264"; //bsc test KOJI
-let bscnftaddress = "0x062C9545e61A7eD56F3BE4256EAAC19c5580868A" //bsctest nft contract
-let bscnftproxy = "0xe97E4c086283d6e6c407ac131F7413Fea3B32a46" //bsctest nft proxy contract
-let liquidpair = "0x8B59b29Dc55adA4A07A93e9ad5356E1e533fB0c4"
+let kojitoken = "0xe1528C08A7ddBBFa06e4876ff04Da967b3a43A6A"; //bsc test KOJI
+let bscnftaddress = "0x062C9545e61A7eD56F3BE4256EAAC19c5580868A"; //bsctest nft contract
+let bscnftproxy = "0xe97E4c086283d6e6c407ac131F7413Fea3B32a46"; //bsctest nft proxy contract
+let liquidpair = "0x4e1052ab157d3cc240ad178fbde82c222a322a21";
 
-var kojitokenABI = JSON.stringify([{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"owner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[],"name":"WETHaddedToPool","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"_maxTxAmountBuy","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"_maxTxAmountSell","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"_maxWalletToken","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"addToLiquid","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"adminWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"holder","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"}],"name":"approveMax","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_gas","type":"uint256"}],"name":"changeGas","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_timelimit","type":"uint256"}],"name":"changeImpoundTimelimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"changeMinHold","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"charityWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"distributeAll","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"distributorDeposit","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"feeDenominator","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getCirculatingSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getFees","outputs":[{"internalType":"uint256","name":"holders","type":"uint256"},{"internalType":"uint256","name":"admin","type":"uint256"},{"internalType":"uint256","name":"charity","type":"uint256"},{"internalType":"uint256","name":"buyback","type":"uint256"},{"internalType":"uint256","name":"nftrewards","type":"uint256"},{"internalType":"uint256","name":"burn","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getMinDistribution","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_holder","type":"address"}],"name":"getPending","outputs":[{"internalType":"uint256","name":"pending","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getRewardsToken","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_holder","type":"address"}],"name":"getShareholderExpired","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bool","name":"bot","type":"bool"}],"name":"getTotalFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"shareholder","type":"address"}],"name":"impound","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"isInBot","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"isOwner","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"launchedAt","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"manualBurn","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"nftRewardWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"pair","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_percent","type":"uint256"},{"internalType":"uint256","name":"_amountOut","type":"uint256"}],"name":"reinvest","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"rescueETHFromContract","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"rescueETHfromDistributor","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"resetAll","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"router","outputs":[{"internalType":"contract IDEXRouter","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setAddToLiquid","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"},{"internalType":"bool","name":"toggle","type":"bool"}],"name":"setBot","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"setBuyTxLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"setDistributionCriteria","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setDistributorDeposit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_charityWallet","type":"address"},{"internalType":"address","name":"_adminWallet","type":"address"},{"internalType":"address","name":"_nftRewardWallet","type":"address"},{"internalType":"address","name":"_stakePoolWallet","type":"address"}],"name":"setFeeReceivers","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_reflectionFee","type":"uint256"},{"internalType":"uint256","name":"_adminFee","type":"uint256"},{"internalType":"uint256","name":"_charityFee","type":"uint256"},{"internalType":"uint256","name":"_buybackFee","type":"uint256"},{"internalType":"uint256","name":"_cakeFee","type":"uint256"},{"internalType":"uint256","name":"_burnFee","type":"uint256"}],"name":"setFees","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"blocks","type":"uint256"}],"name":"setInitialBlockLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"holder","type":"address"},{"internalType":"bool","name":"exempt","type":"bool"}],"name":"setIsDividendExempt","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"holder","type":"address"},{"internalType":"bool","name":"exempt","type":"bool"}],"name":"setIsFeeExempt","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"holder","type":"address"},{"internalType":"bool","name":"exempt","type":"bool"}],"name":"setIsTxLimitExempt","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"setMaxWalletToken","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"setSellTxLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setStakePoolActive","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_enabled","type":"bool"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"setSwapBackSettings","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setTeamWalletDeposit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"setburnRatio","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"settaxRatio","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"stakePoolActive","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"stakePoolWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"swapEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"sweepDivs","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"teamWalletDeposit","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalAdmin","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalCharity","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalNFTrewards","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalStakepool","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_tokenAddr","type":"address"},{"internalType":"address","name":"_to","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"transferERC20Tokens","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address payable","name":"adr","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"viewHolderInfo","outputs":[{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"held","type":"uint256"},{"internalType":"uint256","name":"unpaid","type":"uint256"},{"internalType":"uint256","name":"excluded","type":"uint256"},{"internalType":"uint256","name":"realised","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"viewMathInfo","outputs":[{"internalType":"uint256","name":"totalshares","type":"uint256"},{"internalType":"uint256","name":"totaldividends","type":"uint256"},{"internalType":"uint256","name":"netdividends","type":"uint256"},{"internalType":"uint256","name":"totaldistributed","type":"uint256"},{"internalType":"uint256","name":"totalreinvested","type":"uint256"},{"internalType":"uint256","name":"totalwithdrawn","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"viewMinHold","outputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"viewTeamWalletInfo","outputs":[{"internalType":"uint256","name":"charityDivs","type":"uint256"},{"internalType":"uint256","name":"adminDivs","type":"uint256"},{"internalType":"uint256","name":"nftDivs","type":"uint256"},{"internalType":"uint256","name":"stakeDivs","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_percent","type":"uint256"}],"name":"withdrawal","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}]);
+var kojitokenABI = JSON.stringify([{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"owner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[],"name":"AddToDistributorBalance","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"AddToDistributorDeposit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_walletGas","type":"uint256"},{"internalType":"uint256","name":"_reinvestGas","type":"uint256"}],"name":"ChangeDistribGas","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_timelimit","type":"uint256"}],"name":"ChangeImpoundTimelimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"},{"internalType":"uint256","name":"_gas","type":"uint256"}],"name":"ChangeMinHold","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_holder","type":"address"}],"name":"GetClaimed","outputs":[{"internalType":"uint256","name":"pending","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"GetMinDistribution","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_holder","type":"address"}],"name":"GetPending","outputs":[{"internalType":"uint256","name":"pending","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"GetRewardsToken","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_holder","type":"address"}],"name":"GetShareholderExpired","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_percent","type":"uint256"},{"internalType":"uint256","name":"_amountOutMin","type":"uint256"}],"name":"Reinvest","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"RescueBNBfromDistributor","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"SetDistributionCriteria","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"SweepDivs","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_tokenAddr","type":"address"},{"internalType":"address","name":"_to","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"TransferBEP20fromDistributor","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"ViewHolderInfo","outputs":[{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"unpaid","type":"uint256"},{"internalType":"uint256","name":"realised","type":"uint256"},{"internalType":"uint256","name":"excluded","type":"uint256"},{"internalType":"bool","name":"rewardeligible","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"ViewMathInfo","outputs":[{"internalType":"uint256","name":"totalshares","type":"uint256"},{"internalType":"uint256","name":"netdividends","type":"uint256"},{"internalType":"uint256","name":"totaldistributed","type":"uint256"},{"internalType":"uint256","name":"totalreinvested","type":"uint256"},{"internalType":"uint256","name":"totalwithdrawn","type":"uint256"},{"internalType":"uint256","name":"totaldividends","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"ViewMinHold","outputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"WETHaddedToPool","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_percent","type":"uint256"}],"name":"Withdrawal","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"_maxTxAmountBuy","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"_maxTxAmountSell","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"_maxWalletToken","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_tokencontract","type":"address"},{"internalType":"uint256","name":"_minHoldAmount","type":"uint256"},{"internalType":"uint256","name":"_percent","type":"uint256"}],"name":"addPartnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"addToLiquid","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"adminWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"airdropEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"holder","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"}],"name":"approveMax","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"burnRatio","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_distributorgas","type":"uint256"},{"internalType":"uint256","name":"_walletgas","type":"uint256"}],"name":"changeContractGas","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"charityWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"convertBNBtoWBNB","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"distributorDeposit","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"enablePartners","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"feeDenominator","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getCirculatingSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getPartnershipIndex","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bool","name":"bot","type":"bool"}],"name":"getTotalFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"isInBot","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"isOwner","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"launchEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"launchedAt","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"manualBurn","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"nftPoolActive","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"nftRewardWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"pair","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"partnerFeeLimiter","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"registerShares","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_tokencontract","type":"address"}],"name":"removePartnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"rescueBNB","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"router","outputs":[{"internalType":"contract IDEXRouter","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setAddToLiquid","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"setAirdropDisabled","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"},{"internalType":"bool","name":"toggle","type":"bool"}],"name":"setBot","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"setBuyTxLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setDistributorDeposit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setEnablePartners","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_totalFee","type":"uint256"}],"name":"setFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_charityWallet","type":"address"},{"internalType":"address","name":"_adminWallet","type":"address"},{"internalType":"address","name":"_nftRewardWallet","type":"address"},{"internalType":"address","name":"_stakePoolWallet","type":"address"}],"name":"setFeeReceivers","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"blocks","type":"uint256"}],"name":"setInitialBlockLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"holder","type":"address"},{"internalType":"bool","name":"exempt","type":"bool"}],"name":"setIsDividendExempt","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"holder","type":"address"},{"internalType":"bool","name":"exempt","type":"bool"}],"name":"setIsFeeExempt","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"holder","type":"address"},{"internalType":"bool","name":"exempt","type":"bool"}],"name":"setIsTxLimitExempt","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"setLaunchEnabled","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"setMaxWalletToken","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setNFTPoolActive","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_limiter","type":"uint256"}],"name":"setPartnerFeeLimiter","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"setSellTxLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setStakePoolActive","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_enabled","type":"bool"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"setSwapBackSettings","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setTeamWalletDeposit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"setburnRatio","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"setstakepoolRatio","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"settaxRatio","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"stakePoolActive","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"stakePoolWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"stakepoolRatio","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"swapEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"taxRatio","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"teamWalletDeposit","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalAdmin","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalCharity","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalNFTrewards","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalStakepool","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_tokenAddr","type":"address"},{"internalType":"address","name":"_to","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"transferBEP20Tokens","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address payable","name":"adr","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_index","type":"uint256"}],"name":"viewPartnership","outputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"string","name":"symbol","type":"string"},{"internalType":"uint8","name":"decimals","type":"uint8"},{"internalType":"address","name":"tokencontract","type":"address"},{"internalType":"uint256","name":"minHoldAmount","type":"uint256"},{"internalType":"uint256","name":"discount","type":"uint256"},{"internalType":"bool","name":"enabled","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"viewTeamWalletInfo","outputs":[{"internalType":"uint256","name":"charityDivs","type":"uint256"},{"internalType":"uint256","name":"adminDivs","type":"uint256"},{"internalType":"uint256","name":"nftDivs","type":"uint256"},{"internalType":"uint256","name":"stakeDivs","type":"uint256"}],"stateMutability":"view","type":"function"},{"stateMutability":"payable","type":"receive"}]);
 var bscnftmintABI = JSON.stringify([{"inputs":[{"internalType":"uint256","name":"_timestart","type":"uint256"},{"internalType":"uint256","name":"_timeend","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"approved","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"operator","type":"address"},{"indexed":false,"internalType":"bool","name":"approved","type":"bool"}],"name":"ApprovalForAll","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[{"internalType":"address","name":"_toAdd","type":"address"}],"name":"addWhitelisted","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"approve","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getApproved","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"operator","type":"address"}],"name":"isApprovedForAll","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"minted","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"mintedCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"mintedtier1","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"mintedtier2","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"mintedtotal","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"mintlimitsenabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"nftproxy","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"ownerOf","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"receiver","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_toRemove","type":"address"}],"name":"removeWhitelisted","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"operator","type":"address"},{"internalType":"bool","name":"approved","type":"bool"}],"name":"setApprovalForAll","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes4","name":"interfaceId","type":"bytes4"}],"name":"supportsInterface","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"tier1minted","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tier1mintlimit","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"tier2minted","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tier2mintlimit","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"timeend","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"timestart","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"index","type":"uint256"}],"name":"tokenByIndex","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"uint256","name":"index","type":"uint256"}],"name":"tokenOfOwnerByIndex","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"tokenURI","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"transferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"walletbalanceenabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"whitelisted","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"}],"name":"minttier1NFT","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"}],"name":"minttier2NFT","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"tier1mintLimitReached","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tier2mintLimitReached","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalMinted","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_token","type":"address"},{"internalType":"address","name":"holder","type":"address"}],"name":"checkBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"tokenURI","type":"string"}],"name":"mintedCounttier1","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"tokenURI","type":"string"}],"name":"mintedCounttier2","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_token","type":"address"}],"name":"setToken","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"uint256","name":"_salePrice","type":"uint256"}],"name":"royaltyInfo","outputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_receiver","type":"address"}],"name":"changeReceiver","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"_uri","type":"string"}],"name":"changeTier1URI","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"_uri","type":"string"}],"name":"changeTier2URI","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_limit","type":"uint256"}],"name":"tier1limit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_limit","type":"uint256"}],"name":"tier2limit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"enabletimelimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"enablewalletlimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"enablemintlimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"enablewalletbalance","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_start","type":"uint256"},{"internalType":"uint256","name":"_end","type":"uint256"}],"name":"setWindow","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"setnftproxy","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"rescueETHFromContract","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_tokenAddr","type":"address"},{"internalType":"address","name":"_to","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"transferERC20Tokens","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getRoyaltyNumerator","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_number","type":"uint256"}],"name":"setRoyaltyNumerator","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"updateTier1balance","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"updateTier2balance","outputs":[],"stateMutability":"nonpayable","type":"function"}]);
 var bscnftproxyABI = JSON.stringify([{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"inputs":[],"name":"NFTAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function","constant":true},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function","constant":true},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_nftaddress","type":"address"}],"name":"setNFTAddress","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_sender","type":"address"},{"internalType":"bytes32","name":"_tier","type":"bytes32"},{"internalType":"bytes32","name":"_redherring","type":"bytes32"}],"name":"method_unknown","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"rescueETHFromContract","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_tokenAddr","type":"address"},{"internalType":"address","name":"_to","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"transferERC20Tokens","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"returnstring1","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function","constant":true},{"inputs":[],"name":"returnstring2","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function","constant":true},{"inputs":[],"name":"changeTier1URI","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"changeTier2URI","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"_uri","type":"string"}],"name":"changeTier1URIstring","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"_uri","type":"string"}],"name":"changeTier2URIstring","outputs":[],"stateMutability":"nonpayable","type":"function"}]);
 var liquidpairabi = JSON.stringify([{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount0","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount1","type":"uint256"},{"indexed":true,"internalType":"address","name":"to","type":"address"}],"name":"Burn","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount0","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount1","type":"uint256"}],"name":"Mint","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount0In","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount1In","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount0Out","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount1Out","type":"uint256"},{"indexed":true,"internalType":"address","name":"to","type":"address"}],"name":"Swap","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint112","name":"reserve0","type":"uint112"},{"indexed":false,"internalType":"uint112","name":"reserve1","type":"uint112"}],"name":"Sync","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"constant":true,"inputs":[],"name":"DOMAIN_SEPARATOR","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"MINIMUM_LIQUIDITY","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"PERMIT_TYPEHASH","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"to","type":"address"}],"name":"burn","outputs":[{"internalType":"uint256","name":"amount0","type":"uint256"},{"internalType":"uint256","name":"amount1","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"factory","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"_token0","type":"address"},{"internalType":"address","name":"_token1","type":"address"}],"name":"initialize","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"kLast","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"to","type":"address"}],"name":"mint","outputs":[{"internalType":"uint256","name":"liquidity","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"nonces","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"},{"internalType":"uint256","name":"deadline","type":"uint256"},{"internalType":"uint8","name":"v","type":"uint8"},{"internalType":"bytes32","name":"r","type":"bytes32"},{"internalType":"bytes32","name":"s","type":"bytes32"}],"name":"permit","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"price0CumulativeLast","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"price1CumulativeLast","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"to","type":"address"}],"name":"skim","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"uint256","name":"amount0Out","type":"uint256"},{"internalType":"uint256","name":"amount1Out","type":"uint256"},{"internalType":"address","name":"to","type":"address"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"swap","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"sync","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"token1","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]);
@@ -40,6 +40,7 @@ let charityBalance;
 let adminBalance;
 let nftrewardBalance;
 let stakepoolBalance;
+let stakepoolAddress;
 
 let timestamp;
 let blocknumber;
@@ -49,6 +50,17 @@ let bscchain = false;
 let txinprogress = false;
 
 let mobile = false;
+
+let switched = false;
+
+let apipull = 1;
+
+let humanFriendlyBalance;
+
+const tokenAddress = kojitoken;
+const tokenSymbol = 'KOJI v0.08';
+const tokenDecimals = 9;
+const tokenImage = 'https://assets.coingecko.com/coins/images/16124/small/koji-token-200.png';
 
 const BSC_MAINNET_PARAMS = {
     chainId: '0x38', // A 0x-prefixed hexadecimal chainId
@@ -88,12 +100,41 @@ function addBSCNetwork() {
     document.querySelector("#network-name").textContent = BSC_MAINNET_PARAMS['chainName'];
 }
 
+function addKOJItoken() {
+	const web3 = new Web3(provider);
+	try {
+	  // wasAdded is a boolean. Like any RPC method, an error may be thrown.
+	  const wasAdded = ethereum.request({
+	    method: 'wallet_watchAsset',
+	    params: {
+	      type: 'ERC20', // Initially only supports ERC20, but eventually more!
+	      options: {
+	        address: tokenAddress, // The address that the token is at.
+	        symbol: tokenSymbol, // A ticker symbol or shorthand, up to 5 chars.
+	        decimals: tokenDecimals, // The number of decimals in the token
+	        image: tokenImage, // A string url of the token logo
+	      },
+	    },
+	  });
+
+	  if (wasAdded) {
+	   // console.log('Thanks for your interest!');
+	  } else {
+	   // console.log('Your loss!');
+	  }
+	} catch (error) {
+	  console.log(error);
+	}
+}
+
 /**
  * Setup the orchestra
  */
 function init() {
 	if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
 		mobile = true;
+	} else {
+		document.querySelector("#buy-link").setAttribute("target", "_blank");
 	}
   /*console.log("Initializing example");
   console.log("WalletConnectProvider is", WalletConnectProvider);
@@ -106,7 +147,7 @@ function init() {
     // https://ethereum.stackexchange.com/a/62217/620
     const alert = document.querySelector("#alert-error-https");
     alert.style.display = "block";
-    document.querySelector("#btn-connect").setAttribute("disabled", "disabled")
+    document.querySelector("#btn-connect").setAttribute("disabled", "disabled");
     return;
   }
 
@@ -193,24 +234,32 @@ const getJSON = async url => {
 
 async function getBNB() {
 
-		   document.getElementById("get-bnb").innerText = "Please wait...";
-           document.getElementById("get-bnb").setAttribute("disabled", "disabled");
+		   document.getElementById("request-gas-btn").innerText = "Please wait...";
+           document.getElementById("request-gas-btn").setAttribute("disabled", "disabled");
+           document.getElementById("req-gas-loader").classList.add('ui-loading');
           // document.getElementById("showLoading").style.display = 'block';  
            var userdata = btoa("address="+selectedAccount+"");
 
 	if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
  		// some code..
  		window.open("getgas.php?"+userdata+"");
- 		document.getElementById("gas-dust").style.display = "block";
-         document.getElementById("gas-dust").innerHTML =  "Opening new browser window...";//airdrops .004 BNB to cover mint, 1 per authorized wallet
+ 		window.setTimeout(function(){
+ 			document.getElementById("req-gas-loader").classList.remove('ui-loading');
+ 			},4000);
+ 		document.getElementById("request-gas-btn").innerText = "Completed";
+ 		//document.getElementById("gas-dust").style.display = "block";
+        // document.getElementById("gas-dust").innerHTML =  "Opening new browser window...";//airdrops .004 BNB to cover mint, 1 per authorized wallet
 	} else {
 		try {
-            
-           
-          var response = fetch("getgas.php?"+userdata+"", {mode: 'cors'}).then(function(response) {
+            var response = fetch("getgas.php?"+userdata+"", {mode: 'cors'}).then(function(response) {
             return response.text().then(function(text) {
-          document.getElementById("gas-dust").style.display = "block";
-          document.getElementById("gas-dust").innerHTML = text;//airdrops .004 BNB to cover mint, 1 per authorized wallet
+            	if (!mobile) {
+       		 	openAlert("success", text, "");
+       		 	}
+       		 	document.getElementById("request-gas-btn").innerText = "Completed";
+       		 	document.getElementById("req-gas-loader").classList.remove('ui-loading');
+          //document.getElementById("gas-dust").style.display = "block";
+          //document.getElementById("gas-dust").innerHTML = text;//airdrops .004 BNB to cover mint, 1 per authorized wallet
           });
         });
 
@@ -273,7 +322,13 @@ async function fetchAccountData() {
 		          	document.getElementById("incorrectalert").style.display = 'block';
 		            //document.getElementById("correctnetwork").style.display = 'none';
 		            //document.getElementById("disconnected").style.display = 'none';
-		            addBSCNetwork();
+
+			            if (!switched) {
+
+			            	 addBSCNetwork();
+			            	 switched = true;
+			            }
+		           
 
 		            
 		            }
@@ -292,42 +347,94 @@ async function fetchAccountData() {
   selectedAccount = accounts[0];
   const balance = await web3.eth.getBalance(selectedAccount);
   const ethBalance = web3.utils.fromWei(balance, "ether");
-  const humanFriendlyBalance = parseFloat(ethBalance).toFixed(4);
+  humanFriendlyBalance = parseFloat(ethBalance).toFixed(4);
 
-
+  
   document.querySelector("#selected-account").textContent = selectedAccount;
+  document.querySelector("#token-address").textContent = kojitoken;
+  document.querySelector("#token-address-link").innerHTML = '<a href="https://bscscan.com/address/' + kojitoken + '" class="to-address"><i class="icon-external-link"></i></a>';
+  //edit by andreas
+  document.querySelector("#selected-account-link").innerHTML = '<a href="https://bscscan.com/address/' + selectedAccount + '" class="to-address"><i class="icon-external-link"></i></a>';
   document.querySelector("#account-balance").textContent = humanFriendlyBalance + " BNB";
-
-
+  
+  
   var tokencontract = new web3.eth.Contract(JSON.parse(kojitokenABI),kojitoken);
   var nftcontract = new web3.eth.Contract(JSON.parse(bscnftmintABI),bscnftaddress);
   var paircontract = new web3.eth.Contract(JSON.parse(liquidpairabi),liquidpair);
 
   
+  //added by andreas, show first/last 4 character from wallet address in disconect btn + wallet info & disconnect modal
+  var selectedAccountFirstChars = selectedAccount.substring(0, 4);
+  var selectedAccountLastChars = selectedAccount.substr(-4);
+  
+  document.getElementById("btn-disconnect").innerHTML = '<div><i class="icon-wallet1"></i><i></i></div><span> ' + selectedAccountFirstChars + '...' + selectedAccountLastChars + ' </span>';
+  document.getElementById("selected-account-modal").textContent = selectedAccount;
+  document.getElementById("selected-account-modal-link").innerHTML = '<a href="https://bscscan.com/address/' + selectedAccount + '"><i class="icon-external-link"></i> View on BSCScan</a>';
+	 
+ //added by andreas / END
 
+ 			
+ 				
+ 				//console.log(apipull);
+ 				//console.log("pulling price from CoinGecko API");
+ 				var bnbpricedata = fetch("https://api.coingecko.com/api/v3/simple/price/?ids=binancecoin&vs_currencies=usd", {mode: 'cors'}).then(function(response) {
+			      if (response.status !== 200) {
+			        console.log("Can Not get CoinGecko List Api! Status: " + response.status);
+			        //return;
+			      }  
+			      	response.json().then(function(data) {
+			      		bnbusd = data.binancecoin.usd;
 
-	var bnbpricedata = fetch("https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd").then(function(response) {
-      if (response.status !== 200) {
-        console.log("Can Not get List Api! Status: " + response.status);
-        return;
-      }
+		    	
+		    /*	console.log(apipull);
+		    	console.log("pulling price from CoinGraph API");
+			  	var bnbpricedata = fetch("https://coinograph.io/ticker/?symbol=binance:bnbusdt", {mode: 'cors'}).then(function(response) {
+			  	 	if (response.status !== 200) {
+				        console.log("Can Not get CoinGraph List Api! Status: " + response.status);
+				        //return;
+			        } 
+			        response.json().then(function(data) {
+			      		bnbusd = data.price;
+			      	})
+				    .catch(function(err) {
+				      	console.log("Can Not get CoinGraph Price Api! Status: " + err);
+				    });
+			   	});
+			   	
+		  		  	 	
+		   if (apipull == 1) {
+		   	   apipull = 2;
+		   } else {
+		   		apipull = 1;
+		   }*/
 
-      	response.json().then(function(data) {
-
+		  
 	        //console.log(data.binancecoin.usd);
-	        bnbusd = data.binancecoin.usd;
+	        
 
-	        document.getElementById("bnb-usd").innerText = bnbusd;
+	        document.getElementById("bnb-usd").innerHTML = '$' + bnbusd;
+
+	         document.getElementById("bnb-balance-usd").innerHTML = "<span>($" +parseFloat(humanFriendlyBalance * bnbusd).toFixed(2)+")</span>";
 
 	        paircontract.methods.getReserves().call(function(err,res){
 			    if(!err){
+
+			    	//console.log(res);
+
+			    	var pooledbnb = parseFloat(web3.utils.fromWei(res._reserve0)).toFixed(2);
+
+			    	document.getElementById("pool-bnb").innerHTML = ""+pooledbnb.replace(/\B(?=(\d{3})+(?!\d))/g, ",")+" <span>BNB<span>";
+
+			    	var pooledkoji = parseFloat(+res._reserve1/1e9).toFixed(2);
+
+			    	document.getElementById("pool-koji").innerHTML = "<strong>"+pooledkoji.replace(/\B(?=(\d{3})+(?!\d))/g, ",")+"<span> KOJI</span>";
 			        
 			       var poolbnbusdvalue = parseFloat(web3.utils.fromWei(res[0])*bnbusd).toFixed(2);
 
 			       var kojiusdvalue = parseFloat(poolbnbusdvalue / web3.utils.fromWei(res[1],"gwei")).toFixed(9);
 			       //console.log(web3.utils.fromWei(res[1],"gwei"));
 
-			       document.getElementById("koji-usd").innerText = kojiusdvalue;
+			       document.getElementById("koji-usd").innerHTML = '$'+kojiusdvalue;
 
 			       var kojibnbunrounded = parseFloat(kojiusdvalue / bnbusd);
 
@@ -335,9 +442,9 @@ async function fetchAccountData() {
 
 			       var kojibnb = parseFloat(kojiusdvalue / bnbusd).toFixed(10);
 
-             		// edit by andreas 
+             	   // edit by andreas 
 			       // document.getElementById("koji-bnb").innerHTML = "<em>" +kojibnb+ "BNB</em>";
-             		document.getElementById("koji-bnb").innerText = kojibnb;
+             	   document.getElementById("koji-bnb").innerText = kojibnb;
 
              		
 	 				tokencontract.methods.balanceOf(selectedAccount).call(function(err,res){
@@ -347,143 +454,233 @@ async function fetchAccountData() {
 					       balance = +balance;
 					       balance = parseFloat(balance).toFixed(2);
 
-					       tokencontract.methods.viewMinHold().call(function(err,res){
+					       tokencontract.methods.ViewMinHold().call(function(err,res){
 							    if(!err){
 
 							    	var minhold = parseFloat(web3.utils.fromWei(res, "Gwei")).toFixed(0);
 
 							    	document.getElementById("minhold").innerText = minhold.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-							    	if (balance >= minhold) {
-							    		document.querySelector('#ineligible').style.display = 'none';
-							    		document.querySelector('#eligible').style.display = 'block';
-							    		document.querySelector('#eligible-info').style.display = 'block';
+							    	//console.log(+balance);
+							    	//console.log(+minhold);
+
+							    	if (+balance >= +minhold) {
+							    		
+										//edit by andreas
+							    		//document.querySelector('#eligible-info').style.display = 'block';
+							    		tokencontract.methods.ViewHolderInfo(selectedAccount).call(function(err,res){
+							    			//console.log(res);
+			    						if(!err){
+			    							var user_rewards_bool = res.rewardeligible;
+			    								if (!user_rewards_bool) { //user needs to register
+			    									document.querySelector('#registration').style.display = 'block';
+			    									document.querySelector('#ineligible').style.display = 'block';
+							    					document.querySelector('#eligible').style.display = 'none';
+			    									
+			    									if (ethBalance >= .003) { //user has enough gas to register
+			    										document.querySelector('#request-gas-btn').setAttribute("disabled", "disabled");
+			    										document.querySelector('#request-gas-btn').setAttribute("onclick", "");
+			    										document.querySelector('#reg-holdings-btn').removeAttribute("disabled");
+			    										 document.querySelector('#reg-holdings-btn').setAttribute("onclick", "registerHoldings()");
+			    										  document.getElementById("request-gas-btn").innerText = "BNB Amount Sufficient";
+			    									} else { //user needs airdrop
+			    										document.querySelector('#request-gas-btn').removeAttribute("disabled");
+			    										document.querySelector('#request-gas-btn').setAttribute("onclick", "getBNB()");
+			    										document.querySelector('#reg-holdings-btn').setAttribute("onclick", "");
+			    										document.querySelector('#reg-holdings-btn').setAttribute("disabled", "disabled");
+			    										document.getElementById("request-gas-btn").innerHTML = "<div><i class='fas fa-gas-pump'></i></div><span><strong>Request BNB for gas</strong></span>";
+			    									}	
+			    									
+			    								} else { //user has already registered
+			    									document.querySelector('#reg-holdings-btn').setAttribute("onclick", "");
+			    									document.querySelector('#registration').style.display = 'none';
+			    									document.querySelector('#ineligible').style.display = 'none';
+							    					document.querySelector('#eligible').style.display = 'block';
+			    								}
+
+			    							}
+
+			    						});
 							    	} else {
 							    		document.querySelector('#ineligible').style.display = 'block';
 							    		document.querySelector('#eligible').style.display = 'none';
-							    		document.querySelector('#eligible-info').style.display = 'none';
+										//edit by andreas
+							    		//document.querySelector('#eligible-info').style.display = 'none';
 							    	}
+
+							    	
 							    }
 							});
 
 
 					       var kojiusdholdings = parseFloat(kojiusdvalue * balance).toFixed(2);
 					        
-					        document.getElementById("koji-balance").innerHTML = balance.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI &nbsp;&nbsp;<span style='color:#20b23f6e'>($" +kojiusdholdings+")</span>" ;
+					        document.getElementById("koji-balance").innerHTML = balance.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI <span class='usd-amount'>($" +kojiusdholdings+")</span>" ;
 
-					        tokencontract.methods.getPending(selectedAccount).call(function(err,res){
+					        tokencontract.methods.GetPending(selectedAccount).call(function(err,res){
 					    		if(!err){
+
+					    			//console.log(res);
+
 					    			var dividends = web3.utils.fromWei(res);
 
-					    			document.getElementById("koji-divs-unrounded").value = dividends;
-
-					    			var divsusdholdings = parseFloat(bnbusd * dividends).toFixed(2);
-
-					    			document.getElementById("koji-divs").innerHTML = parseFloat(dividends).toFixed(9);
-
-					    			document.getElementById("koji-divs-usd").innerHTML = "($" +divsusdholdings+")";
-
-					    			var percent = document.querySelector('#amount').value;
-
-					    			var percent2 = document.querySelector('#amount2').value;
-
-					    			var adjdivs = parseFloat((dividends * percent) / 100).toFixed(9);
-
-					    			var ridivs = parseFloat((dividends * percent2) / 100).toFixed(6);
+					    			console.log(dividends);
 
 
-					    			document.querySelector('#ri-equivalent').innerHTML = ridivs;
+					    			tokencontract.methods.GetClaimed(selectedAccount).call(function(err,res){
+					    				if(!err){
 
-					    			document.getElementById("withdraw-divs").innerHTML = adjdivs;
+					    					console.log(web3.utils.fromWei(res));
 
-					    			var percent2 = document.querySelector('#amount2').value;
+							    			dividends = +dividends + +web3.utils.fromWei(res);
 
-					    			console.log(percent2);
+							    			//console.log(dividends);
 
-					    			var kojireinvested = parseFloat((((dividends / kojibnbunrounded)*.936)) * percent2 / 100).toFixed(2);
+							    			document.getElementById("koji-divs-unrounded").value = dividends;
 
-					    			var kojiAmountOut = (kojireinvested * 90 /100).toFixed(0);
+							    			var divsusdholdings = parseFloat(bnbusd * dividends).toFixed(2);
+
+							    			document.getElementById("koji-divs").innerHTML = parseFloat(dividends).toFixed(9);
+
+							    			document.getElementById("koji-divs-usd").innerHTML = "($" +divsusdholdings+")";
+
+							    			var percent = document.querySelector('#amount').value;
+
+							    			var percent2 = document.querySelector('#amount2').value;
+
+							    			var adjdivs = parseFloat((dividends * percent) / 100).toFixed(9);
+
+							    			var ridivs = parseFloat((dividends * percent2) / 100).toFixed(4);
 
 
-					    			if (dividends > 0) {
+							    			document.querySelector('#ri-equivalent').innerHTML = ridivs;
 
-					    				document.getElementById("withdraw-btn").removeAttribute("disabled");
+							    			document.getElementById("withdraw-divs").innerHTML = adjdivs;
 
-					    				document.getElementById("withdraw-btn").setAttribute('onclick', 'withdraw('+percent+')');
+							    			var percent2 = document.querySelector('#amount2').value;
 
-					    			}
+							    			//console.log(percent2);
 
-					    			console.log(ridivs);
+							    			var kojireinvested = parseFloat((((dividends / kojibnbunrounded)*.936)) * percent2 / 100).toFixed(2);
 
-					    			if (+ridivs >= 0.001) {
+							    			var kojiAmountOut = (kojireinvested * 90 /100).toFixed(0);
 
-					    				document.getElementById("reinvest-btn").removeAttribute("disabled");
 
-					    				document.getElementById("reinvest-btn").setAttribute('onclick', 'reinvest('+percent2+','+kojiAmountOut+')');
+								    			if (dividends > 0.000000001) {
 
-					    				document.querySelector('#reinvest-alert').style.display = 'none';
+								    				document.getElementById("withdraw-btn").removeAttribute("disabled");
 
-					    			} else {
+								    				document.getElementById("withdraw-btn").setAttribute('onclick', 'withdraw('+percent+')');
 
-				    					document.getElementById("reinvest-btn").setAttribute("disabled", "disabled");
+								    				document.querySelector('#withdraw-alert').style.display = 'none';
 
-					    				document.querySelector('#reinvest-alert').style.display = 'block';
+								    			} else { // added by andreas
 
-					    				document.querySelector('#reinvest-alert').innerHTML = "You need at least 0.001 BNB dividends equivalent to reinvest";
+							    					document.getElementById("withdraw-btn").setAttribute("disabled", "disabled");
 
-					    			}
+								    				document.querySelector('#withdraw-alert').style.display = 'block';
 
-					    			document.getElementById("koji-reinvested").innerHTML = kojireinvested.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+								    				document.getElementById("withdraw-btn").removeAttribute('onclick');
+												}
 
-					    				tokencontract.methods.getCirculatingSupply().call(function(err,res){
-					    					if(!err){
-					    						var totalCirc = parseFloat(web3.utils.fromWei(res, "Gwei")).toFixed(2);
+							    				//console.log(ridivs);
 
-					    						document.getElementById("total-circ").innerHTML = totalCirc.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+								    			if (+ridivs >= 0.001) {
 
-					    						document.getElementById("market-cap").innerHTML = "$ " + parseFloat(totalCirc * kojiusdvalue).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-					    					}
+								    				document.getElementById("reinvest-btn").removeAttribute("disabled");
 
-					    					tokencontract.methods.balanceOf("0x000000000000000000000000000000000000dEaD").call(function(err,res){
-					    						if(!err){
+								    				document.getElementById("reinvest-btn").setAttribute('onclick', 'reinvest('+percent2+','+kojiAmountOut+')');
 
-					    							var totalBurned =  parseFloat(web3.utils.fromWei(res, "Gwei")).toFixed(2); 
+								    				document.querySelector('#reinvest-alert').style.display = 'none';
 
-					    							var totalBurnedUSD = parseFloat(totalBurned * kojiusdvalue).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+								    				document.getElementById("koji-reinvested").innerHTML = kojireinvested.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-					    							document.getElementById("total-burn").innerHTML = totalBurned.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI &nbsp;&nbsp;<span style='color:#20b23f6e'>($" +totalBurnedUSD+")</span>";
-					    						}
+								    			} else {
 
-					    					});
+							    					document.getElementById("reinvest-btn").setAttribute("disabled", "disabled");
 
-					    					tokencontract.methods.WETHaddedToPool().call(function(err,res){
-					    						if(!err){
+								    				document.querySelector('#reinvest-alert').style.display = 'block';
 
-					    							var wethadded = parseFloat(web3.utils.fromWei(res)).toFixed(9);
+								    				document.getElementById("reinvest-btn").removeAttribute('onclick');
+													// edit by andreas
+								    				document.getElementById("koji-reinvested").innerText = "0.00";
 
-					    							document.getElementById("total-wbnb-added").innerHTML = wethadded + "&nbsp;&nbsp;<span style='color:#20b23f6e'>($" +parseFloat(wethadded * bnbusd).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")+")</span>";
-					    						
-					    						}
-					    					});
+								    			}
 
-					    					tokencontract.methods.viewMathInfo().call(function(err,res){
-					    						if(!err){
+							    			
 
-					    							//console.log(res);
+											
 
-					    							var distributed = parseFloat(web3.utils.fromWei(res.totaldistributed)).toFixed(9);
+							    				tokencontract.methods.getCirculatingSupply().call(function(err,res){
+							    					if(!err){
 
-					    							var reinvested = parseFloat(web3.utils.fromWei(res.totalreinvested)).toFixed(9);
+														// edits by andreas, removed spaces, inline css and some decimals
 
-					    							var withdrawn = parseFloat(web3.utils.fromWei(res.totalwithdrawn)).toFixed(9);
+							    						var totalCirc = parseFloat(web3.utils.fromWei(res, "Gwei")).toFixed(0);
 
-					    							document.getElementById("total-divs").innerHTML = distributed + "&nbsp;&nbsp;<span style='color:#20b23f6e'>($" +parseFloat(distributed * bnbusd).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")+")</span>";
-					    							document.getElementById("total-reinvest").innerHTML = reinvested + "&nbsp;&nbsp;<span style='color:#20b23f6e'>($" +parseFloat(reinvested * bnbusd).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")+")</span>";
-					    							document.getElementById("total-withdraw").innerHTML = withdrawn + "&nbsp;&nbsp;<span style='color:#20b23f6e'>($" +parseFloat(withdrawn * bnbusd).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")+")</span>";
-					    						}
-					    					});
+							    						document.getElementById("total-circ").innerHTML = totalCirc.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-					    				});
+							    						document.getElementById("market-cap").innerHTML = "$" + parseFloat(totalCirc * kojiusdvalue).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+							    					}
+
+							    					tokencontract.methods.balanceOf("0x000000000000000000000000000000000000dEaD").call(function(err,res){
+							    						if(!err){
+
+															// edits by andreas, added icon, removed spaces, inline css and some decimals
+
+							    							var totalBurned =  parseFloat(web3.utils.fromWei(res, "Gwei")).toFixed(0); 
+
+							    							var totalBurnedUSD = parseFloat(totalBurned * kojiusdvalue).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+							    							document.getElementById("total-burn").innerHTML = '<i class="icon-fire"><i class="path1"></i><i class="path2"></i></i>' + totalBurned.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " <span>($" +totalBurnedUSD+")</span>";
+							    						}
+
+							    					});
+
+							    					tokencontract.methods.WETHaddedToPool().call(function(err,res){
+							    						if(!err){
+
+							    							var wethadded = parseFloat(web3.utils.fromWei(res)).toFixed(9);
+
+							    							document.getElementById("total-wbnb-added").innerHTML = wethadded + "<span>($" +parseFloat(wethadded * bnbusd).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")+")</span>";
+							    						
+							    						}
+							    					});
+
+							    					tokencontract.methods.ViewHolderInfo(selectedAccount).call(function(err,res){
+							    						if(!err){
+							    							var user_realised = parseFloat(web3.utils.fromWei(res.realised)).toFixed(9);
+							    							var user_rewards_bool = res.rewardEligible;
+							    							document.getElementById("koji-divs-realized").innerHTML = user_realised + "<span class='usd-amount'>($" +parseFloat(user_realised * bnbusd).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")+")</span>";
+							    						}
+
+							    					});
+
+							    					tokencontract.methods.ViewMathInfo().call(function(err,res){
+							    						if(!err){
+
+							    							//console.log(res);
+
+							    							var distributed = parseFloat(web3.utils.fromWei(res.totaldistributed)).toFixed(9);
+
+							    							var reinvested = parseFloat(web3.utils.fromWei(res.totalreinvested)).toFixed(9);
+
+							    							var withdrawn = parseFloat(web3.utils.fromWei(res.totalwithdrawn)).toFixed(9);
+
+							    							var netdividends = parseFloat(web3.utils.fromWei(res.netdividends)).toFixed(9);
+
+							    							var netdistributed = parseFloat(+netdividends + +withdrawn + +reinvested).toFixed(9);
+
+							    							document.getElementById("total-divs").innerHTML = netdistributed + "<span>($" +parseFloat(netdividends * bnbusd).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")+")</span>";
+							    							document.getElementById("total-reinvest").innerHTML = reinvested + "<span>($" +parseFloat(reinvested * bnbusd).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")+")</span>";
+							    							document.getElementById("total-withdraw").innerHTML = withdrawn + "<span>($" +parseFloat(withdrawn * bnbusd).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")+")</span>";
+							    						}
+							    					});
+
+							    				});
+
+					    				}
+					    			}); // getClaimed
 					    		}
 					    	}); // getPending
 
@@ -493,18 +690,20 @@ async function fetchAccountData() {
 			    }
 			});
 
-        });
+        })
+		.catch(function(err) {
+	  		console.log("Can Not get CoinGecko Price Api! Status: " + err);
+			});
+	});
        
-   
-    })
-    .catch(function(err) {
-      console.log("Can Not get Price Api! Status: " + err);
-    });
+    
 
     tokencontract.methods.charityWallet().call(function(err,res) {
 
     	if (!err) { 
     		document.getElementById("charity-address").innerHTML = res;
+			document.querySelector("#charity-address-link").innerHTML = '<a href="https://bscscan.com/address/' + res + '" class="to-address"><i class="icon-external-link"></i></a>';
+  
 
     		try {
     			var balance = web3.eth.getBalance(res).then(charitybalance);
@@ -535,6 +734,8 @@ async function fetchAccountData() {
 
     	if (!err) { 
     		document.getElementById("admin-address").innerHTML = res;
+			document.querySelector("#admin-address-link").innerHTML = '<a href="https://bscscan.com/address/' + res + '" class="to-address"><i class="icon-external-link"></i></a>';
+  
 
     		try {
     			var balance = web3.eth.getBalance(res).then(adminbalance);
@@ -561,52 +762,25 @@ async function fetchAccountData() {
 
     });
 
-    tokencontract.methods.nftRewardWallet().call(function(err,res) {
 
-    	if (!err) { 
-    		document.getElementById("nft-address").innerHTML = res;
-
-    		try {
-    			var balance = web3.eth.getBalance(res).then(nftbalance);
-
-    			//console.log(charityBalance);
-    			
-    			
-    		} 
-
-    		catch {
-
-    		}    		
-
-    		tokencontract.methods.viewTeamWalletInfo().call(function(err,res) {
-
-    			if (!err) { 
-
-    				document.getElementById("nft-divs").innerHTML = parseFloat(web3.utils.fromWei(res.nftDivs)).toFixed(9) + " BNB";
-
-    			}
-    		});
-
-    	}
-
-    });
-
-    tokencontract.methods.stakePoolActive().call(function(err,res) {
+    tokencontract.methods.nftPoolActive().call(function(err,res) {
 
     	if (!err) { 
 
     		if (res) {
 
-    			document.querySelector("#poolActive").style.display = "block";
-    			document.querySelector("#poolInactive").style.display = "none";
+    			document.querySelector("#nftActive").style.display = "block";
+    			document.querySelector("#nftInactive").style.display = "none";
 
-    			tokencontract.methods.stakePoolWallet().call(function(err,res) {
+    			tokencontract.methods.nftRewardWallet().call(function(err,res) {
 
 			    	if (!err) { 
-			    		document.getElementById("stake-address1").innerHTML = res;
+			    		document.getElementById("nft-address").innerHTML = res;
+						document.querySelector("#nft-address-link").innerHTML = '<a href="https://bscscan.com/address/' + res + '" class="to-address"><i class="icon-external-link"></i></a>';
+			  
 
 			    		try {
-			    			var balance = web3.eth.getBalance(res).then(stakebalance);
+			    			var balance = web3.eth.getBalance(res).then(nftbalance);
 
 			    			//console.log(charityBalance);
 			    			
@@ -621,11 +795,79 @@ async function fetchAccountData() {
 
 			    			if (!err) { 
 
-			    				document.getElementById("stake-divs").innerHTML = parseFloat(web3.utils.fromWei(res.stakeDivs)).toFixed(9) + " BNB";
+			    				document.getElementById("nft-divs").innerHTML = parseFloat(web3.utils.fromWei(res.nftDivs)).toFixed(9) + " BNB";
 
 			    			}
 			    		});
 
+			    	}
+
+			    });
+
+    		} else {
+
+    			document.querySelector("#nftInactive").style.display = "block";
+    			document.querySelector("#nftActive").style.display = "none";
+
+    			tokencontract.methods.nftRewardWallet().call(function(err,res) {
+
+			    	if (!err) { 
+			    		document.getElementById("nft-address2").innerHTML = res;
+						document.querySelector("#nft-address2-link").innerHTML = '<a href="https://bscscan.com/address/' + res + '" class="to-address"><i class="icon-external-link"></i></a>';
+  
+			    	}
+
+			    });
+
+    			
+
+    		}
+
+		}
+
+	});
+
+  	 
+    tokencontract.methods.stakePoolActive().call(function(err,res) {
+
+    	if (!err) { 
+
+    		if (res) {
+
+    			document.querySelector("#poolActive").style.display = "block";
+    			document.querySelector("#poolInactive").style.display = "none";
+
+    			tokencontract.methods.stakePoolWallet().call(function(err,res) {
+
+			    	if (!err) { 
+			    		document.getElementById("stake-address1").innerHTML = res;
+						document.querySelector("#stake-address1-link").innerHTML = '<a href="https://bscscan.com/address/' + res + '" class="to-address"><i class="icon-external-link"></i></a>';
+  
+
+			    		try {
+			    			var balance = web3.eth.getBalance(res).then(stakebalance);
+
+			    			//console.log(charityBalance);
+			    			
+			    			
+			    		} 
+
+			    		catch {
+
+			    		}    		
+			    		tokencontract.methods.stakePoolWallet().call(function(err,res) {
+			    			if (!err) {
+					    		tokencontract.methods.balanceOf(res).call(function(err,res) {
+					    			//console.log(res);
+
+					    			if (!err) { 
+
+					    				document.getElementById("stake-divs").innerHTML = parseFloat(+res/10e8).toFixed(2) + " KOJI";
+
+					    			}
+					    		});
+				    		}
+				    	});
 			    	}
 
 			    });
@@ -639,6 +881,8 @@ async function fetchAccountData() {
 
 			    	if (!err) { 
 			    		document.getElementById("stake-address2").innerHTML = res;
+						document.querySelector("#stake-address2-link").innerHTML = '<a href="https://bscscan.com/address/' + res + '" class="to-address"><i class="icon-external-link"></i></a>';
+  
 			    	}
 
 			    });
@@ -650,6 +894,8 @@ async function fetchAccountData() {
 		}
 
 	});
+
+
 
   	 
 }
@@ -680,7 +926,75 @@ async function getAccountInfo(account) {
   document.querySelector("#connected").style.display = "block";
 }
 
+async function registerHoldings() {
 
+	 //console.log(mintdata);
+	  document.getElementById("reg-holdings-loader").classList.add('ui-loading');
+	  document.querySelector('#reg-holdings-btn').setAttribute("disabled", "disabled");
+
+     const web3 = new Web3(provider);
+
+     // Get list of accounts of the connected wallet
+     try {
+              await ethereum.enable();
+              var account = await web3.eth.getAccounts();
+      } catch {
+        //console.log(err);
+      }
+
+      var tokencontract = new web3.eth.Contract(JSON.parse(kojitokenABI),kojitoken);
+
+       web3.eth.sendTransaction(
+          {from: account[0],
+          to: kojitoken,
+          value: 0, 
+          gasprice: 100000, // 100000 = 10 gwei
+           //gas: 350000,   // gas limit
+          data: tokencontract.methods.registerShares().encodeABI()
+              }, function(err, transactionHash) {
+            //console.log('in progress');
+            if (!err) {
+            	 txinprogress = true;
+	             document.getElementById("request-gas-btn").setAttribute("disabled","disabled");
+	             document.getElementById("reg-holdings-btn").setAttribute("disabled","disabled");
+	            
+	             var message = "<a href='https://testnet.bscscan.com/tx/"+transactionHash+"' target='_blank'>Tx Hash "+transactionHash+"</a>"
+
+	             if (!mobile) {
+	             	openAlert("info", "Transaction Submitted", message);
+	             }
+	             
+             
+            }
+             
+      })
+      .on('receipt', function(receipt){
+
+        //console.log(receipt);
+
+        	if (!mobile) {
+       		 	openAlert("success", "Transaction Completed", "Success!");
+       		 }
+
+        	document.getElementById("reg-holdings-loader").classList.remove('ui-loading');
+        	document.getElementById("reg-holdings-btn").setAttribute("disabled","disabled");
+
+            fetchAccountData();
+
+            txinprogress = false;
+
+
+      })
+
+      .on('error', function(error){ // If a out of gas error, the second parameter is the receipt.
+      		 
+             document.getElementById("reg-holdings-loader").classList.remove('ui-loading');
+        	document.getElementById("reg-holdings-btn").removeAttribute("disabled");
+             openAlert("danger", "Transaction Failed", error.message);
+
+             txinprogress = false;
+      });
+}
 
 async function withdraw(percent) {
 
@@ -709,12 +1023,13 @@ async function withdraw(percent) {
           value: 0, 
           gasprice: 100000, // 100000 = 10 gwei
            //gas: 350000,   // gas limit
-          data: tokencontract.methods.withdrawal(percent).encodeABI()
+          data: tokencontract.methods.Withdrawal(percent).encodeABI()
               }, function(err, transactionHash) {
             //console.log('in progress');
             if (!err) {
             	 txinprogress = true;
 	             document.getElementById("withdraw-btn").setAttribute("disabled","disabled");
+	             document.getElementById("reinvest-btn").setAttribute("disabled","disabled");
 	            
 	             var message = "<a href='https://testnet.bscscan.com/tx/"+transactionHash+"' target='_blank'>Tx Hash "+transactionHash+"</a>"
 
@@ -806,8 +1121,8 @@ async function reinvest(percent, minout) {
 
       minout = web3.utils.toWei(""+minout+"", "Gwei");
 
-      console.log(percent);
-      console.log(minout);
+      //console.log(percent);
+      //console.log(minout);
 
        web3.eth.sendTransaction(
           {from: account[0],
@@ -815,11 +1130,12 @@ async function reinvest(percent, minout) {
           value: 0, 
           gasprice: 100000, // 100000 = 10 gwei
            //gas: 350000,   // gas limit
-          data: tokencontract.methods.reinvest(percent, minout).encodeABI()
+          data: tokencontract.methods.Reinvest(percent, minout).encodeABI()
               }, function(err, transactionHash) {
             //console.log('in progress');
              if (!err) {
             	 txinprogress = true;
+	             document.getElementById("withdraw-btn").setAttribute("disabled","disabled");
 	             document.getElementById("reinvest-btn").setAttribute("disabled","disabled");
 	             
 	             var message = "<a href='https://testnet.bscscan.com/tx/"+transactionHash+"' target='_blank'>Tx Hash "+transactionHash+"</a>"
@@ -873,7 +1189,7 @@ document.getElementById("slider2").addEventListener("input", function(e){
 
 	//console.log(percent2);
 
-	var netdivs = ((divs * percent2) / 100).toFixed(6);
+	var netdivs = ((divs * percent2) / 100).toFixed(4);
 
 	document.querySelector('#ri-equivalent').innerHTML = netdivs;
 
@@ -883,7 +1199,7 @@ document.getElementById("slider2").addEventListener("input", function(e){
 
 	//console.log(netreinvest);
 
-	//console.log(minout);
+	console.log(minout);
 
 	document.getElementById("koji-reinvested").innerText = netreinvest.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
@@ -892,16 +1208,20 @@ document.getElementById("slider2").addEventListener("input", function(e){
 		document.getElementById("reinvest-btn").removeAttribute("disabled");
 
 		document.querySelector('#reinvest-alert').style.display = 'none';
+		// edit by andreas
+		
 
 		document.getElementById("reinvest-btn").setAttribute('onclick', 'reinvest('+percent2+','+minout+')');
 
 	} else {
 
+		//document.getElementById("koji-reinvested").innerText = "0.00";
+
 		document.getElementById("reinvest-btn").setAttribute("disabled", "disabled");
 
 		document.querySelector('#reinvest-alert').style.display = 'block';
-
-		document.querySelector('#reinvest-alert').innerHTML = "You need at least 0.001 BNB dividends equivalent to reinvest";
+		// edit by andreas
+		//document.querySelector('#reinvest-alert').innerHTML = "You need at least 0.001 BNB dividends equivalent to reinvest";
 
 		document.getElementById("reinvest-btn").removeAttribute('onclick');
 
@@ -911,6 +1231,57 @@ document.getElementById("slider2").addEventListener("input", function(e){
 
 
 });
+
+function openAlert(type, title, message) {
+
+    var random1 = btoa(Math.random()).slice(0, 6);
+    var random2 = btoa(Math.random()).slice(0, 6);
+    var ui_alerts = document.getElementById('ui-alert-floats');
+    ui_alerts.insertAdjacentHTML('afterbegin', '<div id="'+random1+'" class="alert alert-'+type+' inner-wrapper"><a class="close-btn" href="#" onclick="closeAlert(this);return false;"><i class="far fa-times"></i></a><div class="spacer"><div id="'+random2+'" class="alert-container"><div class="alert-icon"><i class="icon-info-circle2"></i></div><span class="alert-msg"><span class="alert-title">'+title+':</span> <span id="info-msg" style="word-break:break-all">'+message+'</span></span></div></div></div>');
+    var target1 = document.getElementById(random1);
+    var target2 = document.getElementById(random2).style;
+	// edited by andreas - sorry nodezy, want my original slide-&-fade-out-left animation, and keeping them visible for so long that the tx hash and sucess are visible at the same time and stacked
+    // target2.opacity = 1;
+    //     function fade(){target2.opacity-=.005}
+    //      var fade_elm = window.setInterval(function () {
+    //             //console.log('fade called');
+    //             fade();
+    //         },100);
+    // var clear_elm = window.setTimeout(function () {
+    //     clearInterval(fade_elm);
+    //     target1.remove();
+    //     clearTimeout(clear_elm);
+    // },15000);
+
+	var clear_elm = window.setTimeout(function () {
+
+		target1.classList.add('close'); // readdding the slide-&-fade-out-left animation
+		
+		setTimeout(function() { // removing element first after animation 
+			target1.remove(); 
+		}, 600)
+
+	},15000);
+}
+
+function closeAlert(element) {
+     //edited by Nodezy // un-edit by andreas
+	 element.parentElement.classList.add('close');
+    setTimeout(function() {
+        //edited by Nodezy
+        element.parentElement.remove();
+        //element.parentElement.classList.add('remove');
+    }, 500)
+}
+
+function outputUpdate(amount) {
+    document.querySelector('#amount').value = amount;
+}
+
+ function outputUpdate2(amount) {
+    document.querySelector('#amount2').value = amount;
+}
+
 
 /**
  * Fetch account data for UI when
@@ -1041,5 +1412,8 @@ refreshinterval = window.setInterval(function() {
 window.addEventListener('load', async () => {
   init();
   document.querySelector("#btn-connect").addEventListener("click", onConnect);
-  document.querySelector("#btn-disconnect").addEventListener("click", onDisconnect);
+  // edit by andreas, move the disconnect to the wallet modal
+  //document.querySelector("#btn-disconnect").addEventListener("click", onDisconnect);
+  document.querySelector("#wallet-disconnect").addEventListener("click", onDisconnect);
+
 });
