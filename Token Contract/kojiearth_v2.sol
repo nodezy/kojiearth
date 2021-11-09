@@ -759,10 +759,9 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     modifier swapping() { inSwap = true; _; inSwap = false; }
 
     constructor () Auth(msg.sender) {
-        router = IDEXRouter(0xCc7aDc94F3D80127849D2b41b6439b7CF1eB4Ae0); //pcs test
-        //router = IDEXRouter(0x10ED43C718714eb63d5aA57B78B54704E256024E); //pcs  
-        //router = IDEXRouter(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D); //uni
-            
+        
+        router = IDEXRouter(0x10ED43C718714eb63d5aA57B78B54704E256024E); 
+        
         address _presaler = msg.sender;
             
         WETH = router.WETH();
@@ -1052,11 +1051,12 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     }
     
     function setSellTxLimit(uint256 amount) external onlyOwner {
-        require(amount >= 500000000000000000, "Sell limit must not be less than 500M tokens");
+        require(amount >= 250000000000000000, "Sell limit must not be less than 250M tokens");
         _maxTxAmountSell = amount;
     }
     
     function setMaxWalletToken(uint256 amount) external onlyOwner {
+        require(amount >= 250000000000000000, "Wallet limit must not be less than 250M tokens");
         _maxWalletToken = amount;
     }
     
@@ -1203,7 +1203,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     } 
 
     function settaxRatio(uint256 _amount) external onlyOwner {
-        require(_amount <= feeDenominator.div(5), "tax ratio cannot be more than 200 (20%)");
+        require(_amount <= feeDenominator.div(4), "tax ratio cannot be more than 250 (25%)");
         taxRatio = _amount;
     }
 
