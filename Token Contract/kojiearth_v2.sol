@@ -1,26 +1,45 @@
-// SPDX-License-Identifier: Unlicensed
+// SPDX-License-Identifier: Licensed to Kill Zeroes
 
 /*
 koji.earth project
-launched on Ethereum 6.2021, killed by high gas fees
+launched on Ethereum 6.2021, high gas fees made trading unreasonable
 relaunching on BSC with new, better contract at original public sale price
 
 Website: https://koji.earth
 Telegram: https://t.me/kojiearth
+
+25 Million KOJI required to receive divs in BNB
 Withdraw/Reinvest dividends : https://app.koji.earth
 
 Staking & Full NFT comic book coming Q1 2022 (maybe sooner!)
 
 Tokenomics: 
-25 Million KOJI required to receive divs in BNB
+
 Supply: 1 Trillion
+
+Phase 1 Taxes - Staking/NFT pools inactive:
+
                                 /   1% KOJI to burn wallet
                                 |   6% left converts to BNB
 7% tax on buy/sell/transfer -   |   40% of BNB to holders
                                 |   20% of BNB to liquidity
-                                |   20% to charity 
-                                \   20% to admin (artwork, marketing, etc..)
+                                |   20% of BNB to charity 
+                                \   20% of BNB to admin (artwork, marketing, etc..)
 
+Phase 2 Taxes - Staking/NFT pools active:
+
+                                /   1% KOJI to burn wallet
+                                |   1% KOJI to stake pool
+                                |   6% left converts to BNB
+8% tax on buy/sell/transfer -   |   40% of BNB to holders
+                                |   15% of BNB to liquidity
+                                |   15% of BNB to charity 
+                                |   15% of BNB to NFT reward pool
+                                \   15% of BNB to admin (artwork, marketing, etc..)       
+
+5% slippage on buys, 10-15% on sells, make sure KOJI amount on sell doesn't end in zero 
+
+No rug, no scam, trusted team; stop by our TG and say hi!
 */
 
 pragma solidity ^0.8.9;
@@ -111,7 +130,7 @@ abstract contract Auth {
     }
 
     /**
-     * Transfer ownership to new address. Caller must be deployer. Leaves old deployer authorized
+     * Transfer ownership to new address. Caller must be owner. 
      */
     function transferOwnership(address payable adr) public onlyOwner {
         owner = adr;
@@ -266,10 +285,11 @@ contract DividendDistributor is IDividendDistributor {
     uint256 public dividendsPerShare;
     uint256 public dividendsPerShareAccuracyFactor = 10 ** 36;
 
+    uint256 lastDeposit;
     uint256 distribWalletGas = 40000;
     uint256 distribReinvestGas = 450000;
 
-    uint256 public impoundTimelimit = 1; //2592000; //1 month default
+    uint256 public impoundTimelimit = 2592000; //1 month default
     uint256 public minDistribution = 1000000* (10 ** 9); //0.001
     uint256 public minHoldAmountForRewards = 25000000 * (10**9); // Must hold 25 million tokens to receive rewards
 
@@ -297,7 +317,7 @@ contract DividendDistributor is IDividendDistributor {
         WETH = router.WETH();
     }
 
-    function setShare(address shareholder, uint256 amount) external override onlyToken {
+    function setShare(address shareholder, uint256 amount) public override onlyToken {
         if(shares[shareholder].amount > 0){
             shares[shareholder].unpaidDividends = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
         }
@@ -305,10 +325,13 @@ contract DividendDistributor is IDividendDistributor {
         if(amount > 0 && shares[shareholder].amount == 0){
             if (amount >= minHoldAmountForRewards) {
                 addShareholder(shareholder);
+                shareholderExpired[shareholder] = 9999999999;
             }
         }else if(amount == 0 && shares[shareholder].amount > 0){
             if (shares[shareholder].unpaidDividends == 1 || shares[shareholder].unpaidDividends == 0) {
                 removeShareholder(shareholder);
+            } else {
+                shareholderExpired[shareholder] = block.timestamp;
             }
             
         }
@@ -340,6 +363,7 @@ contract DividendDistributor is IDividendDistributor {
     function deposit() external payable override onlyToken {
         uint256 amount = msg.value;
 
+        lastDeposit = amount;
         netDividends = netDividends.add(amount);
         totalDividends = totalDividends.add(amount);
         dividendsPerShare = dividendsPerShare.add(dividendsPerShareAccuracyFactor.mul(amount).div(totalShares));
@@ -457,7 +481,9 @@ contract DividendDistributor is IDividendDistributor {
                 currentIndex = 0;
             }
 
-                if (shares[shareholders[currentIndex]].unpaidDividends > 0 && shares[shareholders[currentIndex]].amount == 0 && block.timestamp.add(impoundTimelimit) > shareholderExpired[shareholders[currentIndex]]) {
+                if (shares[shareholders[currentIndex]].unpaidDividends > 0 
+                && shares[shareholders[currentIndex]].amount == 0 
+                && block.timestamp.add(impoundTimelimit) > shareholderExpired[shareholders[currentIndex]]) {
                     impoundDividend(shareholders[currentIndex]);
                 } 
 
@@ -487,7 +513,9 @@ contract DividendDistributor is IDividendDistributor {
                 currentIndex = 0;
             }
 
-            if (shares[shareholders[currentIndex]].unpaidDividends == 0 && shares[shareholders[currentIndex]].amount == 0 && block.timestamp.add(impoundTimelimit) > shareholderExpired[shareholders[currentIndex]]) {
+            if (shares[shareholders[currentIndex]].unpaidDividends == 0
+            && shares[shareholders[currentIndex]].amount == 0 
+            && block.timestamp.add(impoundTimelimit) > shareholderExpired[shareholders[currentIndex]]) {
                   removeShareholder(shareholders[currentIndex]); 
             } 
 
@@ -544,12 +572,61 @@ contract DividendDistributor is IDividendDistributor {
         return address(dividendToken);
     }
 
-    //Change the min hold requirement for rewards. In this contract, this new value can only be lowered or it will break lots of stuff
-    function changeMinHold(uint256 _amount) external {
-
-        require(_amount < minHoldAmountForRewards, "Min hold amount should be lower than current amount");
+    //Change the min hold requirement for rewards. 
+    function changeMinHold(uint256 _amount, uint256 _gas) external {
+        require(_amount != minHoldAmountForRewards, "new threshold amount cannot be the same as existing threshold");
+        require(_amount >= 1000000000 || _amount <= 100000000000000000, "Min hold amount for divs should between 1 and 100M tokens");
+        require(_gas >= 450000, "Please use a gas value equal to or higher than 450,000");
         
+        uint256 lastAmount = minHoldAmountForRewards;
         minHoldAmountForRewards = _amount;
+
+        if (lastAmount > minHoldAmountForRewards) { //lowered
+            changeMinHoldAmount(_gas, 0);
+        } else {                                    //raised
+            changeMinHoldAmount(_gas, 1);
+        }
+        
+
+    }
+
+    function changeMinHoldAmount(uint256 gas, uint256 flag) internal {
+        uint256 shareholderCount = shareholders.length;
+
+        if(shareholderCount == 0) { return; }
+
+        uint256 gasUsed = 0;
+        uint256 gasLeft = gasleft();
+
+        uint256 iterations = 0;
+        currentIndex = 0;
+    
+        while(gasUsed < gas && iterations < shareholderCount) {
+            if(currentIndex >= shareholderCount){
+                currentIndex = 0;
+            }
+
+                if(flag == 0) {
+                    if(shares[shareholders[currentIndex]].amount == 0 && shareholderExpired[shareholders[currentIndex]] == 9999999999) {
+                        uint256 balance = IBEP20(_token).balanceOf(shareholders[currentIndex]);
+                        setShare(shareholders[currentIndex],balance);
+                    }
+                } else {
+                    if(shares[shareholders[currentIndex]].amount > 0) {
+                        
+                        setShare(shareholders[currentIndex],shares[shareholders[currentIndex]].amount);
+                    }
+                }
+                
+                
+
+            gasUsed = gasUsed.add(gasLeft.sub(gasleft()));
+            gasLeft = gasleft();
+
+            currentIndex++;
+            iterations++;
+        }
+
     }
 
     // Function to allow admin to claim *other* ERC20 tokens sent to this contract (by mistake)
@@ -567,8 +644,8 @@ contract DividendDistributor is IDividendDistributor {
         return minHoldAmountForRewards;
     }
 
-    function holderInfo(address _holder) external view returns (uint256, uint256, uint256, uint256) {
-        return (shares[_holder].amount, shares[_holder].unpaidDividends, shares[_holder].totalRealised, shares[_holder].totalExcluded);
+    function holderInfo(address _holder) external view returns (uint256, uint256, uint256, uint256, bool) {
+        return (shares[_holder].amount, shares[_holder].unpaidDividends, shares[_holder].totalRealised, shares[_holder].totalExcluded, shares[_holder].rewardEligible);
     }
 
     function mathInfo() external view returns (uint256, uint256, uint256, uint256, uint256, uint256) {
@@ -607,7 +684,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI v0.06";
+    string constant _symbol = "KOJI airdrop_test";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
@@ -668,6 +745,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     bool public teamWalletDeposit = true;
     bool public addToLiquid = true;
     bool public enablePartners = false;
+    bool public airdropEnabled = true;
     
     bool inSwap;
     
@@ -676,7 +754,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     uint256 walletGas = 40000;
     uint256 depositGas = 350000;
 
-    uint256 private swapThreshold = 100000000000000; 
+    uint256 private swapThreshold = 100000000000000; //100k tokens
     
     modifier swapping() { inSwap = true; _; inSwap = false; }
 
@@ -705,8 +783,8 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
 
         charityWallet = 0x3E596691f96f44055a3718c10C37Fc093998EC74;
         adminWallet = 0x6A3Ca89608c2c9153daddb93589Fe27A98C30639;
-        nftRewardWallet = 0x105ae2202A44b3C81C7865B508765Ae4E4b2c033;
-        stakePoolWallet = 0xe4C97046c10ba4C1803403Df78cFe3a2E3481722;
+        nftRewardWallet = 0x70117981e4C9fA0309a9BC83412305281dB5Af8B;
+        stakePoolWallet = 0x70117981e4C9fA0309a9BC83412305281dB5Af8B;
 
         isFeeExempt[stakePoolWallet] = true;
         isDividendExempt[stakePoolWallet] = true;
@@ -749,13 +827,15 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     }
 
     function _tF(address s, address r, uint256 amount) internal returns (bool) {
-        require(amount > 0, "Insufficient Amount");
+        require(amount > 0, "Insufficient Amount: cannot send 0 KOJI");
+
+        if(airdropEnabled){ return _basicTransfer(s, r, amount); }
         if(inSwap){ return _basicTransfer(s, r, amount); }
 
         checkTxLimit(s, r, amount);
 
         if (r == pair) {
-
+            
             if(shouldSwapBack()){ swapBack(); }
         }
 
@@ -792,9 +872,8 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     }
 
     function checkTxLimit(address sender, address receiver, uint256 amount) internal view {
-        sender == pair
-            ? require(amount <= _maxTxAmountBuy || isTxLimitExempt[receiver], "Buy TX Limit Exceeded")
-            : require(amount <= _maxTxAmountSell || isTxLimitExempt[sender], "Sell TX Limit Exceeded");
+        if(sender == pair) {require(amount <= _maxTxAmountBuy || isTxLimitExempt[receiver], "Buy TX Limit Exceeded");}
+        if(receiver == pair) {require(amount <= _maxTxAmountSell || isTxLimitExempt[sender], "Sell TX Limit Exceeded");}
     }
 
     function shouldTakeFee(address sender) internal view returns (bool) {
@@ -973,6 +1052,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     }
     
     function setSellTxLimit(uint256 amount) external onlyOwner {
+        require(amount >= 500000000000000000, "Sell limit must not be less than 500M tokens");
         _maxTxAmountSell = amount;
     }
     
@@ -1066,7 +1146,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     }
 
     // Converts to WBNB any BNB held in the contract (from sweep() function, for example)
-    function convertBNB() external onlyOwner {
+    function convertBNBtoWBNB() external onlyOwner {
          IWETH(WETH).deposit{value : address(this).balance}();
     }
 
@@ -1087,12 +1167,12 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     }
 
     //Depost BNB into the contract, then call this to increase holders dividends
-    function AddToDistributor() external onlyOwner { 
+    function AddToDistributorDeposit() external onlyOwner { 
        distributor.deposit{value: address(this).balance}();
     }
 
     //Deposit BNB into the contract, then call this to add BNB to the distributor in case it doesn't have enough to cover withdrawals (shouldn't happen, but just in case)
-    function AddToDistributorBNB() external onlyOwner { 
+    function AddToDistributorBalance() external onlyOwner { 
        distributor.addBNB{value: address(this).balance}();
     }
 
@@ -1113,30 +1193,29 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     }
 
     function setburnRatio(uint256 _amount) external onlyOwner {
-        require(_amount <= 500, "burn ratio cannot be more than 50 percent of total tax");
-        taxRatio = _amount;
+        require(_amount <= taxRatio.div(2), "burn ratio cannot be more than 50 percent of total tax");
+        burnRatio = _amount;
     } 
 
     function setstakepoolRatio(uint256 _amount) external onlyOwner {
-        require(_amount <= 500, "stakepool ratio cannot be more than 50 percent of total tax");
-        taxRatio = _amount;
+        require(_amount <= taxRatio.div(2), "stakepool ratio cannot be more than 50 percent of total tax");
+        stakepoolRatio = _amount;
     } 
 
     function settaxRatio(uint256 _amount) external onlyOwner {
-        require(_amount <= 500, "tax ratio cannot be more than 50 percent of total tax");
+        require(_amount <= feeDenominator.div(5), "tax ratio cannot be more than 200 (20%)");
         taxRatio = _amount;
     }
 
-
-    function ChangeMinHold(uint256 _amount) external onlyOwner swapping {
-        distributor.changeMinHold(_amount);
+    function ChangeMinHold(uint256 _amount, uint256 _gas) external onlyOwner swapping {
+        distributor.changeMinHold(_amount, _gas);
     }
 
     function ViewMinHold() external view returns (uint256 amount) {
         return distributor.viewMinHold();
     }
  
-    function ViewHolderInfo(address _address) external view returns (uint256 amount, uint256 unpaid, uint256 realised, uint256 excluded) {
+    function ViewHolderInfo(address _address) external view returns (uint256 amount, uint256 unpaid, uint256 realised, uint256 excluded, bool rewardeligible) {
         return distributor.holderInfo(_address);
     }
     
@@ -1179,15 +1258,13 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         nftPoolActive = _status; 
     }
 
-    function changeGas(uint256 _distributorgas, uint256 _walletgas, uint256 _processgas) external onlyOwner {
+    function changeContractGas(uint256 _distributorgas, uint256 _walletgas) external onlyOwner {
         require(_distributorgas > 0, "distributor cannot be equal to zero");
         require(_walletgas > 0, "distributor cannot be equal to zero");
-        require(_walletgas > 0, "distributor cannot be equal to zero");
-        require(_processgas > 0, "distributor cannot be equal to zero");
         
         distributorGas = _distributorgas;
         walletGas = _walletgas;
-        depositGas = _processgas;
+    
     }
 
     function ChangeDistribGas(uint256 _walletGas, uint256 _reinvestGas) external onlyOwner {
@@ -1298,6 +1375,11 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     function setPartnerFeeLimiter(uint256 _limiter) external onlyOwner {
         require(_limiter <= 100 && _limiter >= 1, "fee limiter must be between 1 and 100");
         partnerFeeLimiter = _limiter;
+    }
+
+    //once the airdrop is complete, this function turns off _basicTransfer permanently for airdropEnabled
+    function setAirdropDisabled() external onlyOwner {
+        airdropEnabled = false;
     }
 
 }
