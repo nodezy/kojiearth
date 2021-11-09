@@ -684,7 +684,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI airdrop_test";
+    string constant _symbol = "KOJI";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
