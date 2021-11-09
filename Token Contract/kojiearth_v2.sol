@@ -684,12 +684,12 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI";
+    string constant _symbol = "KOJI airdrop_test";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
     uint256 public _maxTxAmountBuy = _totalSupply;
-    uint256 public _maxTxAmountSell = _totalSupply;
+    uint256 public _maxTxAmountSell = _totalSupply; 
     uint256 public _maxWalletToken = _totalSupply; 
 
     struct Partners {
@@ -746,7 +746,8 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     bool public addToLiquid = true;
     bool public enablePartners = false;
     bool public airdropEnabled = true;
-    
+    bool public launchEnabled = false;
+
     bool inSwap;
     
     DividendDistributor distributor;
@@ -759,8 +760,8 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     modifier swapping() { inSwap = true; _; inSwap = false; }
 
     constructor () Auth(msg.sender) {
-        
-        router = IDEXRouter(0x10ED43C718714eb63d5aA57B78B54704E256024E); 
+        router = IDEXRouter(0xCc7aDc94F3D80127849D2b41b6439b7CF1eB4Ae0);
+        //router = IDEXRouter(0x10ED43C718714eb63d5aA57B78B54704E256024E); 
         
         address _presaler = msg.sender;
             
@@ -790,6 +791,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
 
         _balances[_presaler] = _totalSupply;
         emit Transfer(address(0), _presaler, _totalSupply);
+
     }
 
     receive() external payable { }
@@ -804,6 +806,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
 
 
     function approve(address spender, uint256 amount) public override returns (bool) {
+        if(!isOwner(msg.sender)){require(launchEnabled, "Liquid has not been added yet!");}
         _allowances[msg.sender][spender] = amount;
         emit Approval(msg.sender, spender, amount);
         return true;
@@ -827,7 +830,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
 
     function _tF(address s, address r, uint256 amount) internal returns (bool) {
         require(amount > 0, "Insufficient Amount: cannot send 0 KOJI");
-
+        
         if(airdropEnabled){ return _basicTransfer(s, r, amount); }
         if(inSwap){ return _basicTransfer(s, r, amount); }
 
@@ -1382,4 +1385,15 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         airdropEnabled = false;
     }
 
+    //once the liquid is added, this function turns on launchEnabled permanently
+    function setLaunchEnabled() external onlyOwner {
+        require(!airdropEnabled, "Please disable airdropEnabled first");
+        launchEnabled = true;
+    }
+
+    function registerShares() external {
+        require(launchEnabled, "Please enable launchEnabled first");
+        uint256 balance = IBEP20(address(this)).balanceOf(msg.sender);
+        distributor.setShare(msg.sender,balance);
+    }
 }
