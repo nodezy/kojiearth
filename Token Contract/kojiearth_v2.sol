@@ -11,7 +11,7 @@ Telegram: https://t.me/kojiearth
 25 Million KOJI required to receive divs in BNB
 Withdraw/Reinvest dividends : https://app.koji.earth
 
-Staking & Full NFT comic book coming Q1 2022 (maybe sooner!)
+Staking & Full NFT comic book coming 1.2022 (maybe sooner!)
 
 Tokenomics: 
 
@@ -684,7 +684,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI airdrop_test";
+    string constant _symbol = "KOJI v0.08";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
@@ -1387,12 +1387,12 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
 
     //once the liquid is added, this function turns on launchEnabled permanently
     function setLaunchEnabled() external onlyOwner {
-        require(!airdropEnabled, "Please disable airdropEnabled first");
+        require(!airdropEnabled, "Please disable airdrop mode first");
         launchEnabled = true;
     }
 
     function registerShares() external {
-        require(launchEnabled, "Please enable launchEnabled first");
+        //require(!airdropEnabled, "Dev has not enabled this yet");
         uint256 balance = IBEP20(address(this)).balanceOf(msg.sender);
         distributor.setShare(msg.sender,balance);
     }
