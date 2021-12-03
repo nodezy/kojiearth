@@ -183,6 +183,10 @@ abstract contract ReentrancyGuard {
     }
 }
 
+interface IOracle {
+    function getdiscount(uint256 amount) external returns (uint256 discount);
+}
+
 interface IDEXFactory {
     function createPair(address tokenA, address tokenB) external returns (address pair);
 }
@@ -248,7 +252,17 @@ interface IDividendDistributor {
     function setShare(address shareholder, uint256 amount) external;
     function deposit() external payable;
     function addBNB() external payable;
+    function addBNBnetDivs() external payable;
     function setDividendToken(address dividendToken) external;
+    function distributeDividend(address shareholder, uint256 percent) external;
+    function reinvestDividend(address shareholder, uint256 percent, uint256 minOut) external;
+    function sweep(uint256 gas) external;
+    function changeMinHold(uint256 _amount, uint256 _gas) external;
+    function transferBEP20Tokens(address _tokenAddr, address _to, uint _amount) external;
+    function changeImpoundTimelimit(uint256 _timelimit) external;
+    function changeDistribGas(uint256 _walletGas, uint256 _reinvestGas) external;
+    function rescueETHFromContract() external;
+    function donate(address shareholder, address charity, uint256 percent) external;
 }
 
 contract DividendDistributor is IDividendDistributor {
@@ -270,14 +284,18 @@ contract DividendDistributor is IDividendDistributor {
     address WETH;
 
     address[] shareholders;
+    address[] donators;
     mapping (address => uint256) shareholderIndexes;
     mapping (address => uint256) shareholderClaims;
+    mapping (address => uint256) shareholderDonated;
     mapping (address => uint256) public shareholderExpired;
     mapping (address => Share) public shares;
     mapping (address => bool) shareholderAdded;
+    mapping (address => bool) donatorAdded;
 
     uint256 public totalWithdrawn;
     uint256 public totalReinvested;
+    uint256 public totalDonated;
     uint256 public netDividends;
     uint256 public totalShares;
     uint256 public totalDividends;
@@ -369,12 +387,19 @@ contract DividendDistributor is IDividendDistributor {
         dividendsPerShare = dividendsPerShare.add(dividendsPerShareAccuracyFactor.mul(amount).div(totalShares));
     }
 
+
     function addBNB() external payable override onlyToken {
         uint256 amount = msg.value;
     }
 
+    function addBNBnetDivs() external payable override onlyToken {
+        uint256 amount = msg.value;
+        netDividends = netDividends.add(amount);
+        totalDividends = totalDividends.add(amount);
+    }
+
      //withdraw dividends
-     function distributeDividend(address shareholder, uint256 percent) public {
+     function distributeDividend(address shareholder, uint256 percent) external override onlyToken {
 
          require(percent >= 25 && percent <= 100, "Percent of withdrawal is outside of parameters");
         
@@ -407,7 +432,7 @@ contract DividendDistributor is IDividendDistributor {
     }
 
     //Reinvest dividends
-    function reinvestDividend(address shareholder, uint256 percent, uint256 minOut) public {
+    function reinvestDividend(address shareholder, uint256 percent, uint256 minOut) external override onlyToken {
 
         require(percent >= 25 && percent <= 100, "Percent of reinvestment is outside of parameters");
 
@@ -444,6 +469,42 @@ contract DividendDistributor is IDividendDistributor {
             return; 
         }
     }
+
+     //withdraw dividends
+     function donate(address shareholder, address charityAddress, uint256 percent) external override onlyToken {
+
+         require(percent >= 25 && percent <= 100, "Percent of donation is outside of parameters");
+        
+         uint256 fullamount = shares[shareholder].unpaidDividends.add(getUnpaidEarnings(shareholder));
+        
+         uint256 netamount = fullamount.mul(percent).div(100);
+        
+        if(netamount > 0){
+            
+            netamount = netamount.sub(1); //this is so we aren't short on dust in the holding wallet
+
+            totalDistributed = totalDistributed.add(netamount);
+
+            (bool successShareholder, /* bytes memory data */) = payable(charityAddress).call{value: netamount, gas: distribWalletGas}("");
+            require(successShareholder, "Shareholder rejected BNB transfer");
+            shareholderClaims[shareholder] = block.timestamp;
+            
+            shares[shareholder].unpaidDividends = fullamount.sub(netamount); 
+            shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].amount);
+            
+            //shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
+
+            addDonator(shareholder);
+            shareholderDonated[shareholder] = shareholderDonated[shareholder].add(netamount);
+
+            totalDonated = totalDonated.add(netamount);
+            netDividends = netDividends.sub(netamount);          
+
+
+        } else {
+            return; 
+        }
+    }
     
     function getUnpaidDividends(address shareholder) public view returns (uint256 unpaidDividends) {
         return shares[shareholder].unpaidDividends;
@@ -465,7 +526,7 @@ contract DividendDistributor is IDividendDistributor {
     }
 
     //Impounds all divs from non-KOJI holders that sold all, yet didn't claim rewards within time limit
-    function sweep(uint256 gas) public {
+    function sweep(uint256 gas) external override onlyToken {
         uint256 shareholderCount = shareholders.length;
 
         if(shareholderCount == 0) { return; }
@@ -562,6 +623,16 @@ contract DividendDistributor is IDividendDistributor {
         shareholders.pop();
         shareholderAdded[shareholder] = false;
     }
+
+    function addDonator(address shareholder) internal {
+        if (donatorAdded[shareholder]) {
+            return;
+        } else {
+            donators.push(shareholder);
+            donatorAdded[shareholder] = true;
+        }
+        
+    }
     
     function setDividendToken(address _dividendToken) external override onlyToken {
         dividendToken = IBEP20(_dividendToken);
@@ -573,7 +644,7 @@ contract DividendDistributor is IDividendDistributor {
     }
 
     //Change the min hold requirement for rewards. 
-    function changeMinHold(uint256 _amount, uint256 _gas) external {
+    function changeMinHold(uint256 _amount, uint256 _gas) external override onlyToken {
         require(_amount != minHoldAmountForRewards, "new threshold amount cannot be the same as existing threshold");
         require(_amount >= 1000000000 || _amount <= 100000000000000000, "Min hold amount for divs should between 1 and 100M tokens");
         require(_gas >= 450000, "Please use a gas value equal to or higher than 450,000");
@@ -586,7 +657,6 @@ contract DividendDistributor is IDividendDistributor {
         } else {                                    //raised
             changeMinHoldAmount(_gas, 1);
         }
-        
 
     }
 
@@ -630,12 +700,12 @@ contract DividendDistributor is IDividendDistributor {
     }
 
     // Function to allow admin to claim *other* ERC20 tokens sent to this contract (by mistake)
-    function transferBEP20Tokens(address _tokenAddr, address _to, uint _amount) external {
+    function transferBEP20Tokens(address _tokenAddr, address _to, uint _amount) external override onlyToken {
         IBEP20(_tokenAddr).transfer(_to, _amount);
     }
 
     // This will allow to rescue ETH held in the distributor interface address
-    function rescueETHFromContract() external {
+    function rescueETHFromContract() external override onlyToken {
         address payable _owner = payable(_token);
         _owner.transfer(address(this).balance);
     }
@@ -656,11 +726,11 @@ contract DividendDistributor is IDividendDistributor {
         return shareholderExpired[_holder];
     }
 
-    function changeImpoundTimelimit(uint256 _timelimit) external {
+    function changeImpoundTimelimit(uint256 _timelimit) external override onlyToken {
         impoundTimelimit = _timelimit;
     }
 
-    function changeDistribGas(uint256 _walletGas, uint256 _reinvestGas) external {
+    function changeDistribGas(uint256 _walletGas, uint256 _reinvestGas) external override onlyToken {
         distribWalletGas = _walletGas;
         distribReinvestGas = _reinvestGas;
     }
@@ -671,6 +741,18 @@ contract DividendDistributor is IDividendDistributor {
 
     function getDistributionCriteria() external view returns (uint256) {
         return minDistribution;
+    }
+
+    function getDonationLeaders() external view returns (address[] memory, uint256[] memory) {
+        uint limit = donators.length;
+        address[] memory list = new address[](limit);
+        uint256[] memory sent = new uint256[](limit);
+        for (uint start = 0; start < limit; ++start) {
+            list[start] = donators[start];
+            sent[start] = shareholderDonated[donators[start]];
+        }
+
+        return (list, sent);
     }
 }
 
@@ -684,7 +766,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI v0.08";
+    string constant _symbol = "KOJI";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
@@ -733,6 +815,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     uint256 public totalStakepool;
 
     IDEXRouter public router;
+    IOracle public oracle;
     
     address public pair;
 
@@ -745,6 +828,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     bool public teamWalletDeposit = true;
     bool public addToLiquid = true;
     bool public enablePartners = false;
+    bool public enableOracle = false;
     bool public airdropEnabled = true;
     bool public launchEnabled = false;
 
@@ -760,8 +844,10 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     modifier swapping() { inSwap = true; _; inSwap = false; }
 
     constructor () Auth(msg.sender) {
-        router = IDEXRouter(0xCc7aDc94F3D80127849D2b41b6439b7CF1eB4Ae0);
-        //router = IDEXRouter(0x10ED43C718714eb63d5aA57B78B54704E256024E); 
+        
+        router = IDEXRouter(0x10ED43C718714eb63d5aA57B78B54704E256024E); 
+
+        oracle = IOracle(0x148528AdDa7A5B1c229A7aC625781981e76D0e1B);
         
         address _presaler = msg.sender;
             
@@ -781,8 +867,8 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         isDividendExempt[address(this)] = true;
         isDividendExempt[DEAD] = true;
 
-        charityWallet = 0x3E596691f96f44055a3718c10C37Fc093998EC74;
-        adminWallet = 0x6A3Ca89608c2c9153daddb93589Fe27A98C30639;
+        charityWallet = 0xb629Fb3426877640C6fB6734360D81D719062bF6;
+        adminWallet = 0x04e7CA1445041822A2EAE8CC46964DbaEc5b53a3;
         nftRewardWallet = 0x70117981e4C9fA0309a9BC83412305281dB5Af8B;
         stakePoolWallet = 0x70117981e4C9fA0309a9BC83412305281dB5Af8B;
 
@@ -911,7 +997,23 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
                    } 
 
                 } 
-            }
+            }           
+
+        }
+        
+        if (enableOracle && recipient != pair && sender == pair) {
+
+            uint256 discountAmount = oracle.getdiscount(amount);
+            discountAmount = discountAmount.div(100000000);
+            discountFee = discountFee.add(discountAmount);
+        
+        } 
+
+        if (discountFee == 0) {
+
+            feeAmount = amount.mul(regularFee).div(feeDenominator);
+
+        } else {
 
             if (discountFee > regularFee.mul(partnerFeeLimiter).div(100)) {
                 discountFee = regularFee.mul(partnerFeeLimiter).div(100);
@@ -920,11 +1022,6 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
             }
             
             feeAmount = amount.mul(discountFee).div(feeDenominator);
-
-        } else {
-
-            feeAmount = amount.mul(regularFee).div(feeDenominator);
-
         }
 
         _balances[address(this)] = _balances[address(this)].add(feeAmount);
@@ -1179,6 +1276,14 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
        distributor.addBNB{value: address(this).balance}();
     }
 
+    function AddToDistributorNetDivs() external onlyOwner { 
+       distributor.addBNBnetDivs{value: address(this).balance}();
+    }
+
+    function changeOracle(address _oracle) external onlyOwner {
+        oracle = IOracle(_oracle);
+    }
+
     function GetClaimed(address _holder) external view returns (uint256 pending) {
         return distributor.getUnpaidDividends(_holder);
     }
@@ -1374,6 +1479,10 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         enablePartners = _status;
     }
 
+    function setEnableOracle(bool _status) external onlyOwner {
+        enableOracle = _status;
+    }
+
     //value of 100 allows partner taxes to reduce 0% of totalFee tax, 50 = 50% of total tax (default), 1 allows 99% tax reduction of total tax for partners
     function setPartnerFeeLimiter(uint256 _limiter) external onlyOwner {
         require(_limiter <= 100 && _limiter >= 1, "fee limiter must be between 1 and 100");
@@ -1392,8 +1501,11 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     }
 
     function registerShares() external {
-        //require(!airdropEnabled, "Dev has not enabled this yet");
         uint256 balance = IBEP20(address(this)).balanceOf(msg.sender);
         distributor.setShare(msg.sender,balance);
+    }
+
+    function getDonationLeaders() external view returns (address[] memory, uint256[] memory) {
+       return distributor.getDonationLeaders();
     }
 }
