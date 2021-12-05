@@ -157,7 +157,7 @@ contract KojiOracle is Ownable {
 
     constructor() {
         priceFeed = AggregatorV3Interface(0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526);  //bscmainet bnb/usd 0x0567f2323251f0aab15c8dfb1967e4e8a7d42aee
-        LP = IPancakePair(0x4e1052aB157d3cc240aD178FbdE82c222A322A21);
+        LP = IPancakePair(0xef8Fe32695146031cd069bf64c8Ab4ff10e1b59f);
     }
 
     /**
@@ -186,8 +186,8 @@ contract KojiOracle is Ownable {
       
       (uint256 pooledBNB, uint256 pooledKOJI) = getReserves();
 
-      IBEP20 token0 = IBEP20(LP.token0()); //BNB
-      IBEP20 token1 = IBEP20(LP.token1()); //KOJI  (Mainnet pair is opposite!!!)
+      IBEP20 token0 = IBEP20(LP.token0()); //KOJI
+      IBEP20 token1 = IBEP20(LP.token1()); //BNB  
 
       //bnbusdprice = bnbusdprice.mul(10**token1.decimals()); //make bnb usd price have 9 decimals
       pooledBNB = pooledBNB.div(10**token1.decimals()); //make pooled bnb have 9 decimals
@@ -216,6 +216,10 @@ contract KojiOracle is Ownable {
       require(tier1 > 0 && tier2 > 0, "Amounts cannot be zero");
       minTier1Amount = tier1;
       minTier2Amount = tier2;
+    }
+
+    function changePair(address _pair) external onlyOwner {
+      LP = IPancakePair(_pair);
     }
 
     function getdiscount(uint256 amount) public view returns (uint256) {
