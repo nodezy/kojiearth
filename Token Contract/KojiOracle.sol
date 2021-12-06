@@ -154,6 +154,7 @@ contract KojiOracle is Ownable {
 
     uint256 public minTier1Amount = 1500;
     uint256 public minTier2Amount = 500;
+    uint256 launchPrice = 750;
 
     constructor() {
         priceFeed = AggregatorV3Interface(0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526);  //bscmainet bnb/usd 0x0567f2323251f0aab15c8dfb1967e4e8a7d42aee
@@ -227,5 +228,19 @@ contract KojiOracle is Ownable {
       uint256 totalkojiusd = kojiusd.mul(amount);
       uint256 totalbnb = totalkojiusd.div(bnbusd);
       return totalbnb;
+    }
+
+    function getbnbequivalent(uint256 amount) external view returns (uint256) {
+      (uint256 bnbusd,,uint256 kojiusd) = getKojiUSDPrice();
+      uint256 tempbnbusd = amount.mul(bnbusd);
+      if (kojiusd < launchPrice) {
+        kojiusd = launchPrice;
+      }
+      uint256 tempkoji = tempbnbusd.div(kojiusd);
+      return tempkoji.div(10**9);
+    }
+
+    function LazloOnline() external pure returns (bool) {
+      return true;
     }
 }
