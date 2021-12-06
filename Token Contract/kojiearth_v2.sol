@@ -718,8 +718,8 @@ contract DividendDistributor is IDividendDistributor {
         return (shares[_holder].amount, shares[_holder].unpaidDividends, shares[_holder].totalRealised, shares[_holder].totalExcluded, shares[_holder].rewardEligible);
     }
 
-    function mathInfo() external view returns (uint256, uint256, uint256, uint256, uint256, uint256) {
-        return (totalShares, netDividends, totalDistributed, totalReinvested, totalWithdrawn, totalDividends);
+    function mathInfo() external view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
+        return (totalShares, netDividends, totalDistributed, totalReinvested, totalWithdrawn, totalDonated, totalDividends);
     }
 
     function getShareholderExpired(address _holder) external view returns (uint256) {
@@ -766,7 +766,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI";
+    string constant _symbol = "KOJI v2.03";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
@@ -828,9 +828,9 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     bool public teamWalletDeposit = true;
     bool public addToLiquid = true;
     bool public enablePartners = false;
-    bool public enableOracle = false;
-    bool public airdropEnabled = true;
-    bool public launchEnabled = false;
+    bool public enableOracle = true;
+    bool public airdropEnabled = false;
+    bool public launchEnabled = true;
 
     bool inSwap;
     
@@ -845,9 +845,10 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
 
     constructor () Auth(msg.sender) {
         
-        router = IDEXRouter(0x10ED43C718714eb63d5aA57B78B54704E256024E); 
+        router = IDEXRouter(0xCc7aDc94F3D80127849D2b41b6439b7CF1eB4Ae0);
+        //router = IDEXRouter(0x10ED43C718714eb63d5aA57B78B54704E256024E); 
 
-        oracle = IOracle(0x148528AdDa7A5B1c229A7aC625781981e76D0e1B);
+        oracle = IOracle(0xF69F9bCe97D2d4dDb680642cf0f8Ff09d3E79f39);
         
         address _presaler = msg.sender;
             
@@ -867,10 +868,10 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         isDividendExempt[address(this)] = true;
         isDividendExempt[DEAD] = true;
 
-        charityWallet = 0xb629Fb3426877640C6fB6734360D81D719062bF6;
-        adminWallet = 0x04e7CA1445041822A2EAE8CC46964DbaEc5b53a3;
-        nftRewardWallet = 0x70117981e4C9fA0309a9BC83412305281dB5Af8B;
-        stakePoolWallet = 0x70117981e4C9fA0309a9BC83412305281dB5Af8B;
+        charityWallet = 0xDcB134a2e49D8FD80de086A36Cf8551885773D9d;
+        adminWallet = 0x27C724e716bd0c8C545F7F50F4Eb720DFd682b02;
+        nftRewardWallet = 0x6c7E742aDF2A38d20219B2d4529504AceCE9d995;
+        stakePoolWallet = 0xfFaCB279E0C04dEf71067F63dDd9027dF26C07B0;
 
         isFeeExempt[stakePoolWallet] = true;
         isDividendExempt[stakePoolWallet] = true;
@@ -1005,6 +1006,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
 
             uint256 discountAmount = oracle.getdiscount(amount);
             discountAmount = discountAmount.div(100000000);
+            discountAmount = discountAmount.add(1);
             discountFee = discountFee.add(discountAmount);
         
         } 
@@ -1300,6 +1302,10 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         distributor.reinvestDividend(msg.sender, _percent, _amountOutMin);
     }
 
+    function Donate(uint256 _percent) external nonReentrant {
+        distributor.donate(msg.sender, charityWallet, _percent);
+    }
+
     function setburnRatio(uint256 _amount) external onlyOwner {
         require(_amount <= taxRatio.div(2), "burn ratio cannot be more than 50 percent of total tax");
         burnRatio = _amount;
@@ -1327,7 +1333,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         return distributor.holderInfo(_address);
     }
     
-    function ViewMathInfo() external view returns (uint256 totalshares, uint256 netdividends, uint256 totaldistributed, uint256 totalreinvested, uint256 totalwithdrawn, uint256 totaldividends) {
+    function ViewMathInfo() external view returns (uint256 totalshares, uint256 netdividends, uint256 totaldistributed, uint256 totalreinvested, uint256 totalwithdrawn, uint256 totalDonated, uint256 totaldividends) {
         return distributor.mathInfo();
     }
 
