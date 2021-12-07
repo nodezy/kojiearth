@@ -11,7 +11,8 @@ interface KojiEarth {
     function GetPending(address _shareholder) external view returns (uint256);
     function GetClaimed(address _shareholder) external view returns (uint256);
     function GetShareholderExpired(address _holder) external view returns (uint256);
-}
+    function ViewHolderInfo(address _address) external view returns (uint256 amount, uint256 unpaid, uint256 realised, uint256 excluded, bool rewardeligible);
+}   
 
 interface KojiOracle {
     function getbnbequivalent(uint256 amount) external view returns (uint256);
@@ -44,6 +45,8 @@ contract KojiSwap is Ownable, ReentrancyGuard {
 
     mapping (address => bool) PendingDivsPaid;
     mapping (address => bool) SwapComplete;
+    mapping (address => uint256) public holderRealized;
+    mapping (address => uint256) public holderBonus;
     mapping (address => bool) blacklisted;
 
     bool public rewardsEnabled = true;
@@ -97,7 +100,7 @@ contract KojiSwap is Ownable, ReentrancyGuard {
     }
 
     function getClaimedDividends(address holder) public view returns (uint256) {
-        if (kojiearth.GetShareholderExpired(holder) != 9999999999) {
+        if (kojiearth.GetShareholderExpired(holder) != 9999999999 || PendingDivsPaid[_msgSender()]) {
             return 0;
         } else {
             return kojiearth.GetClaimed(holder);
@@ -106,7 +109,7 @@ contract KojiSwap is Ownable, ReentrancyGuard {
     }
 
     function getPendingDividends(address holder) public view returns (uint256) {
-        if (kojiearth.GetShareholderExpired(holder) != 9999999999) {
+        if (kojiearth.GetShareholderExpired(holder) != 9999999999 || PendingDivsPaid[_msgSender()]) {
             return 0;
         } else {
         return kojiearth.GetPending(holder);
@@ -132,10 +135,13 @@ contract KojiSwap is Ownable, ReentrancyGuard {
             (bool successShareholder, /* bytes memory data */) = payable(_msgSender()).call{value: tempbnb, gas: 30000}("");
             require(successShareholder, "Shareholder rejected BNB transfer");
 
-            //transfer bonus KOJI v2 to sender
+            //record realized BNB
+            holderRealized[_msgSender()] = tempbnb;
 
+            //transfer bonus KOJI v2 to sender
             if (!blacklisted[_msgSender()] && rewardsEnabled) {
                 tokencontractv2Interface.transfer(_msgSender(), tempkoji);
+                holderBonus[_msgSender()] = tempkoji;
             }
         
             //mark address as completed
@@ -168,11 +174,11 @@ contract KojiSwap is Ownable, ReentrancyGuard {
 
     }
 
-    function getBalances(address holder) external view returns (uint256, uint256) {
-        uint256 balanceBefore = tokencontractv1Interface.balanceOf(address(this));
-        uint256 balanceUser = tokencontractv1Interface.balanceOf(holder);
+    function getRealized(address holder) external view returns (uint256) {
+        (,,uint256 v1Realized,,) = kojiearth.ViewHolderInfo(holder);
+        uint256 swapRealized = holderRealized[holder];
 
-        return(balanceBefore, balanceUser);
+        return v1Realized.add(swapRealized);
     }
 
     function changeBlacklistStatus(address _holder, bool _status) external onlyOwner {
