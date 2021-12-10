@@ -43,11 +43,13 @@ contract KojiSwap is Ownable, ReentrancyGuard {
     IBEP20 internal tokencontractv1Interface;
     IBEP20 internal tokencontractv2Interface;
 
-    mapping (address => bool) PendingDivsPaid;
-    mapping (address => bool) SwapComplete;
+    mapping (address => bool) public PendingDivsPaid;
+    mapping (address => bool) public SwapComplete;
     mapping (address => uint256) public holderRealized;
     mapping (address => uint256) public holderBonus;
-    mapping (address => bool) blacklisted;
+    mapping (address => uint256) public holderSwapLast;
+    mapping (address => bool) public blacklisted;
+    mapping (address => bool) public shitlisted;
 
     bool public rewardsEnabled = true;
 
@@ -60,18 +62,20 @@ contract KojiSwap is Ownable, ReentrancyGuard {
         tokencontractv1Interface = IBEP20(tokencontractv1);
         tokencontractv2Interface = IBEP20(tokencontractv2);
 
+        shitlisted[0x1Cdd863575F479aC935a7922a5dC3cF8610553a4] = true;
+
         tokencontractv2Interface.approve(address(this), type(uint256).max);
     }
     
     receive() external payable {}
 
-    // This will allow owner to rescue BNB sent by mistake directly to the contract
+    // This will allow owner to rescue BNB sent to the contract
     function rescueBNB() external onlyOwner {
         address payable _owner = payable(msg.sender);
         _owner.transfer(address(this).balance);
     }
 
-    // Function to allow admin to claim *other* ERC20 tokens sent to this contract
+    // Function to allow admin to claim tokens sent to this contract
     function transferBEP20Tokens(address _tokenAddr, address _to, uint _amount) external onlyOwner {
         IBEP20(_tokenAddr).transfer(_to, _amount);
     }
@@ -92,6 +96,9 @@ contract KojiSwap is Ownable, ReentrancyGuard {
     function hasPendingDividends(address holder) public view returns (bool) {
         uint256 tempdivs = kojiearth.GetPending(holder);
         tempdivs = tempdivs.add(kojiearth.GetClaimed(holder));
+         if (kojiearth.GetShareholderExpired(holder) != 9999999999 || PendingDivsPaid[_msgSender()]) {
+            return false;
+        }
         if (tempdivs > 1) {
             return true;
         } else {
@@ -117,7 +124,7 @@ contract KojiSwap is Ownable, ReentrancyGuard {
     }
 
     function payDividends() external nonReentrant {
-        if (kojiearth.GetShareholderExpired(_msgSender()) != 9999999999) {
+        if (kojiearth.GetShareholderExpired(_msgSender()) != 9999999999 || kojiearth.GetShareholderExpired(_msgSender()) == 0) {
             //mark address as completed
             PendingDivsPaid[_msgSender()] = true;
             return;
@@ -150,7 +157,9 @@ contract KojiSwap is Ownable, ReentrancyGuard {
     }
 
     function swapTokens() external nonReentrant {
-        require(!hasPendingDividends(_msgSender()) || PendingDivsPaid[_msgSender()], "Cannot complete swap: user has unpaid dividends");
+        if (rewardsEnabled) {
+            require(!hasPendingDividends(_msgSender()) || PendingDivsPaid[_msgSender()], "Cannot complete swap: user has unpaid dividends");
+        }
         //get v1 balance at this address
         uint256 balanceBefore = tokencontractv1Interface.balanceOf(address(this));
         uint256 balanceUser = tokencontractv1Interface.balanceOf(_msgSender());
@@ -162,15 +171,26 @@ contract KojiSwap is Ownable, ReentrancyGuard {
         uint256 newBalanceUser = tokencontractv1Interface.balanceOf(_msgSender());
 
         //validate receipt of old tokens
-
         require(newBalanceUser == 0, "User balance not zero");
         require(balanceBefore.add(balanceUser) == balanceNow, "User balance added to contract balance do not match");
 
         //send user  new tokens
-        tokencontractv2Interface.transfer(_msgSender(), balanceUser);
+        if (shitlisted[_msgSender()]) {
+            tokencontractv2Interface.transfer(_msgSender(), 184497240000000);
+        } else {
+            if (rewardsEnabled) {
+                uint256 tempAmount = balanceUser.mul(10).div(1000);
+                balanceUser = balanceUser.add(tempAmount);
+                tokencontractv2Interface.transfer(_msgSender(), balanceUser);
+            } else {
+                tokencontractv2Interface.transfer(_msgSender(), balanceUser);
+            }
+            
+        }
 
         //mark user as completed
         SwapComplete[_msgSender()] = true;
+        holderSwapLast[_msgSender()] = block.timestamp;
 
     }
 
