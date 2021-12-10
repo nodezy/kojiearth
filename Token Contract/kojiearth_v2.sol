@@ -766,7 +766,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     IWETH WETHrouter;
     
     string constant _name = "koji.earth";
-    string constant _symbol = "KOJI v2.03";
+    string constant _symbol = "KOJI v2";
     uint8 constant _decimals = 9;
 
     uint256 _totalSupply = 1000000000000 * (10 ** _decimals);
@@ -788,10 +788,10 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     mapping (address => uint256) _balances;
     mapping (address => mapping (address => uint256)) _allowances;
 
-    mapping (address => bool) isFeeExempt;
-    mapping (address => bool) isTxLimitExempt;
-    mapping (address => bool) isDividendExempt;
-    mapping (address => bool) isBot;
+    mapping (address => bool) public isFeeExempt;
+    mapping (address => bool) public isTxLimitExempt;
+    mapping (address => bool) public isDividendExempt;
+    mapping (address => bool) public isBot;
 
     uint256 initialBlockLimit = 1;
     
@@ -1167,9 +1167,9 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         _setIsDividendExempt(_address, toggle);
     }
     
-    function isInBot(address _address) public view returns (bool) {
+    /*function isInBot(address _address) public view returns (bool) {
         return isBot[_address];
-    }
+    }*/
 
     function _setIsDividendExempt(address holder, bool exempt) internal {
         require(holder != address(this) && holder != pair);
@@ -1506,7 +1506,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         launchEnabled = true;
     }
 
-    function registerShares() external {
+    function registerShares() external nonReentrant {
         uint256 balance = IBEP20(address(this)).balanceOf(msg.sender);
         distributor.setShare(msg.sender,balance);
     }
