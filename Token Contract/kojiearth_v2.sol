@@ -1254,7 +1254,6 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
 
     // Function to allow admin to claim *other* ERC20 tokens sent to this contract (by mistake)
     function transferBEP20Tokens(address _tokenAddr, address _to, uint _amount) public onlyOwner {
-       require(_tokenAddr != address(this), "Cannot transfer out native token");
         IBEP20(_tokenAddr).transfer(_to, _amount);
     }
 
