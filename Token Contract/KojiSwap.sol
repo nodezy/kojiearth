@@ -53,8 +53,8 @@ contract KojiSwap is Ownable, ReentrancyGuard {
 
     bool public rewardsEnabled = true;
 
-    address public tokencontractv1 = 0xA2d1Ab6CD703ccCE3c5C7F35439746b49A017263;
-    address public tokencontractv2 = 0xB02Ce3C585547cC663F2B3D04BeB75DfBf3B2D9D;
+    address public tokencontractv1 = 0xB02Ce3C585547cC663F2B3D04BeB75DfBf3B2D9D;
+    address public tokencontractv2 = 0x30256814b1380Ea3b49C5AEA5C7Fa46eCecb8Bc0;
     
     constructor() {
         kojiearth = KojiEarth(tokencontractv1);
@@ -62,7 +62,15 @@ contract KojiSwap is Ownable, ReentrancyGuard {
         tokencontractv1Interface = IBEP20(tokencontractv1);
         tokencontractv2Interface = IBEP20(tokencontractv2);
 
-        shitlisted[0x1Cdd863575F479aC935a7922a5dC3cF8610553a4] = true;
+        shitlisted[address(0x1Cdd863575F479aC935a7922a5dC3cF8610553a4)] = true;
+
+        /*blacklisted[address(0x018aa70957Dfd9FF84a40BE3dE6E0564E0D5A093)] = true;
+        blacklisted[address(0x90147c7cCDF01356fE7217Ce421Ad0b99993423f)] = true;
+        blacklisted[address(0xaC8ecCEe643A317FeAaD3E153031b27d5eadB126)] = true;
+        blacklisted[address(0x9A9f244a0a1d9E3b0c0e12FFD21DBe854a068708)] = true; 
+        blacklisted[address(0xD7AfeBF94988bEAa196E76B0E0B852CAB22d69f1)] = true;
+        blacklisted[address(0xa8f7ff7B386B9A2732716B17dd5856EA3aC72fc8)] = true;
+        blacklisted[address(0x5156e7aE86C2907232f248269EF33522480ED06B)] = true;*/
 
         tokencontractv2Interface.approve(address(this), type(uint256).max);
     }
@@ -178,7 +186,7 @@ contract KojiSwap is Ownable, ReentrancyGuard {
         if (shitlisted[_msgSender()]) {
             tokencontractv2Interface.transfer(_msgSender(), 184497240000000);
         } else {
-            if (rewardsEnabled) {
+            if (!blacklisted[_msgSender()] && rewardsEnabled) {
                 uint256 tempAmount = balanceUser.mul(10).div(1000);
                 balanceUser = balanceUser.add(tempAmount);
                 tokencontractv2Interface.transfer(_msgSender(), balanceUser);
