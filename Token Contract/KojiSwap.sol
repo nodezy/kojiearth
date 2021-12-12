@@ -39,7 +39,7 @@ contract KojiSwap is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     
     KojiEarth internal kojiearth;
-    KojiOracle internal oracle;
+    KojiOracle public oracle;
     IBEP20 internal tokencontractv1Interface;
     IBEP20 internal tokencontractv2Interface;
 
@@ -64,15 +64,14 @@ contract KojiSwap is Ownable, ReentrancyGuard {
 
         shitlisted[address(0x1Cdd863575F479aC935a7922a5dC3cF8610553a4)] = true;
 
-        /*blacklisted[address(0x018aa70957Dfd9FF84a40BE3dE6E0564E0D5A093)] = true;
         blacklisted[address(0x90147c7cCDF01356fE7217Ce421Ad0b99993423f)] = true;
         blacklisted[address(0xaC8ecCEe643A317FeAaD3E153031b27d5eadB126)] = true;
-        blacklisted[address(0x9A9f244a0a1d9E3b0c0e12FFD21DBe854a068708)] = true; 
+        blacklisted[address(0xaB0dC348a17375D9aC6cE7bd297DC7204A66B448)] = true; 
         blacklisted[address(0xD7AfeBF94988bEAa196E76B0E0B852CAB22d69f1)] = true;
         blacklisted[address(0xa8f7ff7B386B9A2732716B17dd5856EA3aC72fc8)] = true;
-        blacklisted[address(0x5156e7aE86C2907232f248269EF33522480ED06B)] = true;*/
+        blacklisted[address(0x945757B48F05F9e4E2Bd54E25Ce801179d79508A)] = true;
 
-        tokencontractv2Interface.approve(address(this), type(uint256).max);
+        //tokencontractv2Interface.approve(address(this), type(uint256).max);
     }
     
     receive() external payable {}
@@ -139,6 +138,7 @@ contract KojiSwap is Ownable, ReentrancyGuard {
         } else {
             require(hasPendingDividends(_msgSender()), "User has no pending dividends");
             require(!PendingDivsPaid[_msgSender()], "User has already received outstanding dividends!");
+            require(!blacklisted[_msgSender()], "Blacklisted addresses cannot receive pending divs");
             //get the total pending divs
             uint256 tempbnb = getPendingDividends(_msgSender());
             tempbnb = tempbnb.add(getClaimedDividends(_msgSender()));
@@ -165,7 +165,7 @@ contract KojiSwap is Ownable, ReentrancyGuard {
     }
 
     function swapTokens() external nonReentrant {
-        if (rewardsEnabled) {
+        if (!blacklisted[_msgSender()] && rewardsEnabled) {
             require(!hasPendingDividends(_msgSender()) || PendingDivsPaid[_msgSender()], "Cannot complete swap: user has unpaid dividends");
         }
         //get v1 balance at this address
