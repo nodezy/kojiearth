@@ -80,7 +80,6 @@ library SafeMath {
         // Solidity only automatically asserts when dividing by 0
         require(b > 0, errorMessage);
         uint256 c = a / b;
-        // assert(a == b * c + a % b); // There is no case in which this doesn't hold
 
         return c;
     }
@@ -491,8 +490,6 @@ contract DividendDistributor is IDividendDistributor {
             
             shares[shareholder].unpaidDividends = fullamount.sub(netamount); 
             shares[shareholder].totalExcluded = getCumulativeDividends(shares[shareholder].amount);
-            
-            //shares[shareholder].totalRealised = shares[shareholder].totalRealised.add(netamount);
 
             addDonator(shareholder);
             shareholderDonated[shareholder] = shareholderDonated[shareholder].add(netamount);
@@ -800,6 +797,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     uint256 public taxRatio = 200;
 
     uint256 public totalFee = 70; //(7%)
+    uint256 discountOffset = 1;
     uint256 public partnerFeeLimiter = 50;
     uint256 public feeDenominator = 1000;
     uint256 public WETHaddedToPool;
@@ -821,7 +819,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
 
     uint256 public launchedAt;
 
-    bool public swapEnabled = true;
+    bool public swapEnabled = false;
     bool public stakePoolActive = false;
     bool public nftPoolActive = false;
     bool public distributorDeposit = true;
@@ -830,7 +828,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     bool public enablePartners = false;
     bool public enableOracle = true;
     bool public airdropEnabled = false;
-    bool public launchEnabled = true;
+    bool public launchEnabled = false;
 
     bool inSwap;
     
@@ -845,8 +843,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
 
     constructor () Auth(msg.sender) {
         
-        router = IDEXRouter(0xCc7aDc94F3D80127849D2b41b6439b7CF1eB4Ae0);
-        //router = IDEXRouter(0x10ED43C718714eb63d5aA57B78B54704E256024E); 
+        router = IDEXRouter(0x10ED43C718714eb63d5aA57B78B54704E256024E); 
 
         oracle = IOracle(0xF69F9bCe97D2d4dDb680642cf0f8Ff09d3E79f39);
         
@@ -1006,7 +1003,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
 
             uint256 discountAmount = oracle.getdiscount(amount);
             discountAmount = discountAmount.div(100000000);
-            discountAmount = discountAmount.add(1);
+            discountAmount = discountAmount.add(discountOffset);
             discountFee = discountFee.add(discountAmount);
         
         } 
@@ -1166,10 +1163,6 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         isBot[_address] = toggle;
         _setIsDividendExempt(_address, toggle);
     }
-    
-    /*function isInBot(address _address) public view returns (bool) {
-        return isBot[_address];
-    }*/
 
     function _setIsDividendExempt(address holder, bool exempt) internal {
         require(holder != address(this) && holder != pair);
@@ -1512,5 +1505,14 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
 
     function getDonationLeaders() external view returns (address[] memory, uint256[] memory) {
        return distributor.getDonationLeaders();
+    }
+
+    function setDiscountOffset(uint256 _offset) external onlyOwner {
+        discountOffset = _offset;
+    }
+
+    function donateWithoutDivs(uint256 amount) external nonReentrant {
+        (bool successTeam0, /* bytes memory data */) = payable(charityWallet).call{value: amount, gas: walletGas}("");
+            require(successTeam0, "Charity wallet rejected BNB transfer");
     }
 }
