@@ -1,5 +1,4 @@
-//KOJI BSC Testnet contract address 0xe1528C08A7ddBBFa06e4876ff04Da967b3a43A6A
-//BSC Testnet LP address 0x4e1052aB157d3cc240aD178FbdE82c222A322A21
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 pragma solidity ^0.8.9;
 
@@ -223,13 +222,15 @@ contract KojiOracle is Ownable {
       LP = IPancakePair(_pair);
     }
 
-    function getdiscount(uint256 amount) public view returns (uint256) {
+    //for the token contract dynamic discount
+    function getdiscount(uint256 amount) external view returns (uint256) {
       (uint256 bnbusd,,uint256 kojiusd) = getKojiUSDPrice();
       uint256 totalkojiusd = kojiusd.mul(amount);
       uint256 totalbnb = totalkojiusd.div(bnbusd);
       return totalbnb;
     }
 
+    //for the token swap bonus
     function getbnbequivalent(uint256 amount) external view returns (uint256) {
       (uint256 bnbusd,,uint256 kojiusd) = getKojiUSDPrice();
       uint256 tempbnbusd = amount.mul(bnbusd);
