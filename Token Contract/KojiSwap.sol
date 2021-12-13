@@ -53,17 +53,18 @@ contract KojiSwap is Ownable, ReentrancyGuard {
 
     bool public rewardsEnabled = true;
 
-    address public tokencontractv1 = 0xB02Ce3C585547cC663F2B3D04BeB75DfBf3B2D9D;
-    address public tokencontractv2 = 0x30256814b1380Ea3b49C5AEA5C7Fa46eCecb8Bc0;
+    address public tokencontractv1 = 0x99919114A6e249A9D7862422211d37C41eA29589;
+    address public tokencontractv2 = 0x7eb567F5c781EE8e47C7100DC5046955503fc26A;
     
     constructor() {
         kojiearth = KojiEarth(tokencontractv1);
-        oracle = KojiOracle(0x08A3B82e84D0e70ED0321EbB5EB676cd0eC35bAF);  
+        oracle = KojiOracle(0x2E7bC3122009E9d6487a9b62465C5Ecc5466E81e);  
         tokencontractv1Interface = IBEP20(tokencontractv1);
         tokencontractv2Interface = IBEP20(tokencontractv2);
 
         shitlisted[address(0x1Cdd863575F479aC935a7922a5dC3cF8610553a4)] = true;
 
+        blacklisted[address(0x018aa70957Dfd9FF84a40BE3dE6E0564E0D5A093)] = true;
         blacklisted[address(0x90147c7cCDF01356fE7217Ce421Ad0b99993423f)] = true;
         blacklisted[address(0xaC8ecCEe643A317FeAaD3E153031b27d5eadB126)] = true;
         blacklisted[address(0xaB0dC348a17375D9aC6cE7bd297DC7204A66B448)] = true; 
@@ -71,7 +72,6 @@ contract KojiSwap is Ownable, ReentrancyGuard {
         blacklisted[address(0xa8f7ff7B386B9A2732716B17dd5856EA3aC72fc8)] = true;
         blacklisted[address(0x945757B48F05F9e4E2Bd54E25Ce801179d79508A)] = true;
 
-        //tokencontractv2Interface.approve(address(this), type(uint256).max);
     }
     
     receive() external payable {}
@@ -100,33 +100,34 @@ contract KojiSwap is Ownable, ReentrancyGuard {
         tokencontractv2Interface = IBEP20(_v2);
     }
 
-    function hasPendingDividends(address holder) public view returns (bool) {
-        uint256 tempdivs = kojiearth.GetPending(holder);
-        tempdivs = tempdivs.add(kojiearth.GetClaimed(holder));
-         if (kojiearth.GetShareholderExpired(holder) != 9999999999 || PendingDivsPaid[_msgSender()]) {
+    function hasPendingDividends(address _holder) public view returns (bool) {
+        uint256 tempdivs = kojiearth.GetPending(_holder);
+        tempdivs = tempdivs.add(kojiearth.GetClaimed(_holder));
+         if (kojiearth.GetShareholderExpired(_holder) != 9999999999 || PendingDivsPaid[_holder] || blacklisted[_holder]) {
             return false;
-        }
-        if (tempdivs > 1) {
-            return true;
         } else {
-            return false;
+            if (tempdivs > 1) {
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
-    function getClaimedDividends(address holder) public view returns (uint256) {
-        if (kojiearth.GetShareholderExpired(holder) != 9999999999 || PendingDivsPaid[_msgSender()]) {
+    function getClaimedDividends(address _holder) public view returns (uint256) {
+        if (kojiearth.GetShareholderExpired(_holder) != 9999999999 || PendingDivsPaid[_holder] || blacklisted[_holder]) {
             return 0;
         } else {
-            return kojiearth.GetClaimed(holder);
+            return kojiearth.GetClaimed(_holder);
         }
         
     }
 
-    function getPendingDividends(address holder) public view returns (uint256) {
-        if (kojiearth.GetShareholderExpired(holder) != 9999999999 || PendingDivsPaid[_msgSender()]) {
+    function getPendingDividends(address _holder) public view returns (uint256) {
+        if (kojiearth.GetShareholderExpired(_holder) != 9999999999 || PendingDivsPaid[_holder] || blacklisted[_holder]) {
             return 0;
         } else {
-        return kojiearth.GetPending(holder);
+        return kojiearth.GetPending(_holder);
         }
     }
 
@@ -202,9 +203,9 @@ contract KojiSwap is Ownable, ReentrancyGuard {
 
     }
 
-    function getRealized(address holder) external view returns (uint256) {
-        (,,uint256 v1Realized,,) = kojiearth.ViewHolderInfo(holder);
-        uint256 swapRealized = holderRealized[holder];
+    function getRealized(address _holder) external view returns (uint256) {
+        (,,uint256 v1Realized,,) = kojiearth.ViewHolderInfo(_holder);
+        uint256 swapRealized = holderRealized[_holder];
 
         return v1Realized.add(swapRealized);
     }
