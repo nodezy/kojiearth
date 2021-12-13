@@ -149,15 +149,15 @@ contract KojiOracle is Ownable {
     using SafeMath for uint256;
 
     AggregatorV3Interface internal priceFeed;
-    IPancakePair internal LP;
+    IPancakePair public LP;
 
     uint256 public minTier1Amount = 1500;
     uint256 public minTier2Amount = 500;
     uint256 setPrice = 1000;
 
     constructor() {
-        priceFeed = AggregatorV3Interface(0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526);  //bscmainet bnb/usd 0x0567f2323251f0aab15c8dfb1967e4e8a7d42aee
-        LP = IPancakePair(0xef8Fe32695146031cd069bf64c8Ab4ff10e1b59f);
+        priceFeed = AggregatorV3Interface(0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE);  
+        LP = IPancakePair(0x6d3CbF7c3a4cb275F8457D1D13F5Ae07763F7920);
     }
 
     /**
@@ -175,7 +175,7 @@ contract KojiOracle is Ownable {
     }
 
     function getReserves() public view returns (uint256 reserve0, uint256 reserve1) {
-      (uint256 Res0, uint256 Res1, uint timestamp) = LP.getReserves();
+      (uint256 Res0, uint256 Res1,) = LP.getReserves();
       return (Res0, Res1);
     }
 
@@ -184,13 +184,12 @@ contract KojiOracle is Ownable {
       uint256 bnbusdprice = getLatestPrice();
       bnbusdprice = bnbusdprice.mul(10); //make bnb usd price have 9 decimals
       
-      (uint256 pooledBNB, uint256 pooledKOJI) = getReserves();
+      (uint256 pooledKOJI, uint256 pooledBNB) = getReserves();
 
       IBEP20 token0 = IBEP20(LP.token0()); //KOJI
       IBEP20 token1 = IBEP20(LP.token1()); //BNB  
 
-      //bnbusdprice = bnbusdprice.mul(10**token1.decimals()); //make bnb usd price have 9 decimals
-      pooledBNB = pooledBNB.div(10**token1.decimals()); //make pooled bnb have 9 decimals
+      pooledBNB = pooledBNB.div(10**token0.decimals()); //make pooled bnb have 9 decimals
 
       uint256 pooledBNBUSD = pooledBNB.mul(bnbusdprice); //multiply pooled bnb x usd price of 1 bnb
       uint256 kojiUSD = pooledBNBUSD.div(pooledKOJI); //divide pooled bnb usd price by amount of pooled KOJI
