@@ -826,7 +826,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
     bool public teamWalletDeposit = true;
     bool public addToLiquid = true;
     bool public enablePartners = false;
-    bool public enableOracle = true;
+    bool public enableOracle = false;
     bool public airdropEnabled = false;
     bool public launchEnabled = false;
 
@@ -845,7 +845,7 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         
         router = IDEXRouter(0x10ED43C718714eb63d5aA57B78B54704E256024E); 
 
-        oracle = IOracle(0xF69F9bCe97D2d4dDb680642cf0f8Ff09d3E79f39);
+        oracle = IOracle(0x2E7bC3122009E9d6487a9b62465C5Ecc5466E81e);
         
         address _presaler = msg.sender;
             
@@ -865,10 +865,10 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         isDividendExempt[address(this)] = true;
         isDividendExempt[DEAD] = true;
 
-        charityWallet = 0xDcB134a2e49D8FD80de086A36Cf8551885773D9d;
-        adminWallet = 0x27C724e716bd0c8C545F7F50F4Eb720DFd682b02;
-        nftRewardWallet = 0x6c7E742aDF2A38d20219B2d4529504AceCE9d995;
-        stakePoolWallet = 0xfFaCB279E0C04dEf71067F63dDd9027dF26C07B0;
+        charityWallet = 0xDcd236b4C77711BE7e90bC2b57Dea812330165B3;
+        adminWallet = 0xC475d33a760c3e0325A33C3abA706c135c456C29;
+        nftRewardWallet = 0x70117981e4C9fA0309a9BC83412305281dB5Af8B;
+        stakePoolWallet = 0x70117981e4C9fA0309a9BC83412305281dB5Af8B;
 
         isFeeExempt[stakePoolWallet] = true;
         isDividendExempt[stakePoolWallet] = true;
@@ -1511,8 +1511,4 @@ contract KojiEarth is IBEP20, Auth, ReentrancyGuard {
         discountOffset = _offset;
     }
 
-    function donateWithoutDivs(uint256 amount) external nonReentrant {
-        (bool successTeam0, /* bytes memory data */) = payable(charityWallet).call{value: amount, gas: walletGas}("");
-            require(successTeam0, "Charity wallet rejected BNB transfer");
-    }
 }
