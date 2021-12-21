@@ -6,13 +6,20 @@ charitable organizations.
 
 Simply put, KOJI is a hybrid digital token: a DeFi Charity following a
 deflationary model with redistribution features and regular NFT drops. The
-leading mutual-aid token aiming to help the world with an automatic 3% tax on
-every transaction, buy and/or sell.
+leading mutual-aid token aiming to help the world with an automatic 7% tax on
+every transaction, buy, transfer, or sell.
+
+1% gets burned 🔥 and the other 6% converted 💫 to BNB and distributed as follow:
+
+💰40% → to the holders.
+❤️‍🩹20% → to charity. 
+💥20% → to development & marketing.
+💎20% → added to liquidity pool.
 
 KOJIs are issued and managed without any central authority: there is no
 government, company, or bank in charge of KOJI
 
-KOJI is a community driven token based in the Ethereum network. The
+KOJI is a community driven token based in the Binance Smart Chain network. The
 specific tokenomics were decided by our community, and we will continue to
 involve KOJI's community as much as possible.
 
@@ -24,9 +31,9 @@ project a reality
 @A_Adam - Creative Director<br>
 @tonegro - Public Relations Officer & Technical Documentation<br>
 @AviatorNerd - Charity Coordinator & Outreach<br>
-@MounirDirk  - Charity Coordinator & Outreach<br>
+@MounirDirk  - Assistant Outreach<br>
 @KojiAndreas - Web development<br>
-@nodezy - Head Tech Dev
+@nodezy - Solidity
 
 All contracts can be found in the main branch
 
