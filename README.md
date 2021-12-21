@@ -9,12 +9,12 @@ deflationary model with redistribution features and regular NFT drops. The
 leading mutual-aid token aiming to help the world with an automatic 7% tax on
 every transaction, buy, transfer, or sell.
 
-1% gets burned 🔥 and the other 6% converted 💫 to BNB and distributed as follows:<br><br>
+1% gets burned 🔥 and the other 6% converted 💫 to BNB and distributed as follows:<br>
 
 💰40% → to the holders.<br>
 ❤️‍🩹20% → to charity.<br> 
 💥20% → to development & marketing.<br>
-💎20% → added to liquidity pool.<br><br>
+💎20% → added to liquidity pool.<br>
 
 KOJIs are issued and managed without any central authority: there is no
 government, company, or bank in charge of KOJI
