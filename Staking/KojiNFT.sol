@@ -36,36 +36,38 @@ interface IERC2981 is IERC165 {
     function supportsInterface(bytes4 interfaceID) external override view returns (bool);
 }
 
-// Allows authorized users to add creators/infuencer addresses to the whitelist
-contract Whitelisted is Ownable {
+// Allows another user(s) to change contract variables
+contract Authorizable is Ownable {
 
-    mapping(address => bool) public whitelisted;
+    mapping(address => bool) public authorized;
 
-    modifier onlyWhitelisted() {
-        require(whitelisted[_msgSender()] || owner() == address(_msgSender()));
+    modifier onlyAuthorized() {
+        require(authorized[_msgSender()] || owner() == address(_msgSender()));
         _;
     }
 
-    function addWhitelisted(address _toAdd) onlyOwner public {
+    function addAuthorized(address _toAdd) onlyOwner public {
         require(_toAdd != address(0));
-        whitelisted[_toAdd] = true;
+        authorized[_toAdd] = true;
     }
 
-    function removeWhitelisted(address _toRemove) onlyOwner public {
+    function removeAuthorized(address _toRemove) onlyOwner public {
         require(_toRemove != address(0));
         require(_toRemove != address(_msgSender()));
-        whitelisted[_toRemove] = false;
+        authorized[_toRemove] = false;
     }
 
 }
 
-contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Whitelisted {
+
+contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
     using Counters for Counters.Counter;
     using SafeMath for uint256;
 
     Counters.Counter private _tokenIds;
     Counters.Counter private _tier1tokenIds;
     Counters.Counter private _tier2tokenIds;
+    Counters.Counter private _NFTIds; //so we can track which NFT's have been added to the system
 
     struct NFTInfo {
         string collectionName; // Name of nft creator/influencer/artist
@@ -74,14 +76,17 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Whitelisted {
         string tier2uri; //address of NFT metadata
         uint256 timestart; //start time of release window
         uint256 timeend; //end time of release window
+        uint256 order; //order of the NFT
         bool redeemable; //can be redeemed
         bool exists;
     }
 
     mapping(uint256 => NFTInfo) public nftInfo; // Info of each NFT artist/infuencer wallet.
     mapping(uint256 => mapping(address => mapping(uint256 => bool))) public nftTierMinted; //nftTierMinted[_nftID][recipient][tier#]
+    mapping(uint256 => mapping(address => bool)) public nftMinted; //nftTierMinted[_nftID][recipient][tier#]
     mapping (uint256 => mapping(uint => uint256)) public mintTotals; //mintTotals[_nftID][tier#]
     mapping (string => uint256) public mintTotalsURI; //mintTotalsURI[_nftID][URI]
+    mapping (string => bool) private uriExists;
 
     uint royaltyNumerator = 1;
 
@@ -143,7 +148,7 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Whitelisted {
 
     function mintNFT(address recipient, uint256 minttier, uint256 id) public returns (uint256) {   
 
-        if(!whitelisted[address(recipient)]) {
+        if(!authorized[address(recipient)]) {
 
             require(msg.sender == address(stakingContract), "Minting not allowed outside of the staking contract");
         }       
@@ -171,6 +176,7 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Whitelisted {
         
         //record this NFT & tier as being minted by the recipient
         nftTierMinted[id][recipient][minttier] = true;
+        nftMinted[id][recipient] = true;
 
         //increment total # of NFT minted for this ID/Tier
         minted = mintTotals[id][minttier];
@@ -232,11 +238,59 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Whitelisted {
         royaltyNumerator = _number;
     } 
 
+    function setNFTInfo(string memory _collectionName, string memory _nftName, string memory _tier1uri, string memory _tier2uri, uint256 _timestart, uint256 _timeend, uint256 _order, bool _redeemable) public onlyAuthorized returns (uint256) {
+
+        require(owner() == address(_msgSender()) || authorized[_msgSender()], "Sender is not authorized"); 
+        require(bytes(_collectionName).length > 0, "Creator name string must not be empty");
+        require(bytes(_nftName).length > 0, "NFT name string must not be empty");
+        require(bytes(_tier1uri).length > 0, "tier 1 URI string must not be empty");
+        require(bytes(_tier2uri).length > 0, "tier 2 URI string must not be empty");
+        require(_timestart > _timeend && _timestart != 0 && _timeend != 0, "Time start and end must be in the proper order");
+        require(_order > 0, "Order must be greater than zero");
+
+        _NFTIds.increment();
+
+        uint256 _nftid = _NFTIds.current();
+
+        NFTInfo storage nft = nftInfo[_nftid];
+
+            nft.collectionName = _collectionName;
+            nft.nftName = _nftName;
+            nft.tier1uri = _tier1uri;
+            nft.tier2uri = _tier2uri;
+            nft.timestart = _timestart;
+            nft.timeend = _timeend;
+            nft.order = _order;
+            nft.redeemable = _redeemable;
+            nft.exists = true;
+
+            uriExists[_tier1uri] = true;
+            uriExists[_tier2uri] = true;
+
+        return  _nftid; 
+
+    }
+
+
     //function to change/add/remove NFT struct
 
     //function to change individual struct properties
 
     //function to read individual struct properties
+
+    function getIfMinted(address _recipient, uint256 _nftID) external view returns (bool) {
+        return nftMinted[_nftID][_recipient];
+    }
+
+    function getIfMintedTier(address _recipient, uint256 _nftID, uint256 minttier) external view returns (bool) {
+        return nftTierMinted[_nftID][_recipient][minttier];
+    }
+
+    function getNFTwindow(uint256 _nftID) external view returns (uint256, uint256) {
+        NFTInfo storage nft = nftInfo[_nftID];
+
+        return (nft.timestart,nft.timeend);
+    }
 
 }
 
