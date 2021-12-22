@@ -16,6 +16,9 @@ import "./KojiFlux.sol";
 
 interface IKojiNFT {
   function mintNFT(address recipient, uint256 minttier, uint256 id) external returns (uint256);
+  function getIfMinted(address _recipient, uint256 _nftID) external view returns (bool);
+  function getIfMintedTier(address _recipient, uint256 _nftID, uint256 minttier) external view returns (bool);
+  function getNFTwindow(_nftID) external view returns (uint256, uint256);
 }
 
 interface IOracle {
@@ -102,8 +105,8 @@ contract KojiFarm is Ownable, Authorizable, ReentrancyGuard {
     uint256 public conversionRate = 100000; //conversion rate of KOJIFLUX => $koji (default 100k).
     bool public enableRewardWithdraw = false; //whether KOJIFLUX is withdrawable from this contract (default false).
     bool public boostersEnabled = true; //whether we can use boosters or not.
-    uint256 public minKojiTier1Stake = 1500; //min stake amount (default $1500 USD of Koji).
-    uint256 public minKojiTier2Stake = 500; //min stake amount (default $500 USD of Koji).
+    uint256 public minKojiTier1Stake = 1500000000000; //min stake amount (default $1500 USD of Koji).
+    uint256 public minKojiTier2Stake = 500000000000; //min stake amount (default $500 USD of Koji).
     uint256 public promoAmount = 200000000000000000000; //amount of KOJIFLUX to give to new stakers (default 200 KOJIFLUX).
     bool public promoActive = false; //whether the promotional amount of KOJIFLUX is given out to new stakers (default is True).
 
@@ -525,8 +528,70 @@ contract KojiFarm is Ownable, Authorizable, ReentrancyGuard {
         KojiFluxAddress = _address;
     }
 
+    //redeem the NFT (tier 1)
+    function redeemtier1(uint256 _nftID) external nonReentrant {
+
+        //get user tier/info
+        UserInfo storage user = userInfo[0][_msgSender()];
+
+        bool minted = IKojiNFT(NFTAddress).getIfMinted(_msgSender(), _nftID);
+        (uint256 timestart, uint256 timeend) = IKojiNFT(NFTAddress).getNFTwindow(_nftID);
+
+        require(!minted, "You have already minted one tier of this NFT");
+        require(user.usdEquiv >= minKojiTier1Stake.mul(95).div(100), "Your stake is not sufficient to mint this tier");
+        require(block.timestamp >= timestart, "The minting window for this NFT hasn't opened");
+        require(block.timestamp <= timeend, "The minting window for this NFT has closed");
+        
+        IKojiNFT(NFTAddress).mintNFT(_msgSender(), 1, _nftID);
+           
+    }
+
+    //redeem the NFT via supermint (tier 1)
+    function superminttier1(uint256 _nftID) external nonReentrant {
+        //get user tier/info
+        UserInfo storage user = userInfo[0][_msgSender()];
+
+        require(user.usdEquiv >= minKojiTier2Stake.mul(95).div(100), "You still need the minimum stake requirment to use superMint");
+
+        if (superMint[_msgSender()]) {
+            superMint[_msgSender()] = false;
+            IKojiNFT(NFTAddress).mintNFT(_msgSender(), 1, _nftID);
+        } 
+    }
+
+    //redeem the NFT (tier 2)
+    function redeemtier2(uint256 _nftID) external nonReentrant {
+
+        //get user tier/info
+        UserInfo storage user = userInfo[0][_msgSender()];
+
+        bool minted = IKojiNFT(NFTAddress).getIfMinted(_msgSender(), _nftID);
+        (uint256 timestart, uint256 timeend) = IKojiNFT(NFTAddress).getNFTwindow(_nftID);
+
+        require(!minted, "You have already minted one tier of this NFT");
+        require(user.usdEquiv >= minKojiTier2Stake.mul(95).div(100), "Your stake is not sufficient to mint this tier");
+        require(block.timestamp >= timestart, "The minting window for this NFT hasn't opened");
+        require(block.timestamp <= timeend, "The minting window for this NFT has closed");
+        
+        IKojiNFT(NFTAddress).mintNFT(_msgSender(), 2, _nftID);
+           
+    }
+
+    //redeem the NFT via supermint (tier 2)
+    function superminttier2(uint256 _nftID) external nonReentrant {
+        //get user tier/info
+        UserInfo storage user = userInfo[0][_msgSender()];
+
+        require(user.usdEquiv >= minKojiTier2Stake.mul(95).div(100), "You still need the minimum stake requirment to use superMint");
+
+        if (superMint[_msgSender()]) {
+            superMint[_msgSender()] = false;
+            IKojiNFT(NFTAddress).mintNFT(_msgSender(), 2, _nftID);
+        } 
+    }
+
     //redeem the NFT with KOJIFLUX only
-    function redeem(uint256 _nftid) public nonReentrant {
+    function redeemold(uint256 _nftid) public nonReentrant {
     
         /*uint256 creatorPrice = IKojiNFT(NFTAddress).getCreatorPrice(_nftid);
         bool creatorRedeemable = IKojiNFT(NFTAddress).getCreatorRedeemable(_nftid);
