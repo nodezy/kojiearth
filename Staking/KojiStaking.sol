@@ -18,7 +18,7 @@ interface IKojiNFT {
   function mintNFT(address recipient, uint256 minttier, uint256 id) external returns (uint256);
   function getIfMinted(address _recipient, uint256 _nftID) external view returns (bool);
   function getIfMintedTier(address _recipient, uint256 _nftID, uint256 minttier) external view returns (bool);
-  function getNFTwindow(_nftID) external view returns (uint256, uint256);
+  function getNFTwindow(uint256 _nftID) external view returns (uint256, uint256);
 }
 
 interface IOracle {
@@ -27,6 +27,10 @@ interface IOracle {
     function getConversionRate() external view returns (uint256);
     function getRewardConverted(uint256 amount) external view returns (uint256);
     function getKojiUSDPrice() external view returns (uint256, uint256, uint256);
+}
+
+interface IKojiRewards {
+    function payPendingRewards(address _holder, uint256 _amount) external;
 }
 
 // Allows another user(s) to change contract variables
@@ -102,7 +106,7 @@ contract KojiFarm is Ownable, Authorizable, ReentrancyGuard {
     uint256 public blocksPerDay = 5000; // The estimated number of mined blocks per day, lowered so rewards are halved to start.
     uint256 public blockRewardPercentage = 10; // The percentage used for kojiPerBlock calculation.
     uint256 public poolReward = 1000000000000000000000; //starting basis for poolReward (default 1k).
-    uint256 public conversionRate = 100000; //conversion rate of KOJIFLUX => $koji (default 100k).
+    uint256 public conversionRate = 100; //conversion rate of KOJIFLUX => $koji (default 100%).
     bool public enableRewardWithdraw = false; //whether KOJIFLUX is withdrawable from this contract (default false).
     bool public boostersEnabled = true; //whether we can use boosters or not.
     uint256 public minKojiTier1Stake = 1500000000000; //min stake amount (default $1500 USD of Koji).
@@ -120,6 +124,7 @@ contract KojiFarm is Ownable, Authorizable, ReentrancyGuard {
     address public KojiFluxAddress; //KOJIFLUX contract address
 
     IOracle public oracle;
+    IKojiRewards public rewards;
 
     IERC20 kojitoken = IERC20(0xe1528C08A7ddBBFa06e4876ff04Da967b3a43A6A); //koji token
 
@@ -140,6 +145,7 @@ contract KojiFarm is Ownable, Authorizable, ReentrancyGuard {
         startBlock = _startBlock;
 
         oracle = IOracle(0xe1528C08A7ddBBFa06e4876ff04Da967b3a43A6A); //oracle
+        rewards = IKojiRewards(0xe1528C08A7ddBBFa06e4876ff04Da967b3a43A6A); //rewards contract
 
     }
 
@@ -518,6 +524,17 @@ contract KojiFarm is Ownable, Authorizable, ReentrancyGuard {
         emit WithdrawRewardsOnly(_msgSender(), pending);
     }
 
+    //convert KojiFlux to Koji v2
+    function convertAndWithdraw() external nonReentrant {
+        redeemTotalRewards(_msgSender());
+
+        require(userBalance[_msgSender()] > 0, "User does not have any pending rewards");
+
+        uint256 useramount = getConversionAmount(userBalance[_msgSender()]);
+        rewards.payPendingRewards(_msgSender(), useramount);
+        userBalance[_msgSender()] = 0;
+    }
+
     // Set NFT contract address
      function setNFTAddress(address _address) external onlyAuthorized {
         NFTAddress = _address;
@@ -590,45 +607,6 @@ contract KojiFarm is Ownable, Authorizable, ReentrancyGuard {
         } 
     }
 
-    //redeem the NFT with KOJIFLUX only
-    function redeemold(uint256 _nftid) public nonReentrant {
-    
-        /*uint256 creatorPrice = IKojiNFT(NFTAddress).getCreatorPrice(_nftid);
-        bool creatorRedeemable = IKojiNFT(NFTAddress).getCreatorRedeemable(_nftid);
-        uint256 creatorMinted = IKojiNFT(NFTAddress).mintedCountbyID(_nftid);
-        uint256 creatorMintLimit = IKojiNFT(NFTAddress).getCreatorMintLimit(_nftid);
-    
-        require(creatorRedeemable, "This NFT is not redeemable with KojiFlux");
-        require(creatorMinted < creatorMintLimit, "This NFT has reached its mint limit");
-
-        uint256 price = creatorPrice;
-
-        require(price > 0, "NFT not found");
-
-        redeemTotalRewards(_msgSender());
-
-        if (userBalance[_msgSender()] < price) {
-            
-            IERC20 rewardtoken = IERC20(KojiFluxAddress); //KOJIFLUX
-            require(rewardtoken.balanceOf(_msgSender()) >= price, "You do not have the required tokens for purchase"); 
-            IKojiNFT(NFTAddress).mint(_msgSender(), _nftid);
-            IERC20(rewardtoken).transferFrom(_msgSender(), address(this), price);
-
-        } else {
-
-            require(userBalance[_msgSender()] >= price, "Not enough KojiFlux to redeem");
-            IKojiNFT(NFTAddress).mint(_msgSender(), _nftid);
-            userBalance[_msgSender()] = userBalance[_msgSender()].sub(price);
-
-        }*/
-
-    }
-
-    //set the conversion rate between KOJIFLUX and the $koji token
-    function setConverstionRate(uint256 _rate) public onlyAuthorized {
-        conversionRate = _rate;
-    }
-
     // We can give the artists/influencers a KojiFlux balance so they can redeem their own NFTs
     function setKojiFluxBalance(address _address, uint256 _amount) public onlyAuthorized {
         userBalance[_address] = _amount;
@@ -642,15 +620,40 @@ contract KojiFarm is Ownable, Authorizable, ReentrancyGuard {
         userBalance[_address] = userBalance[_address].add(_amount);
     }
 
+    //set the conversion rate between KOJIFLUX and the $koji token
+    function setConverstionRate(uint256 _rate) public onlyAuthorized {
+        conversionRate = _rate;
+    }
+
     // Get rate of KojiFlux/$Koji conversion
     function getConversionRate() external view returns (uint256) {
         return conversionRate;
     }
 
-    // Get price of NFT in $koji based on KojiFlux _price
-    function getConversionPrice(uint256 _price) external view returns (uint256) {
-        uint256 newprice = _price.mul(conversionRate);
-        return newprice;
+    // Get amount of Koji for KojiFlux
+    function getConversionAmount(uint256 _amount) public view returns (uint256) {
+        uint256 newrate = conversionRate.mul(100).div(100);
+        uint256 newamount = _amount.mul(newrate).div(100);
+        return newamount;
+    }
+
+    // Get dollar amount of Koji for KojiFlux
+    function getConversionPrice(uint256 _amount) public view returns (uint256) {
+        uint256 netamount = getConversionAmount(_amount);
+        (,,uint256 kojiusd) = oracle.getKojiUSDPrice();
+        uint256 netusdamount = kojiusd.mul(netamount);
+
+        return netusdamount;
+    }
+
+    //Get pending dollar amount of Koji for KojiFlux
+    function getPendingUSDRewards(address _holder) public view returns (uint256) { 
+
+        uint256 pendingamount = pendingRewards(0, _holder);
+
+        uint256 pendingusdamount = getConversionPrice(pendingamount);
+
+        return pendingusdamount;
     }
 
 
