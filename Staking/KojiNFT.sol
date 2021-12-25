@@ -271,12 +271,99 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
 
     }
 
+    //get all NFT info
+    //set NFT info struct erasure
+
+    function getCollectionName(uint256 _nftID) external view returns (string memory) {
+        NFTInfo storage nft = nftInfo[_nftID];
+        return nft.collectionName; 
+    }
+
+    function setCollectionName(uint256 _nftID, string memory _name) external onlyAuthorized {
+        NFTInfo storage nft = nftInfo[_nftID];
+        nft.collectionName = _name;
+    }
+
+    function getNFTName(uint256 _nftID) external view returns (string memory) {
+        NFTInfo storage nft = nftInfo[_nftID];
+        return nft.nftName; 
+    }
+
+    function setNFTName(uint256 _nftID, string memory _name) external onlyAuthorized {
+        NFTInfo storage nft = nftInfo[_nftID];
+        nft.nftName = _name;
+    }
+
+    function getTier1URI(uint256 _nftID) external view returns (string memory) {
+        NFTInfo storage nft = nftInfo[_nftID];
+        return nft.tier1uri; 
+    }
+
+    function setTier1URI(uint256 _nftID, string memory _uri) external onlyAuthorized {
+        NFTInfo storage nft = nftInfo[_nftID];
+        nft.tier1uri = _uri;
+    }
+
+    function getTier2URI(uint256 _nftID) external view returns (string memory) {
+        NFTInfo storage nft = nftInfo[_nftID];
+        return nft.tier2uri; 
+    }
+
+    function setTier2URI(uint256 _nftID, string memory _uri) external onlyAuthorized {
+        NFTInfo storage nft = nftInfo[_nftID];
+        nft.tier2uri = _uri;
+    }
+
+    function getNFTwindow(uint256 _nftID) external view returns (uint256, uint256) {
+        NFTInfo storage nft = nftInfo[_nftID];
+
+        return (nft.timestart,nft.timeend);
+    }
+
+    function setNFTwindow(uint256 _nftID, uint256 _timestart, uint256 _timeend) external onlyAuthorized {
+        NFTInfo storage nft = nftInfo[_nftID];  
+        nft.timestart = _timestart;
+        nft.timeend = _timeend;
+    }
+
+    function getNFTOrder(uint256 _nftID) external view returns (uint256) {
+        NFTInfo storage nft = nftInfo[_nftID];
+
+        return (nft.order);
+    }
+
+    function setNFTOrder(uint256 _nftID, uint256 _order) external onlyAuthorized {
+        NFTInfo storage nft = nftInfo[_nftID];
+
+        nft.order = _order;
+    }
+
+    function getNFTredeemable(uint256 _nftID) external view returns (bool){
+        NFTInfo storage nft = nftInfo[_nftID];
+
+        return (nft.redeemable);
+    }
+
+    function setNFTredeemable(uint256 _nftID, bool _redeemable) external onlyAuthorized {
+        NFTInfo storage nft = nftInfo[_nftID];
+
+        nft.redeemable = _redeemable;
+    }
+
+    function getNFTexists(uint256 _nftID) external view returns (bool){
+        NFTInfo storage nft = nftInfo[_nftID];
+
+        return (nft.exists);
+    }
+
+    function setNFTexists(uint256 _nftID, bool _exists) external onlyAuthorized {
+        NFTInfo storage nft = nftInfo[_nftID];
+
+        nft.exists = _exists;
+    }
+
 
     //function to change/add/remove NFT struct
-
-    //function to change individual struct properties
-
-    //function to read individual struct properties
 
     function getIfMinted(address _recipient, uint256 _nftID) external view returns (bool) {
         return nftMinted[_nftID][_recipient];
@@ -286,10 +373,21 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         return nftTierMinted[_nftID][_recipient][minttier];
     }
 
-    function getNFTwindow(uint256 _nftID) external view returns (uint256, uint256) {
-        NFTInfo storage nft = nftInfo[_nftID];
+    function getIDbyURI(string memory _uri) public view returns (uint256) {
+        uint256 totalNFT = _NFTIds.current();
+        uint256 nftID = 0;
 
-        return (nft.timestart,nft.timeend);
+        for (uint256 x = 1; x <= totalNFT; ++x) {
+
+            NFTInfo storage nft = nftInfo[x];
+
+            if (keccak256(bytes(nft.tier1uri)) == keccak256(bytes(_uri)) || keccak256(bytes(nft.tier2uri)) == keccak256(bytes(_uri))) {   
+                nftID = x;
+            }
+
+        }
+
+        return nftID;
     }
 
 }
