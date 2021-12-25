@@ -105,17 +105,19 @@ contract KojiFarm is Ownable, Authorizable, ReentrancyGuard {
     uint256 public blockRewardLastUpdateTime = block.timestamp; // The timestamp when the block kojiPerBlock was last updated.
     uint256 public blocksPerDay = 5000; // The estimated number of mined blocks per day, lowered so rewards are halved to start.
     uint256 public blockRewardPercentage = 10; // The percentage used for kojiPerBlock calculation.
-    uint256 public poolReward = 1000000000000000000000; //starting basis for poolReward (default 1k).
+    uint256 public poolReward = 1000000000000; //starting basis for poolReward (default 1k).
     uint256 public conversionRate = 100; //conversion rate of KOJIFLUX => $koji (default 100%).
     bool public enableRewardWithdraw = false; //whether KOJIFLUX is withdrawable from this contract (default false).
     bool public boostersEnabled = true; //whether we can use boosters or not.
     uint256 public minKojiTier1Stake = 1500000000000; //min stake amount (default $1500 USD of Koji).
     uint256 public minKojiTier2Stake = 500000000000; //min stake amount (default $500 USD of Koji).
-    uint256 public promoAmount = 200000000000000000000; //amount of KOJIFLUX to give to new stakers (default 200 KOJIFLUX).
+    uint256 public promoAmount = 200000000000; //amount of KOJIFLUX to give to new stakers (default 200 KOJIFLUX).
+    uint256 public superMintPrice = 10000000000000000; //cost to purchase a superMint (10M default).
     bool public promoActive = false; //whether the promotional amount of KOJIFLUX is given out to new stakers (default is True).
 
     mapping(address => bool) public addedstakeTokens; // Used for preventing staked tokens from being added twice in add().
     mapping(address => uint256) private userBalance; // Balance of KojiFlux for each user that survives staking/unstaking/redeeming.
+    mapping(address => uint256) private userRealized; // Balance of KojiFlux for each user that survives staking/unstaking/redeeming.
     mapping(address => bool) private promoWallet; // Whether the wallet has received promotional KOJIFLUX.
     mapping(address => bool) private superMint; // Whether the wallet has a mint booster allowing require bypass.
     mapping(uint256 =>mapping(address => bool)) public userStaked; // Denotes whether the user is currently staked or not.
@@ -371,6 +373,7 @@ contract KojiFarm is Ownable, Authorizable, ReentrancyGuard {
 
                 pool.runningTotal = pool.runningTotal.sub(_amount);
                 user.amount = user.amount.sub(_amount);
+                //add in switch for tax free withdrawals
                 _amount = _amount.mul(99).div(100).add(reflectAmount);
                 pool.stakeToken.safeTransfer(address(_msgSender()), _amount);
                 emit Withdraw(_msgSender(), _pid, _amount);
@@ -532,7 +535,10 @@ contract KojiFarm is Ownable, Authorizable, ReentrancyGuard {
 
         uint256 useramount = getConversionAmount(userBalance[_msgSender()]);
         rewards.payPendingRewards(_msgSender(), useramount);
+
+        userRealized[_msgSender()] = userRealized[_msgSender()].add(userBalance[_msgSender()]);
         userBalance[_msgSender()] = 0;
+        
     }
 
     // Set NFT contract address
@@ -748,6 +754,14 @@ contract KojiFarm is Ownable, Authorizable, ReentrancyGuard {
         uint256 totalvalue = kojiusdvalue.mul(_amount);
 
         return totalvalue;
+    }
+
+    function buySuperMint() external nonReentrant {
+        require(!superMint[_msgSender()], "This user already has an unused superMint");
+        require(userBalance[_msgSender()] >= superMintPrice, "Insufficient KojiFlux to purchase superMint");
+
+        userBalance[_msgSender()] = userBalance[_msgSender()].sub(superMintPrice);
+        superMint[_msgSender()] = true;
     }
 
 }
