@@ -31,8 +31,7 @@ contract KojiRewards is Ownable, ReentrancyGuard {
     IBEP20 internal tokencontractv2Interface;
 
     mapping (address => uint256) public holderRealized;
-    mapping (address => uint256) public holderBonus;
-    mapping (address => uint256) public holderSwapLast;
+    mapping (address => uint256) public holderRewardLast;
     mapping (address => bool) public blacklisted;
     
     bool public rewardsEnabled = true;
@@ -60,6 +59,8 @@ contract KojiRewards is Ownable, ReentrancyGuard {
     function payPendingRewards(address _holder, uint256 _amount) external {
         require(msg.sender == address(stakingContract), "Rewards are not payable outside of the staking contract");
 
+        holderRealized[_holder] = holderRealized[_holder].add(_amount);
+        holderRewardLast[_holder] = block.timestamp;
         safeTokenTransfer(_holder, _amount);
 
     }
