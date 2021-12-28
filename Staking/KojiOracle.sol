@@ -155,7 +155,7 @@ contract KojiOracle is Ownable {
 
     constructor() {
         priceFeed = AggregatorV3Interface(0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE);  
-        LP = IPancakePair(0x6d3CbF7c3a4cb275F8457D1D13F5Ae07763F7920);
+        LP = IPancakePair(0x697666d38d339958eD416E0119bDc73ABef58996);
     }
 
     /**
@@ -184,10 +184,10 @@ contract KojiOracle is Ownable {
       
       (uint256 pooledKOJI, uint256 pooledBNB) = getReserves();
 
-      IBEP20 token0 = IBEP20(LP.token0()); //KOJI
-      IBEP20 token1 = IBEP20(LP.token1()); //BNB  
+      IBEP20 token0 = IBEP20(LP.token0()); //BNB
+      IBEP20 token1 = IBEP20(LP.token1()); //KOJI (for testnet)
 
-      pooledBNB = pooledBNB.div(10**token0.decimals()); //make pooled bnb have 9 decimals
+      pooledBNB = pooledBNB.div(10**token1.decimals()); //make pooled bnb have 9 decimals
 
       uint256 pooledBNBUSD = pooledBNB.mul(bnbusdprice); //multiply pooled bnb x usd price of 1 bnb
       uint256 kojiUSD = pooledBNBUSD.div(pooledKOJI); //divide pooled bnb usd price by amount of pooled KOJI
