@@ -58,7 +58,7 @@ contract Authorizable is Ownable {
 
 }
 
-contract KojiFarm is Ownable, Authorizable, ReentrancyGuard {
+contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     
@@ -133,7 +133,7 @@ contract KojiFarm is Ownable, Authorizable, ReentrancyGuard {
     IOracle public oracle;
     IKojiRewards public rewards;
 
-    IERC20 kojitoken = IERC20(0xe1528C08A7ddBBFa06e4876ff04Da967b3a43A6A); //$KOJI token
+    IERC20 kojitoken = IERC20(0x30256814b1380Ea3b49C5AEA5C7Fa46eCecb8Bc0); //$KOJI token
 
     event Unstake(address indexed user, uint256 indexed pid);
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
@@ -151,8 +151,8 @@ contract KojiFarm is Ownable, Authorizable, ReentrancyGuard {
         KojiFluxAddress = address(_kojiflux);
         startBlock = _startBlock;
 
-        oracle = IOracle(0xe1528C08A7ddBBFa06e4876ff04Da967b3a43A6A); // Oracle
-        rewards = IKojiRewards(0xe1528C08A7ddBBFa06e4876ff04Da967b3a43A6A); // Rewards contract
+        oracle = IOracle(0x66F2495e1f139c22Dd839250858bB8936a7845Bc); // Oracle
+        rewards = IKojiRewards(0xDE554cA0E3B9861d120A7415C0dE6Ac32AFb4cE4); // Rewards contract
 
     }
 
@@ -305,19 +305,18 @@ contract KojiFarm is Ownable, Authorizable, ReentrancyGuard {
 
         updatePool(_pid);
 
-        (uint256 minstake, uint256 maxstake) = getOracleMinMax();
+        (uint256 minstake1, uint256 minstake2) = getOracleMinMax();
 
         if (_amount > 0) {
 
             if(user.amount > 0) { // If user has already deposited, secure rewards before reconfiguring rewardDebt
-                require(user.amount.add(_amount) <= maxstake, "This amount combined with your current stake exceeds the maxmimum allowed stake");
+                require(user.amount.add(_amount) <= minstake1, "This amount combined with your current stake exceeds the maxmimum allowed stake");
                 uint256 tempRewards = pendingRewards(_pid, _msgSender());
                 userBalance[_msgSender()] = userBalance[_msgSender()].add(tempRewards);
             }
             
-            
             if(user.amount == 0) { // We only want the minimum to apply on first deposit, not subsequent ones
-                require(_amount > minstake && _amount < maxstake.mul(101).div(100), "Please input the correct amount of KOJI tokens to stake");
+                require(_amount >= minstake2 && _amount <= minstake1.mul(101).div(100)  , "Please input the correct amount of KOJI tokens to stake");
             }
 
             pool.runningTotal = pool.runningTotal.add(_amount);
@@ -782,4 +781,7 @@ contract KojiFarm is Ownable, Authorizable, ReentrancyGuard {
         superMint[_msgSender()] = true;
     }
 
+    function changeOracle(address _oracle) external onlyOwner {
+        oracle = IOracle(_oracle);
+    }
 }
