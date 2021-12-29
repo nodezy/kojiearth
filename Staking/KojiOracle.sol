@@ -154,7 +154,7 @@ contract KojiOracle is Ownable {
     uint256 setPrice = 1000;
 
     constructor() {
-        priceFeed = AggregatorV3Interface(0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE);  
+        priceFeed = AggregatorV3Interface(0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526);  //bscmainet bnb/usd 0x0567f2323251f0aab15c8dfb1967e4e8a7d42aee
         LP = IPancakePair(0x697666d38d339958eD416E0119bDc73ABef58996);
     }
 
