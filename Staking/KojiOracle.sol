@@ -182,7 +182,7 @@ contract KojiOracle is Ownable {
       uint256 bnbusdprice = getLatestPrice();
       bnbusdprice = bnbusdprice.mul(10); //make bnb usd price have 9 decimals
       
-      (uint256 pooledKOJI, uint256 pooledBNB) = getReserves();
+      (uint256 pooledBNB, uint256 pooledKOJI) = getReserves(); // (for testnet)
 
       IBEP20 token0 = IBEP20(LP.token0()); //BNB
       IBEP20 token1 = IBEP20(LP.token1()); //KOJI (for testnet)
@@ -197,14 +197,14 @@ contract KojiOracle is Ownable {
 
     function getMinKOJITier1Amount(uint256 _amount) public view returns (uint256) {
       (,,uint256 kojiusd) = getKojiUSDPrice();
-      uint256 tempTier1Amount = _amount.mul(10**18);
+      uint256 tempTier1Amount = _amount.mul(10**9);
       return tempTier1Amount.div(kojiusd);
 
     }
 
     function getMinKOJITier2Amount(uint256 _amount) public view returns (uint256) {
       (,,uint256 kojiusd) = getKojiUSDPrice();
-      uint256 tempTier2Amount = _amount.mul(10**18);
+      uint256 tempTier2Amount = _amount.mul(10**9);
       return tempTier2Amount.div(kojiusd);
     }
 
