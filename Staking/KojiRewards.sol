@@ -36,22 +36,22 @@ contract KojiRewards is Ownable, ReentrancyGuard {
     
     bool public rewardsEnabled = true;
 
-    address public stakingContract = 0x99919114A6e249A9D7862422211d37C41eA29589;
-    address public kojiflux = 0x99919114A6e249A9D7862422211d37C41eA29589;
-    address public tokencontractv2 = 0x7eb567F5c781EE8e47C7100DC5046955503fc26A;
+    address public stakingContract; 
+    address public kojiflux = 0x047c256d8A082d6FdB9dfA81963E0Ec854575294;
+    address public tokencontractv2 = 0x30256814b1380Ea3b49C5AEA5C7Fa46eCecb8Bc0;
     
     constructor() {
         kojifluxInterface = IBEP20(kojiflux);
         tokencontractv2Interface = IBEP20(tokencontractv2);
     }
 
-    // This will allow to rescue ETH sent by mistake directly to the contract
+    // This will allow to rescue ETH sent to the contract
     function rescueETHFromContract() external onlyOwner {
         address payable _owner = payable(_msgSender());
         _owner.transfer(address(this).balance);
     }
 
-    // Function to allow admin to claim *other* ERC20 tokens sent to this contract (by mistake)
+    // Function to allow admin to claim *other* ERC20 tokens sent to this contract
     function transferERC20Tokens(address _tokenAddr, address _to, uint _amount) public onlyOwner {
         IBEP20(_tokenAddr).transfer(_to, _amount);
     }
