@@ -105,7 +105,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
     uint256 public blockRewardUpdateCycle = 1 days; // The cycle in which the kojiPerBlock gets updated.
     uint256 public blockRewardLastUpdateTime = block.timestamp; // The timestamp when the block kojiPerBlock was last updated.
-    uint256 public blocksPerDay = 5000; // The estimated number of mined blocks per day, lowered so rewards are halved to start.
+    uint256 public blocksPerDay = 28800; // The estimated number of mined blocks per day, lowered so rewards are halved to start.
     uint256 public blockRewardPercentage = 10; // The percentage used for kojiPerBlock calculation.
     uint256 public poolReward = 1000000000000; // Starting basis for poolReward (default 1k).
     uint256 public conversionRate = 100; // Conversion rate of KOJIFLUX => $KOJI (default 100%).
@@ -317,6 +317,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
             
             if(user.amount == 0) { // We only want the minimum to apply on first deposit, not subsequent ones
                 require(_amount >= minstake2 && _amount <= minstake1.mul(101).div(100)  , "Please input the correct amount of KOJI tokens to stake");
+                user.stakeTime = block.timestamp;
             }
 
             pool.runningTotal = pool.runningTotal.add(_amount);
@@ -324,7 +325,6 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
             pool.stakeToken.safeTransferFrom(address(_msgSender()), address(this), _amount);
             
             user.usdEquiv = getUSDequivalent(_amount);
-            user.stakeTime = block.timestamp;
             user.tierAtStakeTime = getTierequivalent(_amount);
             user.blacklisted = false;
         
@@ -401,7 +401,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
                 } else {
                     if (getTierequivalent(user.amount) == 2) {
                     user.unstakeTime = 0;
-                    user.tierAtStakeTime = 1;
+                    user.tierAtStakeTime = 2;
                     user.blacklisted = false;
                     } else {
                         user.unstakeTime = block.timestamp;
@@ -433,12 +433,12 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
     // Just in case an adjustment is needed since mined blocks per day changes constantly depending on the network
     function setBlocksPerDay(uint256 _blocksPerDay) external onlyAuthorized {
-        require(_blocksPerDay >= 1 && _blocksPerDay <= 14000, "Value is outside of range 1-14000");
+        require(_blocksPerDay >= 1 && _blocksPerDay <= 28800, "Value is outside of range 1-14000");
         blocksPerDay = _blocksPerDay;
     }
 
     function setBlockRewardPercentage(uint256 _blockRewardPercentage) external onlyAuthorized {
-        require(_blockRewardPercentage >= 1 && _blockRewardPercentage <= 5, "Value is outside of range 1-5");
+        require(_blockRewardPercentage >= 1 && _blockRewardPercentage <= 50, "Value is outside of range 1-5");
         blockRewardPercentage = _blockRewardPercentage;
     }
 
@@ -672,8 +672,8 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
     // Get the holder rewards of users staked $koji if they were to withdraw
     function getHolderRewards(address _address) external view returns (uint256) {
-        PoolInfo storage pool = poolInfo[1];
-        UserInfo storage user = userInfo[1][_address];
+        PoolInfo storage pool = poolInfo[0];
+        UserInfo storage user = userInfo[0][_address];
 
         uint256 _amount = user.amount;
         uint256 tokenSupply = pool.stakeToken.balanceOf(address(this)); // Get total amount of tokens
@@ -738,16 +738,12 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     // Gets Tier equivalent of input amount of KOJI tokens
     function getTierequivalent(uint256 _amount) public view returns (uint256) {
 
-        (,,uint256 kojiusdvalue) = oracle.getKojiUSDPrice();
-        uint256 totalvalue = kojiusdvalue.mul(_amount);
+        uint256 totalvalue = getUSDequivalent(_amount);
 
-        uint256 templowervalue = minKojiTier2Stake.mul(90).div(100); // Calc 90% of tier 2 amount
-        uint256 tempuppervalue = minKojiTier1Stake.mul(90).div(100); // Calc 90% of tier 1 amount
-
-        if (totalvalue >= templowervalue.mul(10**9)) {
+        if (totalvalue >= minKojiTier1Stake) {
             return 1;
         } else {
-            if (totalvalue < tempuppervalue.mul(10**9) && totalvalue >= templowervalue.mul(10**9)) {
+            if (totalvalue >= minKojiTier2Stake && totalvalue <= minKojiTier1Stake) {
                 return 2;
             } else {
                 return 0;
@@ -760,7 +756,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         (,,uint256 kojiusdvalue) = oracle.getKojiUSDPrice();
         uint256 totalvalue = kojiusdvalue.mul(_amount);
 
-        return totalvalue;
+        return totalvalue.div(10**9);
     }
 
     // Function to buy superMint internally with KojiFlux
