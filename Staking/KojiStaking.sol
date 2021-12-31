@@ -107,7 +107,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     uint256 public blockRewardLastUpdateTime = block.timestamp; // The timestamp when the block kojiPerBlock was last updated.
     uint256 public blocksPerDay = 28800; // The estimated number of mined blocks per day, lowered so rewards are halved to start.
     uint256 public blockRewardPercentage = 10; // The percentage used for kojiPerBlock calculation.
-    uint256 public poolReward = 1000000000000; // Starting basis for poolReward (default 1k).
+    uint256 public poolReward = 1000000000000000000; // Starting basis for poolReward (default 1B).
     uint256 public conversionRate = 100; // Conversion rate of KOJIFLUX => $KOJI (default 100%).
     bool public enableRewardWithdraw = false; // Whether KOJIFLUX is withdrawable from this contract (default false).
     bool public boostersEnabled = true; // Whether we can use boosters or not.
@@ -324,8 +324,8 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
             user.amount = user.amount.add(_amount);
             pool.stakeToken.safeTransferFrom(address(_msgSender()), address(this), _amount);
             
-            user.usdEquiv = getUSDequivalent(_amount);
-            user.tierAtStakeTime = getTierequivalent(_amount);
+            user.usdEquiv = getUSDequivalent(user.amount);
+            user.tierAtStakeTime = getTierequivalent(user.amount);
             user.blacklisted = false;
         
             userStaked[_pid][_msgSender()] = true;
@@ -438,7 +438,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     }
 
     function setBlockRewardPercentage(uint256 _blockRewardPercentage) external onlyAuthorized {
-        require(_blockRewardPercentage >= 1 && _blockRewardPercentage <= 50, "Value is outside of range 1-5");
+        require(_blockRewardPercentage >= 1 && _blockRewardPercentage <= 100, "Value is outside of range 1-100");
         blockRewardPercentage = _blockRewardPercentage;
     }
 
@@ -666,7 +666,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
         uint256 pendingusdamount = getConversionPrice(pendingamount);
 
-        return pendingusdamount;
+        return pendingusdamount.div(10**9);
     }
 
 
