@@ -109,6 +109,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     uint256 public blockRewardPercentage = 10; // The percentage used for kojiPerBlock calculation.
     uint256 public poolReward = 1000000000000000000; // Starting basis for poolReward (default 1B).
     uint256 public conversionRate = 100; // Conversion rate of KOJIFLUX => $KOJI (default 100%).
+    uint256 public upperLimiter = 101; // Percent numerator above minKojiTier1Stake so user can deposit enough for tier 1
     bool public enableRewardWithdraw = false; // Whether KOJIFLUX is withdrawable from this contract (default false).
     bool public boostersEnabled = true; // Whether we can use boosters or not.
     uint256 public minKojiTier1Stake = 1500000000000; // Min stake amount (default $1500 USD of $KOJI).
@@ -310,7 +311,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         if (_amount > 0) {
 
             if(user.amount > 0) { // If user has already deposited, secure rewards before reconfiguring rewardDebt
-                require(user.amount.add(_amount) <= minstake1, "This amount combined with your current stake exceeds the maxmimum allowed stake");
+                require(user.amount.add(_amount) <= minstake1.mul(upperLimiter).div(100), "This amount combined with your current stake exceeds the maxmimum allowed stake");
                 uint256 tempRewards = pendingRewards(_pid, _msgSender());
                 userBalance[_msgSender()] = userBalance[_msgSender()].add(tempRewards);
             }
@@ -777,7 +778,12 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         superMint[_msgSender()] = true;
     }
 
-    function changeOracle(address _oracle) external onlyOwner {
+    function changeOracle(address _oracle) external onlyAuthorized {
         oracle = IOracle(_oracle);
+    }
+    
+    function changeUpperLimiter(uint256 _upperlimit) external onlyAuthorized {
+        require(_upperlimit > 100, "Upper limiter needs to be greater than 100");
+        upperLimiter = _upperlimit;
     }
 }
