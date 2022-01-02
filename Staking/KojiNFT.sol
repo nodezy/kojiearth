@@ -271,12 +271,9 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
 
     }
 
-    //get all NFT info
-    //set NFT info struct erasure
-
-    function getCollectionName(uint256 _nftID) external view returns (string memory) {
+    function getNFTInfo(uint256 _nftID) external view returns(string memory collectionname, string memory nftname, string memory tier1uri, string memory tier2uri, uint256 timestart, uint256 timeend, uint256 order, bool redeemable, bool exists) {
         NFTInfo storage nft = nftInfo[_nftID];
-        return nft.collectionName; 
+        return(nft.collectionName,nft.nftName,nft.tier1uri,nft.tier2uri,nft.timestart,nft.timeend,nft.order,nft.redeemable,nft.exists);
     }
 
     function setCollectionName(uint256 _nftID, string memory _name) external onlyAuthorized {
@@ -284,19 +281,9 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         nft.collectionName = _name;
     }
 
-    function getNFTName(uint256 _nftID) external view returns (string memory) {
-        NFTInfo storage nft = nftInfo[_nftID];
-        return nft.nftName; 
-    }
-
     function setNFTName(uint256 _nftID, string memory _name) external onlyAuthorized {
         NFTInfo storage nft = nftInfo[_nftID];
         nft.nftName = _name;
-    }
-
-    function getTier1URI(uint256 _nftID) external view returns (string memory) {
-        NFTInfo storage nft = nftInfo[_nftID];
-        return nft.tier1uri; 
     }
 
     function setTier1URI(uint256 _nftID, string memory _uri) external onlyAuthorized {
@@ -304,20 +291,9 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         nft.tier1uri = _uri;
     }
 
-    function getTier2URI(uint256 _nftID) external view returns (string memory) {
-        NFTInfo storage nft = nftInfo[_nftID];
-        return nft.tier2uri; 
-    }
-
     function setTier2URI(uint256 _nftID, string memory _uri) external onlyAuthorized {
         NFTInfo storage nft = nftInfo[_nftID];
         nft.tier2uri = _uri;
-    }
-
-    function getNFTwindow(uint256 _nftID) external view returns (uint256, uint256) {
-        NFTInfo storage nft = nftInfo[_nftID];
-
-        return (nft.timestart,nft.timeend);
     }
 
     function setNFTwindow(uint256 _nftID, uint256 _timestart, uint256 _timeend) external onlyAuthorized {
@@ -326,22 +302,10 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         nft.timeend = _timeend;
     }
 
-    function getNFTOrder(uint256 _nftID) external view returns (uint256) {
-        NFTInfo storage nft = nftInfo[_nftID];
-
-        return (nft.order);
-    }
-
     function setNFTOrder(uint256 _nftID, uint256 _order) external onlyAuthorized {
         NFTInfo storage nft = nftInfo[_nftID];
 
         nft.order = _order;
-    }
-
-    function getNFTredeemable(uint256 _nftID) external view returns (bool){
-        NFTInfo storage nft = nftInfo[_nftID];
-
-        return (nft.redeemable);
     }
 
     function setNFTredeemable(uint256 _nftID, bool _redeemable) external onlyAuthorized {
@@ -350,20 +314,11 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         nft.redeemable = _redeemable;
     }
 
-    function getNFTexists(uint256 _nftID) external view returns (bool){
-        NFTInfo storage nft = nftInfo[_nftID];
-
-        return (nft.exists);
-    }
-
     function setNFTexists(uint256 _nftID, bool _exists) external onlyAuthorized {
         NFTInfo storage nft = nftInfo[_nftID];
 
         nft.exists = _exists;
     }
-
-
-    //function to change/add/remove NFT struct
 
     function getIfMinted(address _recipient, uint256 _nftID) external view returns (bool) {
         return nftMinted[_nftID][_recipient];
