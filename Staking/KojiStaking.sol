@@ -119,6 +119,11 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     uint256 public promoAmount = 200000000000; // Amount of KOJIFLUX to give to new stakers (default 200 KOJIFLUX).
     uint256 public superMintFluxPrice = 10000000000000000; // KOJIFLUX Cost to purchase a superMint (10M default).
     uint256 public superMintKojiPrice = 100000000000000000; // KOJIFLUX Cost to purchase a superMint (100M default).
+    uint256 internal taxableAmount = 100;
+    uint256 public unstakePenaltyStartingTax = 30;
+    uint256 public unstakePenaltyDefaultTax = 10;
+    uint256 public unstakePenaltyDenominator = 1000;
+
     bool public promoActive = false; // Whether the promotional amount of KOJIFLUX is given out to new stakers (default is True).
     bool public enableSuperMintBuying = false; // Whether users can purchase superMints with $KOJI (default is false).
     bool public enableTaxlessWithdrawals = false; // Switch to use in case of farming contract migration.
@@ -387,7 +392,9 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
                 if(enableTaxlessWithdrawals) { // Switch for tax free / reflection free withdrawals
                      _amount = _amount;
                 } else {
-                     _amount = _amount.mul(99).div(100).add(reflectAmount);
+                     uint256 taxfeenumerator = getUnstakePenalty(user.stakeTime);
+                     uint256 taxfee = taxableAmount.sub(taxableAmount.mul(taxfeenumerator).div(unstakePenaltyDenominator));
+                     _amount = _amount.mul(taxfee).div(100).add(reflectAmount);
                 }
                 pool.stakeToken.safeTransfer(address(_msgSender()), _amount);
                 emit Withdraw(_msgSender(), _pid, _amount);
@@ -824,6 +831,21 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
              superMint[stakeholders[x]] = true;
         }
+
+    }
+
+    function getUnstakePenalty(uint256 _staketime) public view returns (uint256) {
+
+        uint256 totaldays = _staketime.sub(block.timestamp).div(86400);
+
+        uint256 totalunstakefee  = unstakePenaltyStartingTax.sub(totaldays);
+
+        if (totalunstakefee < unstakePenaltyDefaultTax) {
+            return unstakePenaltyDefaultTax;
+        } else {
+            return totalunstakefee;
+        }
+
 
     }
 }
