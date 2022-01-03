@@ -111,6 +111,9 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     uint256 public blockRewardPercentage = 10; // The percentage used for kojiPerBlock calculation.
     uint256 public poolReward = 1000000000000000000; // Starting basis for poolReward (default 1B).
     uint256 public conversionRate = 100; // Conversion rate of KOJIFLUX => $KOJI (default 100%).
+    uint256 public bonusRate = 120; // Rate of bonus for late stakers.
+    uint256 public stakeBonusStart; // Start time of bonus for stakers.
+
     uint256 public upperLimiter = 101; // Percent numerator above minKojiTier1Stake so user can deposit enough for tier 1
     bool public enableRewardWithdraw = false; // Whether KOJIFLUX is withdrawable from this contract (default false).
     bool public boostersEnabled = true; // Whether we can use boosters or not.
@@ -127,6 +130,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     bool public promoActive = false; // Whether the promotional amount of KOJIFLUX is given out to new stakers (default is True).
     bool public enableSuperMintBuying = false; // Whether users can purchase superMints with $KOJI (default is false).
     bool public enableTaxlessWithdrawals = false; // Switch to use in case of farming contract migration.
+    bool public stakeBonusEnabled = false; // Switch to enable/disable kojiflux -> koji bonus during conversion.
 
     mapping(address => bool) public addedstakeTokens; // Used for preventing staked tokens from being added twice in add().
     mapping(address => uint256) private userBalance; // Balance of KOJIFLUX for each user that survives staking/unstaking/redeeming.
@@ -321,11 +325,13 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
                 require(user.amount.add(_amount) <= minstake1.mul(upperLimiter).div(100), "This amount combined with your current stake exceeds the maxmimum allowed stake");
                 uint256 tempRewards = pendingRewards(_pid, _msgSender());
                 userBalance[_msgSender()] = userBalance[_msgSender()].add(tempRewards);
+                user.unstakeTime = block.timestamp;
             }
             
             if(user.amount == 0) { // We only want the minimum to apply on first deposit, not subsequent ones
                 require(_amount >= minstake2 && _amount <= minstake1.mul(101).div(100)  , "Please input the correct amount of KOJI tokens to stake");
                 user.stakeTime = block.timestamp;
+                user.unstakeTime = block.timestamp;
             }
 
             pool.runningTotal = pool.runningTotal.add(_amount);
@@ -392,7 +398,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
                 if(enableTaxlessWithdrawals) { // Switch for tax free / reflection free withdrawals
                      _amount = _amount;
                 } else {
-                     uint256 taxfeenumerator = getUnstakePenalty(user.stakeTime);
+                     uint256 taxfeenumerator = getUnstakePenalty(user.unstakeTime);
                      uint256 taxfee = taxableAmount.sub(taxableAmount.mul(taxfeenumerator).div(unstakePenaltyDenominator));
                      _amount = _amount.mul(taxfee).div(100).add(reflectAmount);
                 }
@@ -408,12 +414,12 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
                 removeStakeholder(_msgSender());
             } else {
                 if (getTierequivalent(user.amount) == 1) {
-                    user.unstakeTime = 0;
+                    user.unstakeTime = block.timestamp;
                     user.tierAtStakeTime = 1;
                     user.blacklisted = false;
                 } else {
                     if (getTierequivalent(user.amount) == 2) {
-                    user.unstakeTime = 0;
+                    user.unstakeTime = block.timestamp;
                     user.tierAtStakeTime = 2;
                     user.blacklisted = false;
                     } else {
@@ -658,15 +664,29 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     }
 
     // Get amount of Koji for KojiFlux
-    function getConversionAmount(uint256 _amount) public view returns (uint256) {
-        uint256 newrate = conversionRate.mul(100).div(100);
-        uint256 newamount = _amount.mul(newrate).div(100);
+    function getConversionAmount(uint256 _amount, address _address) public view returns (uint256) {
+
+        uint256 newamount = _amount.mul(conversionRate).div(100);
+
+        if (stakeBonusEnabled) {
+
+            UserInfo storage user0 = userInfo[0][_address];
+
+            if (user0.stakeTime >= stakeBonusStart) {
+
+                newamount = newamount.mul(bonusRate).div(100);
+            }
+
+
+        }
+
+
         return newamount;
     }
 
     // Get dollar amount of Koji for KojiFlux
     function getConversionPrice(uint256 _amount) public view returns (uint256) {
-        uint256 netamount = getConversionAmount(_amount);
+        uint256 netamount = _amount.mul(conversionRate).div(100);
         (,,uint256 kojiusd) = oracle.getKojiUSDPrice();
         uint256 netusdamount = kojiusd.mul(netamount);
 
@@ -846,6 +866,14 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
             return totalunstakefee;
         }
 
+
+    }
+
+    function setStakeBonusParams(uint256 _stakeBonusStart, uint256 _bonusRate, bool _stakeBonusEnabled) external onlyAuthorized {
+
+        stakeBonusStart = _stakeBonusStart;
+        bonusRate = _bonusRate;
+        stakeBonusEnabled = _stakeBonusEnabled;
 
     }
 }
