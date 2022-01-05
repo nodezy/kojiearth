@@ -872,6 +872,86 @@ include 'inc/header.php';
             <div class="ui-wrapper _staking">Staking Stuff!</div>
             <div class="ui-wrapper _nfts">NFT Stuff!</div>
 
+            <!-- UI row with 3 column (staking)------------------------------------------------------------>
+
+                <div class="ui-wrapper staking">
+
+                    <span class="ui-title"><i class="far fa-table"></i>Stake your KOJI to mint the NFT Comic</span>
+
+                    <div class="ui-row col-3">
+
+                        <div class="ui-col">
+                            <div class="ui-box">
+                                <p>Stake your KOJI v2 to be eligible to mint the Tier 1 Animated NFT or Tier 2 Static NFT Comic pages as they release weekly.</p><p>You will also be rewarded in FLUX which can be converted into KOJI v2 or used to buy superMints which allow you to mint any pages you have missed.</p>
+
+                                <img src="./assets/imgs/kojiflux.jpg" />
+
+                                <p>FLUX will also be used in our ecosystem for games and lottery type activities.</p>
+                            </div>
+                        </div>
+
+                        <div class="ui-col">
+                            <div class="ui-box">
+                                <p>Koji is landing soon!</p>
+                                <img src="./assets/imgs/tier2NFT.jpg" />
+                                <br><br><!--sir!-->
+                                <span>Illustrated & Animated by</span>
+                                <img src="./assets/imgs/amco_london.jpg" />
+                                
+                            </div>
+                        </div>
+
+                        <div class="ui-col">
+                            <div class="ui-box nft-tiers">
+                                <p>Pool Eligibility & Info</p>
+
+                                <div class="data-row clearfix">
+                                    <div class="title">Yet another title: </div>
+                                    <div class="value">Value and/or info</div>
+                                </div>
+
+                                <div class="data-row clearfix">
+                                    <div class="title">And another Title: </div>
+                                    <div class="value">Anotehr value and/or info</div>
+                                </div>
+
+                                <div class="data-row clearfix">
+                                    <div class="title">Yet another title: </div>
+                                    <div class="value">Value and/or info</div>
+                                </div>
+
+                                <div class="data-row clearfix">
+                                    <div class="title">And another Title: </div>
+                                    <div class="value">Anotehr value and/or info</div>
+                                </div>
+
+                                 <div class="data-row clearfix">
+                                    <div class="title">And another Title: </div>
+                                    <div class="value">Anotehr value and/or info</div>
+                                </div>
+
+                                <div class="holder tier-1 clearfix th" data-aos="fade-right" data-aos-delay="200" data-aos-easing="ease-in" data-aos-once="true" data-aos-duration="20000" data-aos-anchor=".staking-p1" style="width:100% !important; margin-top: 10px">
+                                    <span class="tier">TIER<strong>1</strong></span>
+                                    <span class="info">
+                                    <span class="amount">1,000,000,000 KOJI</span>
+                                    <span class="desc">Tier feauture: <strong>Animated NFT</strong></span>
+                                    </span>
+                                </div>
+
+                                 <div class="holder tier-2 clearfix th" data-aos="fade-left" data-aos-delay="200" data-aos-easing="ease-in" data-aos-once="true" data-aos-duration="20000" data-aos-anchor=".tier-1" style="width:100% !important; margin-left:0px; margin-top: 10px">
+                                    <span class="tier">TIER<strong>2</strong></span>
+                                    <span class="info">
+                                    <span class="amount">250,000,000 KOJI</span>
+                                    <span class="desc">Tier feauture: <strong>Still NFT</strong></span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div><!-- .ui-row -->
+
+                </div><!-- .ui-wrapper -->
+
 
             <!-- project wallets ------------------------------------------------------------>
 
