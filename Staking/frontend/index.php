@@ -869,12 +869,12 @@ include 'inc/header.php';
 
             </div>
 
-            <div class="ui-wrapper _staking">Staking Stuff!</div>
-            <div class="ui-wrapper _nfts">NFT Stuff!</div>
+
+            <div class="ui-wrapper _nfts" style="margin-top:-10px;display:none">NFT Stuff!</div>
 
             <!-- UI row with 3 column (staking)------------------------------------------------------------>
 
-                <div class="ui-wrapper staking">
+                <div class="ui-wrapper _staking" style="display:none">
 
                     <span class="ui-title"><i class="far fa-table"></i>Stake your KOJI to mint the NFT Comic</span>
 
@@ -884,9 +884,9 @@ include 'inc/header.php';
                             <div class="ui-box">
                                 <p>Stake your KOJI v2 to be eligible to mint the Tier 1 Animated NFT or Tier 2 Static NFT Comic pages as they release weekly.</p><p>You will also be rewarded in FLUX which can be converted into KOJI v2 or used to buy superMints which allow you to mint any pages you have missed.</p>
 
-                                <img src="./assets/imgs/kojiflux.jpg" />
+                                <img style="margin-bottom:17px" src="./assets/imgs/kojiflux.jpg" />
 
-                                <p>FLUX will also be used in our ecosystem for games and lottery type activities.</p>
+                                <span >FLUX will also be used in our ecosystem for games and lottery type activities.</span>
                             </div>
                         </div>
 
@@ -906,34 +906,35 @@ include 'inc/header.php';
                                 <p>Pool Eligibility & Info</p>
 
                                 <div class="data-row clearfix">
-                                    <div class="title">Yet another title: </div>
-                                    <div class="value">Value and/or info</div>
+                                    <div class="title">Stake amount for NFT minting: </div>
+                                    <div class="value">Tier 1: $1500 USD of KOJI; Tier 2: $500 USD KOJI</div>
                                 </div>
 
                                 <div class="data-row clearfix">
-                                    <div class="title">And another Title: </div>
-                                    <div class="value">Anotehr value and/or info</div>
+                                    <div class="title">Taxes: </div>
+                                    <div class="value">None on deposit, 1% on withdraw</div>
                                 </div>
 
                                 <div class="data-row clearfix">
-                                    <div class="title">Yet another title: </div>
-                                    <div class="value">Value and/or info</div>
+                                    <div class="title">Early Unstake Penalty (resets on deposit/withdraw): </div>
+                                    <div class="value">2% declining .1% per day for 20 days</div>
                                 </div>
 
                                 <div class="data-row clearfix">
-                                    <div class="title">And another Title: </div>
-                                    <div class="value">Anotehr value and/or info</div>
+                                    <div class="title">Reward Pool 1: </div>
+                                    <div class="value">All unstake % gets distribtued to existing stakers</div>
                                 </div>
 
-                                 <div class="data-row clearfix">
-                                    <div class="title">And another Title: </div>
-                                    <div class="value">Anotehr value and/or info</div>
+                                 <div class="data-row clearfix" style="margin-bottom:15px">
+                                    <div class="title">Reward Pool 2: </div>
+                                    <div class="value">KOJI FLUX is rewarded per block; can be redeemed</div>
                                 </div>
 
+                                <span >Oracle-based Real-time Eligibility Equivalents:</span>
                                 <div class="holder tier-1 clearfix th" data-aos="fade-right" data-aos-delay="200" data-aos-easing="ease-in" data-aos-once="true" data-aos-duration="20000" data-aos-anchor=".staking-p1" style="width:100% !important; margin-top: 10px">
                                     <span class="tier">TIER<strong>1</strong></span>
                                     <span class="info">
-                                    <span class="amount">1,000,000,000 KOJI</span>
+                                    <span class="amount" id="tier1amount"></span>
                                     <span class="desc">Tier feauture: <strong>Animated NFT</strong></span>
                                     </span>
                                 </div>
@@ -941,10 +942,142 @@ include 'inc/header.php';
                                  <div class="holder tier-2 clearfix th" data-aos="fade-left" data-aos-delay="200" data-aos-easing="ease-in" data-aos-once="true" data-aos-duration="20000" data-aos-anchor=".tier-1" style="width:100% !important; margin-left:0px; margin-top: 10px">
                                     <span class="tier">TIER<strong>2</strong></span>
                                     <span class="info">
-                                    <span class="amount">250,000,000 KOJI</span>
+                                    <span class="amount" id="tier2amount"></span>
                                     <span class="desc">Tier feauture: <strong>Still NFT</strong></span>
                                     </span>
                                 </div>
+                            </div>
+                        </div>
+
+                    </div><!-- .ui-row -->
+
+                </div><!-- .ui-wrapper -->
+
+            <!-- UI row with 4 column ------------------------------------------------------------>
+
+                <div class="ui-wrapper  _staking" style="display:none">
+
+                    <span class="ui-title"><i class="far fa-table"></i>Staking Pool</span>
+
+                    <div class="ui-row col-4" style="margin-bottom:10px">
+
+                        <div class="ui-col">
+                            <div class="ui-box">
+                                <i class="fas fa-trophy-alt"></i>&nbsp;&nbsp;<span>Total KOJI Staked:</span> 
+                                <div class="data-row clearfix">
+                                    <div class="value" style="width:100%;text-align: center">
+                                        <span id="total-koji-staked"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ui-col">
+                            <div class="ui-box">
+                                <i class="fas fa-trophy-alt"></i>&nbsp;&nbsp;<span>Total Staked Value:</span>
+                                 <div class="data-row clearfix">
+                                    <div class="value" style="width:100%;text-align: center">
+                                        <span id="total-staked-usd"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ui-col">
+                            <div class="ui-box">
+                                <i class="fas fa-trophy-alt"></i>&nbsp;&nbsp;<span>Rewards Pool 1:</span> 
+                                <div class="data-row clearfix">
+                                    <div class="value" style="width:100%;text-align: center">
+                                        <span id="rewards-pool-one"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ui-col">
+                            <div class="ui-box">
+                                <i class="fas fa-trophy-alt"></i>&nbsp;&nbsp;<span>Rewards Pool 2:</span> 
+                                <div class="data-row clearfix">
+                                    <div class="value" style="width:100%;text-align: center">
+                                        <span id="rewards-pool-two"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div><!-- .ui-row -->
+
+                    <span class="ui-title"><i class="far fa-table"></i>Stake You KOJI</span>
+
+                    <div class="ui-row col-3">
+
+                        <div class="ui-col">
+                            <div class="ui-box">
+                                <p>Deposit</p>
+                                
+                                <div class="data-row clearfix">
+                                    <div class="title">For Tier 1 minting, please deposit at least: </div>
+                                    <div class="value" id="mintier1amount"></div>
+                                </div>
+
+                                <div class="data-row clearfix">
+                                    <div class="title">For tier 2 minting, please deposit at least: </div>
+                                    <div class="value" id="mintier2amount"></div>
+                                </div>  
+
+                                <span class="ui-note">* Please note that you can only mint tier 1 OR tier 2 per page per address, unless you purchase a superMint.</span>
+
+
+                                <button type="button" class="btn btn-sep bottom">
+                                    <div><i class="icon-external-link"></i></div>
+                                    <span>Deposit</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="ui-col">
+                            <div class="ui-box">
+                                <p>My Stake Info</p>
+                                <div class="data-row clearfix">
+                                    <div class="title">My Total Stake: </div>
+                                    <div class="value" id="my-total-stake">800,000,000 KOJI</div>
+                                </div>
+
+                                <div class="data-row clearfix">
+                                    <div class="title">My Stake Value: </div>
+                                    <div class="value" id="my-stake-value">$986.00 USD</div>
+                                </div>
+                                <div class="data-row clearfix">
+                                    <div class="title">My Tier Eligibility: </div>
+                                    <div class="value">Tier 2</div>
+                                </div>
+
+                                <div class="data-row clearfix">
+                                    <div class="title">KOJI FLUX Rewards: </div>
+                                    <div class="value">6,000,000 FLUX</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ui-col">
+                            <div class="ui-box">
+                                <p>Withdraw</p>
+                                <div class="data-row clearfix">
+                                    <div class="title">Withdraw Fee: </div>
+                                    <div class="value">1% unstake fee + 1.5% early unstake penalty<br> (15 days until 0%)</div>
+                                </div>
+
+                                <div class="data-row clearfix">
+                                    <div class="title">Pool Rewards Upon Withdraw: </div>
+                                    <div class="value">1,598,000 KOJI</div>
+                                </div>
+
+                                <span class="ui-note">* You can withdraw up to <span id="overage-amt">350,000,000 KOJI</span> and still be eligible for Tier 2 NFT minting.</span>
+
+                                <button type="button" class="btn btn-sep bottom">
+                                    <div><i class="icon-external-link"></i></div>
+                                    <span>Withdraw</span>
+                                </button>
                             </div>
                         </div>
 
