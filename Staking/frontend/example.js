@@ -63,6 +63,10 @@ let apipull = 1;
 
 let kojiusd;
 
+let totalkojistaked;
+
+let totalrewardsone;
+
 let humanFriendlyBalance;
 
 const tokenAddress = kojitoken;
@@ -1082,17 +1086,19 @@ async function fetchAccountData() {
 
 	});
 
+	/* Staking */////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	var stakingcontract = new web3.eth.Contract(JSON.parse(stakingabi),staking);
 
 	stakingcontract.methods.getOracleMinMax().call(function(err,res) {
 		if (!err) { 
 			//console.log(res);
-			document.getElementById("tier1amount").innerHTML = parseFloat(+res[0]/10e8).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-			document.getElementById("tier2amount").innerHTML = parseFloat(+res[1]/10e8).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 
-			document.getElementById("mintier1amount").innerHTML = parseFloat(+res[0]/10e8).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-			document.getElementById("mintier2amount").innerHTML = parseFloat(+res[1]/10e8).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+			var tier1 = parseFloat(+res[0]/10e8).toFixed(0);
+			var tier2 = parseFloat(+res[1]/10e8).toFixed(0);
 
+			document.getElementById("tier1amount").innerHTML = tier1.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+			document.getElementById("tier2amount").innerHTML = tier2.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 
 			stakingcontract.methods.userStaked(0,selectedAccount).call(function(err,res) {
 				if (!err) { 
@@ -1119,6 +1125,8 @@ async function fetchAccountData() {
 								document.getElementById("my-stake-value").innerHTML = "$"+ mystakedusd.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " USD";
 								document.getElementById("my-stake-tier").innerHTML = "Tier " + res[5];
 
+								var mytier = res[5];
+
 								stakingcontract.methods.getHolderRewards(selectedAccount).call(function(err,res) {
 									if (!err) { 
 										var totalrewards = parseFloat(+res/10e8).toFixed(2);
@@ -1143,13 +1151,151 @@ async function fetchAccountData() {
 
 								var timedelta = timenow - unstaketime;
 
-								var days = parseFloat((timedelta/86400)).toFixed(0);
+								var days = parseFloat(20-(timedelta/86400)).toFixed(0);
 
-								var penalty = parseFloat((timedelta/86400)/10).toFixed(2); 
+								var penalty = parseFloat(20-(timedelta/86400)).toFixed(2); 
+
+								penalty = (penalty/10).toFixed(2);
 
 								//1.5% (15 days until 0%)
 
-								document.getElementById("unstake-penalty").innerHTML = penalty+"%" + " ("+ days + " days until 0%)";
+								document.getElementById("unstake-penalty").innerHTML = "1% + " + penalty+"% early unstake" + " ("+ days + " days until 0%)";
+
+								stakingcontract.methods.minKojiTier1Stake().call(function(err,res) {
+									if (!err) { 
+
+										var mintier1stake = (res/10e8).toFixed(0);
+
+										stakingcontract.methods.minKojiTier2Stake().call(function(err,res) {
+											if (!err) { 
+
+												var mintier2stake = (res/10e8).toFixed(0);
+
+												//calculate amounts for further deposits
+
+												var tier1stakedelta = (mintier1stake - mystakedusd).toFixed(0);
+												var tier2stakedelta = (mintier2stake - mystakedusd).toFixed(0); 
+
+												//console.log(tier1stakedelta);
+												//console.log(tier2stakedelta);
+
+												var tier1stakedeltakoji; 
+												var tier2stakedeltakoji; 
+
+												if (tier1stakedelta > 0) { //user stake amount is less than tier1 max
+
+													tier1stakedeltakoji = ((tier1stakedelta/(kojiusd/10e8))*1.01).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+
+													/*console.log(tier1stakedelta);
+													console.log(kojiusd);
+
+													console.log(tier1stakedelta/kojiusd);*/
+
+												} else { //user stake amount is greater than tier1 max
+
+													tier1stakedeltakoji = "N/A";
+												}
+
+												if (tier2stakedelta > 0) { //user stake amount is less than tier1 max
+
+													tier2stakedeltakoji = ((tier2stakedelta/(kojiusd/10e8))*1.01).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+
+												} else { //user stake amount is greater than tier1 max
+
+													tier2stakedeltakoji = "N/A";
+												}
+												
+												console.log(+mytier);
+
+												if (+mytier === 0) {
+
+													//console.log("tier 0");
+
+													document.getElementById("mintier1amount").innerHTML = tier1.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+													document.getElementById("mintier2amount").innerHTML = tier2.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+
+													//calculate amounts for further withdrawals
+
+													document.getElementById("unstake-amount-1").innerHTML = " N/A";
+													document.getElementById("unstake-amount-2").innerHTML = " N/A";
+
+
+													document.getElementById("is-overage").style.display = "none";
+
+												} else {
+
+													document.getElementById("is-overage").style.display = "block";
+
+													document.getElementById("mintier1amount").innerHTML = tier1stakedeltakoji;
+													document.getElementById("mintier2amount").innerHTML = tier2stakedeltakoji;
+
+													//calculate amounts for further withdrawals
+
+													var tier1withdrawdelta = (mystakedusd - mintier1stake).toFixed(0);
+													var tier2withdrawdelta = (mystakedusd - mintier2stake).toFixed(0);
+
+													var tier1withdrawdeltakoji;
+													var tier2withdrawdeltakoji;
+
+													if (tier1withdrawdelta > 0) { //user stake amount is greater than tier1 max
+
+														var tier1withdrawdeltakojiraw = ((tier1withdrawdelta/(kojiusd/10e8))*.99).toFixed(0);
+
+														tier1withdrawdeltakoji = " " + tier1withdrawdeltakojiraw.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+
+
+													} else { //user stake amount is less than tier1 max
+
+														tier1withdrawdeltakoji = " N/A";
+													}
+
+													if (tier2withdrawdelta > 0) { //user stake amount is greater than tier2 max
+
+														var tier2withdrawdeltakojiraw = ((tier2withdrawdelta/(kojiusd/10e8))*.99).toFixed(0);
+
+														tier2withdrawdeltakoji = " " + tier2withdrawdeltakojiraw.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+
+													} else { //user stake amount is less than tier2 max
+
+														tier2withdrawdelta = " N/A";
+													}
+
+
+													document.getElementById("unstake-amount-1").innerHTML = tier1withdrawdeltakoji;
+													document.getElementById("unstake-amount-2").innerHTML = tier2withdrawdeltakoji;
+
+													var poolreward;
+
+													if (+mytier === 1) {
+
+														//console.log("tier 1");
+
+														poolreward = ((tier1withdrawdeltakojiraw/totalkojistaked)*totalrewardsone).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+														document.getElementById("overage-amt").innerHTML = tier1withdrawdeltakoji;
+														document.getElementById("pool-reward").innerHTML = poolreward;
+													}
+
+													if (+mytier === 2) {
+
+														//console.log("tier 2");
+														//console.log(tier2withdrawdeltakoji);
+														//console.log(totalkojistaked);
+														//console.log(totalrewardsone);
+														poolreward = ((tier2withdrawdeltakojiraw/totalkojistaked)*totalrewardsone).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+														document.getElementById("overage-amt").innerHTML = tier2withdrawdeltakoji;
+														document.getElementById("pool-reward").innerHTML = poolreward;
+
+													}
+
+												}
+
+											}
+
+										});
+
+									}
+
+								});
 
 							}
 						});
@@ -1157,7 +1303,8 @@ async function fetchAccountData() {
 
 					} else { //user is not staked, reset deposit/staking amounts
 
-						
+						document.getElementById("mintier1amount").innerHTML = tier1.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+						document.getElementById("mintier2amount").innerHTML = tier2.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 
 					}
 				}
@@ -1170,7 +1317,7 @@ async function fetchAccountData() {
 	stakingcontract.methods.poolInfo(0).call(function(err,res) {
 		if (!err) { 
 
-			var totalkojistaked = parseFloat(+res[4]/10e8).toFixed(0);
+			totalkojistaked = parseFloat(+res[4]/10e8).toFixed(0);
 
 			//console.log(totalrewardsone);
 
@@ -1180,7 +1327,7 @@ async function fetchAccountData() {
 				if (!err) { 
 					//console.log(res);
 
-					var totalrewardsone = parseFloat((+res/10e8) - totalkojistaked).toFixed(2); //this is a hack for now, must use difference between total staked in pool and actual contract balance
+					totalrewardsone = parseFloat((+res/10e8) - totalkojistaked).toFixed(2); //this is a hack for now, must use difference between total staked in pool and actual contract balance
 
 					document.getElementById("rewards-pool-one").innerHTML = totalrewardsone.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 
