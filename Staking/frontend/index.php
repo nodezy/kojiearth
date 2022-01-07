@@ -938,12 +938,12 @@ include 'inc/header.php';
 
                                 <div class="data-row clearfix">
                                     <div class="title">Reward Pool 1 (Stake Pool): </div>
-                                    <div class="value">All unstake % gets distribtued to existing stakers, claimable on any withdrawal amount</div>
+                                    <div class="value" style="word-break: break-word">All unstake % gets distribtued to existing stakers, proportionally claimable on any withdrawal amount</div>
                                 </div>
 
                                  <div class="data-row clearfix">
                                     <div class="title">Reward Pool 2 (Reward Pool): </div>
-                                    <div class="value">KOJI FLUX is rewarded per block; can be redeemed for KOJI or used to purchase superMints</div>
+                                    <div class="value" style="word-break: break-word">KOJI FLUX is rewarded per block; can be redeemed for KOJI or used to purchase superMints</div>
                                 </div>
                             </div>
                         </div>
@@ -984,7 +984,7 @@ include 'inc/header.php';
 
                         <div class="ui-col">
                             <div class="ui-box">
-                                <i class="fas fa-trophy-alt"></i>&nbsp;&nbsp;<span>Rewards Pool 1:</span> 
+                                <i class="fas fa-trophy-alt"></i>&nbsp;&nbsp;<span>Stake Rewards Pool:</span> 
                                 <div class="data-row clearfix">
                                     <div class="value" style="width:100%;text-align: center">
                                         <span id="rewards-pool-one"></span>
@@ -995,7 +995,7 @@ include 'inc/header.php';
 
                         <div class="ui-col">
                             <div class="ui-box">
-                                <i class="fas fa-trophy-alt"></i>&nbsp;&nbsp;<span>Rewards Pool 2:</span> 
+                                <i class="fas fa-trophy-alt"></i>&nbsp;&nbsp;<span>Flux Rewards Pool:</span> 
                                 <div class="data-row clearfix">
                                     <div class="value" style="width:100%;text-align: center">
                                         <span id="rewards-pool-two"></span>
@@ -1024,7 +1024,7 @@ include 'inc/header.php';
                                     <div class="value" id="mintier2amount"></div>
                                 </div>  
 
-                                <span class="ui-note">* Please note that you can only mint tier 1 OR tier 2 per page per address, unless you purchase a superMint.</span>
+                                <span class="ui-note">* Please note that you can only mint 1 (one) tier 1 OR tier 2 NFT comic page per address, unless you purchase a superMint.</span>
 
                                 
                                 <input class="mt20 mb20" type="text" id="stakeDeposit" name="deposit" placeholder="enter amount you want to stake">
@@ -1070,16 +1070,16 @@ include 'inc/header.php';
                             <div class="ui-box">
                                 <p>Withdraw</p>
                                 <div class="data-row clearfix">
-                                    <div class="title">Withdraw Fee: </div>
-                                    <div class="value">1% withdrawal fee</div>
+                                    <div class="title">Withdraw Fees: </div>
+                                    <div class="value" id="unstake-penalty"></div>
                                 </div>
 
                                 <div class="data-row clearfix">
-                                    <div class="title">Early unstake penalty: </div>
-                                    <div class="value" id="unstake-penalty">1.5% (15 days until 0%)</div>
+                                    <div class="title" id="unstake-tier">Tier preservation</div>
+                                    <div class="value"><span>Max withdraw to keep Tier 1:</span><span id="unstake-amount-1"></span><br><span>Max withdraw to keep Tier 2:</span><span id="unstake-amount-2"></span></div>
                                 </div>
 
-                                <span class="ui-note">* You can withdraw up to <span id="overage-amt">350,000,000 KOJI</span> and still be eligible for Tier 2 NFT minting.</span>
+                                <span class="ui-note" id="is-overage" style="display: none">* A withdrawal of <span id="overage-amt"></span> will result in <span id="pool-reward"></span> stake pool reward distribution. </span>
 
                                 <input class="mt20 mb20" type="text" id="stakeWithdraw" name="withdraw" placeholder="enter amount you want to withdraw">
 
@@ -1228,10 +1228,3 @@ include 'inc/header.php';
 include 'inc/footer.php';
 
 ?>
-
-
-
-
-    
-
-
