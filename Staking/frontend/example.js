@@ -1092,6 +1092,77 @@ async function fetchAccountData() {
 
 			document.getElementById("mintier1amount").innerHTML = parseFloat(+res[0]/10e8).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 			document.getElementById("mintier2amount").innerHTML = parseFloat(+res[1]/10e8).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+
+
+			stakingcontract.methods.userStaked(0,selectedAccount).call(function(err,res) {
+				if (!err) { 
+
+					//console.log(res);
+
+					if(res) {//user is staked, calculate deposit/wd amounts
+
+						stakingcontract.methods.userInfo(0,selectedAccount).call(function(err,res) {
+							if (!err) { 
+
+								var mystake = parseFloat(+res[0]/10e8).toFixed(2);
+								var mystakedusd = parseFloat((+kojiusd * res[0]) / 10e17).toFixed(2);
+
+								//console.log(res); 
+								//0 amount
+								//1 rewardDebt
+								//2 USDvalue
+								//3 stakeTime
+								//4 unstakeTime
+								//5 tier #
+
+								document.getElementById("my-total-stake").innerHTML = mystake.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+								document.getElementById("my-stake-value").innerHTML = "$"+ mystakedusd.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " USD";
+								document.getElementById("my-stake-tier").innerHTML = "Tier " + res[5];
+
+								stakingcontract.methods.getHolderRewards(selectedAccount).call(function(err,res) {
+									if (!err) { 
+										var totalrewards = parseFloat(+res/10e8).toFixed(2);
+										var mypoolrewards = +totalrewards - +mystake;
+
+										document.getElementById("my-pool-rewards").innerHTML = mypoolrewards.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+									}
+								});
+
+								stakingcontract.methods.getTotalPendingRewards(selectedAccount).call(function(err,res) {
+									if (!err) { 
+
+										var totalpending = parseFloat(+res/10e8).toFixed(2);
+
+										document.getElementById("my-flux-rewards").innerHTML = totalpending.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " FLUX";
+
+									}
+								});
+
+								var unstaketime = res[4];
+								var timenow = Math.floor(Date.now() / 1000);
+
+								var timedelta = timenow - unstaketime;
+
+								var days = parseFloat((timedelta/86400)).toFixed(0);
+
+								var penalty = parseFloat((timedelta/86400)/10).toFixed(2); 
+
+								//1.5% (15 days until 0%)
+
+								document.getElementById("unstake-penalty").innerHTML = penalty+"%" + " ("+ days + " days until 0%)";
+
+							}
+						});
+
+
+					} else { //user is not staked, reset deposit/staking amounts
+
+						
+
+					}
+				}
+
+			});
 		}
 
 	});
@@ -1099,19 +1170,32 @@ async function fetchAccountData() {
 	stakingcontract.methods.poolInfo(0).call(function(err,res) {
 		if (!err) { 
 
-			var totalkojistaked =parseFloat(+res[4]/10e8).toFixed(0);
+			var totalkojistaked = parseFloat(+res[4]/10e8).toFixed(0);
 
-			var totalrewardsone = +totalkojistaked * .01; //this is a hack for now, must use difference between total staked in pool and actual contract balance
-
-			console.log(totalrewardsone);
+			//console.log(totalrewardsone);
 
 			document.getElementById("total-koji-staked").innerHTML = totalkojistaked.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 
-			document.getElementById("rewards-pool-one").innerHTML = totalrewardsone.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+			tokencontract.methods.balanceOf(staking).call(function(err,res) {
+				if (!err) { 
+					//console.log(res);
+
+					var totalrewardsone = parseFloat((+res/10e8) - totalkojistaked).toFixed(2); //this is a hack for now, must use difference between total staked in pool and actual contract balance
+
+					document.getElementById("rewards-pool-one").innerHTML = totalrewardsone.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+
+
+				}
+
+			});
+
 
 			oraclecontract.methods.getKojiUSDPrice().call(function(err,res){
 
 				if(!err){
+
+					kojiusd = res[2];
+
 					var totalkojistakedusd = parseFloat((+totalkojistaked * res[2]) / 10e8).toFixed(2);
 
 					document.getElementById("total-staked-usd").innerHTML = "$"+ totalkojistakedusd.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " USD";
@@ -1130,10 +1214,12 @@ async function fetchAccountData() {
 		if (!err) { 
 			//console.log(res);
 
-			document.getElementById("rewards-pool-two").innerHTML = parseFloat(+res/10e8).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+			document.getElementById("rewards-pool-two").innerHTML = parseFloat(+res/10e8).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 		}
 
 	});
+
+
 }
 
 
