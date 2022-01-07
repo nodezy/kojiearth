@@ -903,12 +903,28 @@ include 'inc/header.php';
 
                         <div class="ui-col">
                             <div class="ui-box nft-tiers">
-                                <p>Pool Eligibility & Info</p>
-
-                                <div class="data-row clearfix">
-                                    <div class="title">Stake amount for NFT minting: </div>
-                                    <div class="value">Tier 1: $1500 USD of KOJI; Tier 2: $500 USD KOJI</div>
+                                <p>Pool Eligibility</p>
+                                <br>
+                                <span class="ui-note">Oracle-based Real-time Eligibility Equivalents:</span>
+                                <div class="holder tier-1 clearfix th" data-aos="fade-right" data-aos-delay="200" data-aos-easing="ease-in" data-aos-once="true" data-aos-duration="20000" data-aos-anchor=".staking-p1" style="width:100% !important; margin-top: 10px">
+                                    <span class="tier">TIER<strong>1</strong></span>
+                                    <span class="info">
+                                    <span class="amount" id="tier1amount"></span>
+                                    <span class="desc">Tier feauture: <strong>Animated NFT</strong></span>
+                                    </span>
                                 </div>
+
+                                 <div class="holder tier-2 clearfix th" data-aos="fade-left" data-aos-delay="200" data-aos-easing="ease-in" data-aos-once="true" data-aos-duration="20000" data-aos-anchor=".tier-1" style="width:100% !important; margin-left:0px; margin-top: 10px; margin-bottom:15px">
+                                    <span class="tier">TIER<strong>2</strong></span>
+                                    <span class="info">
+                                    <span class="amount" id="tier2amount"></span>
+                                    <span class="desc">Tier feauture: <strong>Still NFT</strong></span>
+                                    </span>
+                                </div>
+
+                                <div class="clearfix"></div>
+
+                                <p>Pool Rewards & Info</p>
 
                                 <div class="data-row clearfix">
                                     <div class="title">Taxes: </div>
@@ -921,30 +937,13 @@ include 'inc/header.php';
                                 </div>
 
                                 <div class="data-row clearfix">
-                                    <div class="title">Reward Pool 1: </div>
-                                    <div class="value">All unstake % gets distribtued to existing stakers</div>
+                                    <div class="title">Reward Pool 1 (Stake Pool): </div>
+                                    <div class="value">All unstake % gets distribtued to existing stakers, claimable on any withdrawal amount</div>
                                 </div>
 
-                                 <div class="data-row clearfix" style="margin-bottom:15px">
-                                    <div class="title">Reward Pool 2: </div>
-                                    <div class="value">KOJI FLUX is rewarded per block; can be redeemed</div>
-                                </div>
-
-                                <span >Oracle-based Real-time Eligibility Equivalents:</span>
-                                <div class="holder tier-1 clearfix th" data-aos="fade-right" data-aos-delay="200" data-aos-easing="ease-in" data-aos-once="true" data-aos-duration="20000" data-aos-anchor=".staking-p1" style="width:100% !important; margin-top: 10px">
-                                    <span class="tier">TIER<strong>1</strong></span>
-                                    <span class="info">
-                                    <span class="amount" id="tier1amount"></span>
-                                    <span class="desc">Tier feauture: <strong>Animated NFT</strong></span>
-                                    </span>
-                                </div>
-
-                                 <div class="holder tier-2 clearfix th" data-aos="fade-left" data-aos-delay="200" data-aos-easing="ease-in" data-aos-once="true" data-aos-duration="20000" data-aos-anchor=".tier-1" style="width:100% !important; margin-left:0px; margin-top: 10px">
-                                    <span class="tier">TIER<strong>2</strong></span>
-                                    <span class="info">
-                                    <span class="amount" id="tier2amount"></span>
-                                    <span class="desc">Tier feauture: <strong>Still NFT</strong></span>
-                                    </span>
+                                 <div class="data-row clearfix">
+                                    <div class="title">Reward Pool 2 (Reward Pool): </div>
+                                    <div class="value">KOJI FLUX is rewarded per block; can be redeemed for KOJI or used to purchase superMints</div>
                                 </div>
                             </div>
                         </div>
@@ -1007,7 +1006,7 @@ include 'inc/header.php';
 
                     </div><!-- .ui-row -->
 
-                    <span class="ui-title"><i class="far fa-table"></i>Stake You KOJI</span>
+                    <span class="ui-title"><i class="far fa-table"></i>Stake Your KOJI</span>
 
                     <div class="ui-row col-3">
 
@@ -1027,8 +1026,11 @@ include 'inc/header.php';
 
                                 <span class="ui-note">* Please note that you can only mint tier 1 OR tier 2 per page per address, unless you purchase a superMint.</span>
 
+                                
+                                <input class="mt20 mb20" type="text" id="stakeDeposit" name="deposit" placeholder="enter amount you want to stake">
 
-                                <button type="button" class="btn btn-sep bottom">
+
+                                <button type="button" class="btn btn-sep ">
                                     <div><i class="icon-external-link"></i></div>
                                     <span>Deposit</span>
                                 </button>
@@ -1048,13 +1050,18 @@ include 'inc/header.php';
                                     <div class="value" id="my-stake-value">$986.00 USD</div>
                                 </div>
                                 <div class="data-row clearfix">
-                                    <div class="title">My Tier Eligibility: </div>
-                                    <div class="value">Tier 2</div>
+                                    <div class="title">My Mint Tier Eligibility: </div>
+                                    <div class="value" id="my-stake-tier">Tier 2</div>
                                 </div>
 
                                 <div class="data-row clearfix">
-                                    <div class="title">KOJI FLUX Rewards: </div>
-                                    <div class="value">6,000,000 FLUX</div>
+                                    <div class="title">My Pool Rewards: </div>
+                                    <div class="value" id="my-pool-rewards">6,000,000 KOJI</div>
+                                </div>
+
+                                <div class="data-row clearfix">
+                                    <div class="title">My KOJI FLUX Rewards: </div>
+                                    <div class="value" id="my-flux-rewards">6,000,000 FLUX</div>
                                 </div>
                             </div>
                         </div>
@@ -1064,15 +1071,17 @@ include 'inc/header.php';
                                 <p>Withdraw</p>
                                 <div class="data-row clearfix">
                                     <div class="title">Withdraw Fee: </div>
-                                    <div class="value">1% unstake fee + 1.5% early unstake penalty<br> (15 days until 0%)</div>
+                                    <div class="value">1% withdrawal fee</div>
                                 </div>
 
                                 <div class="data-row clearfix">
-                                    <div class="title">Pool Rewards Upon Withdraw: </div>
-                                    <div class="value">1,598,000 KOJI</div>
+                                    <div class="title">Early unstake penalty: </div>
+                                    <div class="value" id="unstake-penalty">1.5% (15 days until 0%)</div>
                                 </div>
 
                                 <span class="ui-note">* You can withdraw up to <span id="overage-amt">350,000,000 KOJI</span> and still be eligible for Tier 2 NFT minting.</span>
+
+                                <input class="mt20 mb20" type="text" id="stakeWithdraw" name="withdraw" placeholder="enter amount you want to withdraw">
 
                                 <button type="button" class="btn btn-sep bottom">
                                     <div><i class="icon-external-link"></i></div>
