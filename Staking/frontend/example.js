@@ -1317,7 +1317,7 @@ async function fetchAccountData() {
 	stakingcontract.methods.poolInfo(0).call(function(err,res) {
 		if (!err) { 
 
-			totalkojistaked = parseFloat(+res[4]/10e8).toFixed(0);
+			totalkojistaked = parseFloat(+res[4]/10e8).toFixed(2);
 
 			//console.log(totalrewardsone);
 
@@ -1361,7 +1361,7 @@ async function fetchAccountData() {
 		if (!err) { 
 			//console.log(res);
 
-			document.getElementById("rewards-pool-two").innerHTML = parseFloat(+res/10e8).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+			document.getElementById("rewards-pool-two").innerHTML = parseFloat(+res/10e8).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " FLUX";
 		}
 
 	});
