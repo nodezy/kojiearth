@@ -876,7 +876,7 @@ include 'inc/header.php';
 
                 <div class="ui-wrapper _staking" style="display:none">
 
-                    <span class="ui-title"><i class="far fa-table"></i>Stake your KOJI to mint the NFT Comic</span>
+                    <span class="ui-title"><i class="far fa-book-open"></i>Stake your KOJI to mint the NFT Comic</span>
 
                     <div class="ui-row col-3">
 
@@ -924,7 +924,7 @@ include 'inc/header.php';
 
                                 <div class="clearfix"></div>
 
-                                <p>Pool Rewards & Info</p>
+                                <p>Pool Rewards & Taxes</p>
 
                                 <div class="data-row clearfix">
                                     <div class="title">Taxes: </div>
@@ -942,7 +942,7 @@ include 'inc/header.php';
                                 </div>
 
                                  <div class="data-row clearfix">
-                                    <div class="title">Reward Pool 2 (Reward Pool): </div>
+                                    <div class="title">Reward Pool 2 (FLUX Pool): </div>
                                     <div class="value" style="word-break: break-word">KOJI FLUX is rewarded per block; can be redeemed for KOJI or used to purchase superMints</div>
                                 </div>
                             </div>
@@ -956,13 +956,13 @@ include 'inc/header.php';
 
                 <div class="ui-wrapper  _staking" style="display:none">
 
-                    <span class="ui-title"><i class="far fa-table"></i>Staking Pool</span>
+                    <span class="ui-title"><i class="far fa-chart-pie"></i>Staking Pool Info</span>
 
                     <div class="ui-row col-4" style="margin-bottom:10px">
 
                         <div class="ui-col">
                             <div class="ui-box">
-                                <i class="fas fa-trophy-alt"></i>&nbsp;&nbsp;<span>Total KOJI Staked:</span> 
+                                <i class="fas fa-mask"></i>&nbsp;&nbsp;<span>Total KOJI Staked:</span> 
                                 <div class="data-row clearfix">
                                     <div class="value" style="width:100%;text-align: center">
                                         <span id="total-koji-staked"></span>
@@ -973,7 +973,7 @@ include 'inc/header.php';
 
                         <div class="ui-col">
                             <div class="ui-box">
-                                <i class="fas fa-trophy-alt"></i>&nbsp;&nbsp;<span>Total Staked Value:</span>
+                                <i class="fas fa-sack-dollar"></i>&nbsp;&nbsp;<span>Total Staked Value:</span>
                                  <div class="data-row clearfix">
                                     <div class="value" style="width:100%;text-align: center">
                                         <span id="total-staked-usd"></span>
@@ -984,7 +984,7 @@ include 'inc/header.php';
 
                         <div class="ui-col">
                             <div class="ui-box">
-                                <i class="fas fa-trophy-alt"></i>&nbsp;&nbsp;<span>Stake Rewards Pool:</span> 
+                                <i class="fas fa-coins"></i>&nbsp;&nbsp;<span>Stake Rewards Pool:</span> 
                                 <div class="data-row clearfix">
                                     <div class="value" style="width:100%;text-align: center">
                                         <span id="rewards-pool-one"></span>
@@ -995,7 +995,7 @@ include 'inc/header.php';
 
                         <div class="ui-col">
                             <div class="ui-box">
-                                <i class="fas fa-trophy-alt"></i>&nbsp;&nbsp;<span>Flux Rewards Pool:</span> 
+                                <i class="fas fa-chart-network"></i>&nbsp;&nbsp;<span>Flux Rewards Pool:</span> 
                                 <div class="data-row clearfix">
                                     <div class="value" style="width:100%;text-align: center">
                                         <span id="rewards-pool-two"></span>
@@ -1006,7 +1006,7 @@ include 'inc/header.php';
 
                     </div><!-- .ui-row -->
 
-                    <span class="ui-title"><i class="far fa-table"></i>Stake Your KOJI</span>
+                    <span class="ui-title"><i class="far fa-pennant"></i>Stake Your KOJI</span>
 
                     <div class="ui-row col-3">
 
@@ -1031,8 +1031,8 @@ include 'inc/header.php';
 
 
                                 <button type="button" class="btn btn-sep ">
-                                    <div><i class="icon-external-link"></i></div>
-                                    <span>Deposit</span>
+                                    <div><i class="fas fa-arrow-alt-to-bottom"></i></div>
+                                    <span>Deposit KOJI</span>
                                 </button>
                             </div>
                         </div>
@@ -1042,26 +1042,26 @@ include 'inc/header.php';
                                 <p>My Stake Info</p>
                                 <div class="data-row clearfix">
                                     <div class="title">My Total Stake: </div>
-                                    <div class="value" id="my-total-stake">800,000,000 KOJI</div>
+                                    <div class="value" id="my-total-stake">0 KOJI</div>
                                 </div>
 
                                 <div class="data-row clearfix">
                                     <div class="title">My Stake Value: </div>
-                                    <div class="value" id="my-stake-value">$986.00 USD</div>
+                                    <div class="value" id="my-stake-value">$0.00 USD</div>
                                 </div>
                                 <div class="data-row clearfix">
                                     <div class="title">My Mint Tier Eligibility: </div>
-                                    <div class="value" id="my-stake-tier">Tier 2</div>
+                                    <div class="value" id="my-stake-tier">N/A</div>
                                 </div>
 
                                 <div class="data-row clearfix">
                                     <div class="title">My Pool Rewards: </div>
-                                    <div class="value" id="my-pool-rewards">6,000,000 KOJI</div>
+                                    <div class="value" id="my-pool-rewards">0 KOJI</div>
                                 </div>
 
                                 <div class="data-row clearfix">
                                     <div class="title">My KOJI FLUX Rewards: </div>
-                                    <div class="value" id="my-flux-rewards">6,000,000 FLUX</div>
+                                    <div class="value" id="my-flux-rewards">0 FLUX</div>
                                 </div>
                             </div>
                         </div>
@@ -1071,22 +1071,68 @@ include 'inc/header.php';
                                 <p>Withdraw</p>
                                 <div class="data-row clearfix">
                                     <div class="title">Withdraw Fees: </div>
-                                    <div class="value" id="unstake-penalty"></div>
+                                    <div class="value" id="unstake-penalty">1% + any early unstake %</div>
                                 </div>
 
                                 <div class="data-row clearfix">
                                     <div class="title" id="unstake-tier">Tier preservation</div>
-                                    <div class="value"><span>Max withdraw to keep Tier 1:</span><span id="unstake-amount-1"></span><br><span>Max withdraw to keep Tier 2:</span><span id="unstake-amount-2"></span></div>
+                                    <div class="value"><span>Max withdraw to keep Tier 1:</span><span id="unstake-amount-1">&nbsp;N/A</span><br><span>Max withdraw to keep Tier 2:</span><span id="unstake-amount-2">&nbsp;N/A</span></div>
                                 </div>
 
                                 <span class="ui-note" id="is-overage" style="display: none">* A withdrawal of <span id="overage-amt"></span> will result in <span id="pool-reward"></span> stake pool reward distribution. </span>
 
                                 <input class="mt20 mb20" type="text" id="stakeWithdraw" name="withdraw" placeholder="enter amount you want to withdraw">
 
+                                <button type="button" class="btn btn-sep bottom" style="position:relative;bottom:0px;width:100%;margin:0px 0px">
+                                    <div><i class="fas fa-arrow-alt-from-bottom"></i></div>
+                                    <span>Withdraw KOJI</span>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div><!-- .ui-row -->
+
+                </div><!-- .ui-wrapper -->
+
+                <!-- UI row with 2 column ------------------------------------------------------------>
+
+                <div class="ui-wrapper">
+
+                    <span class="ui-title"><i class="far fa-piggy-bank"></i>Manage Rewards & Mints</span>
+
+                    <div class="ui-row col-2">
+
+                        <div class="ui-col">
+                            <div class="ui-box bottom-btn">
+                                <p>UI row with 2 columns, <strong>column 1</strong> with button inside UI box.</p>
+                                <p>Sed cursus dui et lorem accumsan sodales. Cras et justo ligula. Aliquam auctor ante non tortor auctor placerat. Duis dictum purus quis eleifend sagittis. </p>
                                 <button type="button" class="btn btn-sep bottom">
                                     <div><i class="icon-external-link"></i></div>
-                                    <span>Withdraw</span>
+                                    <span>Grey <strong>Button</strong></span>
                                 </button>
+                            </div>
+                        </div>
+
+                        <div class="ui-col">
+                            <div class="ui-box">
+                                <p>UI row with 2 columns, <strong>column 2</strong> + data rows for narrower display.</p>
+
+                                <div class="data-row clearfix">
+                                    <div class="title">Title: </div>
+                                    <div class="value">Value and/or info</div>
+                                </div>
+
+                                <div class="data-row clearfix">
+                                    <div class="title">Another Title: </div>
+                                    <div class="value">Anotehr value and/or info</div>
+                                </div>
+
+                                <div class="data-row clearfix">
+                                    <div class="title">Last Title: </div>
+                                    <div class="value">Some additional value and/or info</div>
+                                </div>
+
+
                             </div>
                         </div>
 
