@@ -1030,38 +1030,45 @@ include 'inc/header.php';
                                 <input class="mt20 mb20" type="text" id="stakeDeposit" name="deposit" placeholder="enter amount you want to stake">
 
 
-                                <button type="button" class="btn btn-sep ">
+                                <button type="button" class="btn btn-sep bottom" style="background-color:#365036">
                                     <div><i class="fas fa-arrow-alt-to-bottom"></i></div>
                                     <span>Deposit KOJI</span>
                                 </button>
                             </div>
                         </div>
 
+                        <style>
+                            .right {
+                                text-align: right !important;
+                                padding-right: 5px !important;
+                            }
+                        </style>
+
                         <div class="ui-col">
                             <div class="ui-box">
                                 <p>My Stake Info</p>
                                 <div class="data-row clearfix">
                                     <div class="title">My Total Stake: </div>
-                                    <div class="value" id="my-total-stake">0 KOJI</div>
+                                    <div class="value right" id="my-total-stake">0 KOJI</div>
                                 </div>
 
                                 <div class="data-row clearfix">
                                     <div class="title">My Stake Value: </div>
-                                    <div class="value" id="my-stake-value">$0.00 USD</div>
+                                    <div class="value right" id="my-stake-value">$0.00 USD</div>
                                 </div>
                                 <div class="data-row clearfix">
                                     <div class="title">My Mint Tier Eligibility: </div>
-                                    <div class="value" id="my-stake-tier">N/A</div>
+                                    <div class="value right" id="my-stake-tier">N/A</div>
                                 </div>
 
                                 <div class="data-row clearfix">
                                     <div class="title">My Pool Rewards: </div>
-                                    <div class="value" id="my-pool-rewards">0 KOJI</div>
+                                    <div class="value right" id="my-pool-rewards">0 KOJI</div>
                                 </div>
 
                                 <div class="data-row clearfix">
                                     <div class="title">My KOJI FLUX Rewards: </div>
-                                    <div class="value" id="my-flux-rewards">0 FLUX</div>
+                                    <div class="value right" id="my-flux-rewards">0 FLUX</div>
                                 </div>
                             </div>
                         </div>
@@ -1083,7 +1090,7 @@ include 'inc/header.php';
 
                                 <input class="mt20 mb20" type="text" id="stakeWithdraw" name="withdraw" placeholder="enter amount you want to withdraw">
 
-                                <button type="button" class="btn btn-sep bottom" style="position:relative;bottom:0px;width:100%;margin:0px 0px">
+                                <button type="button" class="btn btn-sep" style="background-color:#365036">
                                     <div><i class="fas fa-arrow-alt-from-bottom"></i></div>
                                     <span>Withdraw KOJI</span>
                                 </button>
@@ -1096,9 +1103,9 @@ include 'inc/header.php';
 
                 <!-- UI row with 2 column ------------------------------------------------------------>
 
-                <div class="ui-wrapper">
+                <div class="ui-wrapper _staking" style="display:none">
 
-                    <span class="ui-title"><i class="far fa-piggy-bank"></i>Manage Rewards & Mints</span>
+                    <span class="ui-title"><i class="far fa-piggy-bank"></i>Manage Rewards || superMints</span>
 
                     <div class="ui-row col-2">
 
@@ -1106,32 +1113,55 @@ include 'inc/header.php';
                             <div class="ui-box bottom-btn">
                                 <p>UI row with 2 columns, <strong>column 1</strong> with button inside UI box.</p>
                                 <p>Sed cursus dui et lorem accumsan sodales. Cras et justo ligula. Aliquam auctor ante non tortor auctor placerat. Duis dictum purus quis eleifend sagittis. </p>
-                                <button type="button" class="btn btn-sep bottom">
+                                <button type="button" class="btn btn-sep bottom" style="background-color:#365036">
                                     <div><i class="icon-external-link"></i></div>
-                                    <span>Grey <strong>Button</strong></span>
+                                    <span>Redeem FLUX for KOJI</span>
                                 </button>
                             </div>
                         </div>
 
                         <div class="ui-col">
                             <div class="ui-box">
-                                <p>UI row with 2 columns, <strong>column 2</strong> + data rows for narrower display.</p>
+                                
+                                <p><strong>superMints</strong> are special currency that can be used to mint comic NFT pages that ordinarily cannot be minted otherwise.</p>
+                                <span>superMints allow the staker to do the following:</span>
+                                <ul>
+                                    <li>Mint an NFT page after the minting window is closed</li>
+                                    <li>Mint an NFT page from a tier the staker isn't eligible for</li>
+                                    <li>Mint a duplicate NFT the staker already minted</li>
+                                </ul>
+                                <p>Stakers can only have one (1) superMint at a time, and also must hold the minimum stake amount in order to use the superMint. superMints cannot be sold or traded, and the purchase price of a superMint is subject to change based on the conversion price of FLUX and/or the market price of KOJI.</p>
 
                                 <div class="data-row clearfix">
-                                    <div class="title">Title: </div>
-                                    <div class="value">Value and/or info</div>
+                                    <div class="title">superMint purchase status: </div>
+                                    <div class="value right" id="supermint-enabled" style="display:none">superMint purchases enabled <div class="dot-container" style="display: inline;"><div class="dot green" style="float:right;display:inline-block;margin: 5px 0 10px 5px;"></div></div></div>
+                                    <div class="value right" id="supermint-disabled">superMint purchases disabled <div class="dot-container" style="display: inline;"><div class="dot red" style="float:right;display:inline-block;margin: 5px 0 10px 5px;"></div></div></div>
                                 </div>
 
                                 <div class="data-row clearfix">
-                                    <div class="title">Another Title: </div>
-                                    <div class="value">Anotehr value and/or info</div>
+                                    <div class="title">My superMint balance: </div>
+                                    <div class="value right" id="supermint-balance">0 superMint</div>
                                 </div>
 
                                 <div class="data-row clearfix">
-                                    <div class="title">Last Title: </div>
-                                    <div class="value">Some additional value and/or info</div>
+                                    <div class="title">superMint FLUX price: </div>
+                                    <div class="value right">10,000,000 FLUX</div>
                                 </div>
 
+                                <button type="button" class="btn btn-sep" style="background-color:#365036">
+                                    <div><i class="fas fa-chart-network"></i></div>
+                                    <span>Buy superMint with FLUX</span>
+                                </button>
+
+                                <div class="data-row clearfix" style="margin-top:10px">
+                                    <div class="title">superMint KOJI price: </div>
+                                    <div class="value right">100,000,000 KOJI</div>
+                                </div>
+
+                                <button type="button" class="btn btn-sep" style="background-color:#365036">
+                                    <div><i class="fas fa-mask"></i></div>
+                                    <span>Buy superMint with KOJI</span>
+                                </button>
 
                             </div>
                         </div>
