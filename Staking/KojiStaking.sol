@@ -386,29 +386,30 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
                 emit Withdraw(_msgSender(), _pid, _amount);
                 
             } 
+            uint256 netamount = _amount; //stack too deep
             if (totalRewards > 0) { //include reflection
 
                 uint256 tempRewards = pendingRewards(_pid, _msgSender());
                 userBalance[_msgSender()] = userBalance[_msgSender()].add(tempRewards);
 
-                uint256 percentRewards = _amount.mul(100).div(pool.runningTotal); // Get % of share out of 100
+                uint256 percentRewards = netamount.mul(100).div(pool.runningTotal); // Get % of share out of 100
                 uint256 reflectAmount = percentRewards.mul(totalRewards).div(100); // Get % of reflect amount
 
-                pool.runningTotal = pool.runningTotal.sub(_amount);
-                user.amount = user.amount.sub(_amount);
+                pool.runningTotal = pool.runningTotal.sub(netamount);
+                user.amount = user.amount.sub(netamount);
                 
                 if(enableTaxlessWithdrawals) { // Switch for tax free / reflection free withdrawals
-                     _amount = _amount;
+                     netamount = netamount;
                 } else {
                      uint256 taxfeenumerator = getUnstakePenalty(user.unstakeTime);
                      uint256 taxfee = taxableAmount.sub(taxableAmount.mul(taxfeenumerator).div(unstakePenaltyDenominator));
-                     _amount = _amount.mul(taxfee).div(100).add(reflectAmount);
+                     netamount = netamount.mul(taxfee).div(100).add(reflectAmount);
                 }
-                pool.stakeToken.safeTransfer(address(_msgSender()), _amount);
-                emit Withdraw(_msgSender(), _pid, _amount);
+                pool.stakeToken.safeTransfer(address(_msgSender()), netamount);
+                emit Withdraw(_msgSender(), _pid, netamount);
             }               
 
-            if (userAmount == _amount) { // User is retrieving entire balance, set rewardDebt to zero
+            if (userAmount == netamount) { // User is retrieving entire balance, set rewardDebt to zero
                 user.rewardDebt = 0;
                 user.unstakeTime = block.timestamp;
                 user.tierAtStakeTime = 0;
@@ -884,5 +885,9 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     function setSuperMintBuying(bool _fluxbuying, bool _kojibuying) external onlyAuthorized {
         enableFluxSuperMintBuying = _fluxbuying;
         enableKojiSuperMintBuying = _kojibuying;
+    }
+
+    function getSuperMintPrices() external view returns (uint256 fluxprice, uint256 kojiprice) {
+        return (superMintFluxPrice,superMintKojiPrice);
     }
 }
