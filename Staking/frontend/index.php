@@ -1011,7 +1011,9 @@ include 'inc/header.php';
                     <div class="ui-row col-3">
 
                         <div class="ui-col">
+                            <span id="dep-holdings-loader" class="ui-loader"></span>
                             <div class="ui-box">
+
                                 <p>Deposit</p>
                                 
                                 <div class="data-row clearfix">
@@ -1029,8 +1031,14 @@ include 'inc/header.php';
                                 
                                 <input class="mt20 mb20" type="text" id="stakeDeposit" name="deposit" placeholder="enter amount you want to stake">
 
+                                
 
-                                <button type="button" class="btn btn-sep bottom" style="background-color:#365036">
+                                <button type="button" class="btn btn-sep bottom" id="approve-staking" onclick="approvestaking();" style="background-color:#2976ab; display:none">
+                                    <div><i class="fas fa-thumbs-up"></i></div>
+                                    <span>Approve KOJI for staking</span>
+                                </button>
+
+                                <button type="button" class="btn btn-sep bottom" id="deposit-staking" onclick="depositstaking();" style="background-color:#365036; display:none">
                                     <div><i class="fas fa-arrow-alt-to-bottom"></i></div>
                                     <span>Deposit KOJI</span>
                                 </button>
@@ -1134,8 +1142,10 @@ include 'inc/header.php';
 
                                 <div class="data-row clearfix">
                                     <div class="title">superMint purchase status: </div>
-                                    <div class="value right" id="supermint-enabled" style="display:none">superMint purchases enabled <div class="dot-container" style="display: inline;"><div class="dot green" style="float:right;display:inline-block;margin: 5px 0 10px 5px;"></div></div></div>
-                                    <div class="value right" id="supermint-disabled">superMint purchases disabled <div class="dot-container" style="display: inline;"><div class="dot red" style="float:right;display:inline-block;margin: 5px 0 10px 5px;"></div></div></div>
+                                    <div class="value right" id="supermint-flux-enabled" style="display:none">FLUX superMint purchases enabled <div class="dot-container" style="display: inline;"><div class="dot green" style="float:right;display:inline-block;margin: 5px 0 10px 5px;"></div></div></div>
+                                    <div class="value right" id="supermint-flux-disabled">FLUX superMint purchases disabled <div class="dot-container" style="display: inline;"><div class="dot red" style="float:right;display:inline-block;margin: 5px 0 10px 5px;"></div></div></div>
+                                    <div class="value right" id="supermint-koji-enabled" style="display:none;float:right;">KOJI superMint purchases enabled <div class="dot-container" style="display: inline;"><div class="dot green" style="float:right;display:inline-block;margin: 5px -5px 10px 5px;"></div></div></div>
+                                    <div class="value right" id="supermint-koji-disabled" style="float:right;">KOJI superMint purchases disabled <div class="dot-container" style="display: inline;"><div class="dot red" style="float:right;display:inline-block;margin: 5px -5px 10px 5px;"></div></div></div>
                                 </div>
 
                                 <div class="data-row clearfix">
@@ -1145,20 +1155,20 @@ include 'inc/header.php';
 
                                 <div class="data-row clearfix">
                                     <div class="title">superMint FLUX price: </div>
-                                    <div class="value right">10,000,000 FLUX</div>
+                                    <div class="value right" id="flux-supermint-price"></div>
                                 </div>
 
-                                <button type="button" class="btn btn-sep" style="background-color:#365036">
+                                <button type="button" class="btn btn-sep" id="btn-supermint-flux" style="background-color:#365036">
                                     <div><i class="fas fa-chart-network"></i></div>
                                     <span>Buy superMint with FLUX</span>
                                 </button>
 
                                 <div class="data-row clearfix" style="margin-top:10px">
                                     <div class="title">superMint KOJI price: </div>
-                                    <div class="value right">100,000,000 KOJI</div>
+                                    <div class="value right" id="koji-supermint-price"></div>
                                 </div>
 
-                                <button type="button" class="btn btn-sep" style="background-color:#365036">
+                                <button type="button" class="btn btn-sep" id="btn-supermint-koji" style="background-color:#365036">
                                     <div><i class="fas fa-mask"></i></div>
                                     <span>Buy superMint with KOJI</span>
                                 </button>
