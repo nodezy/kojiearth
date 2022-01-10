@@ -113,6 +113,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     uint256 public conversionRate = 100; // Conversion rate of KOJIFLUX => $KOJI (default 100%).
     uint256 public bonusRate = 120; // Rate of bonus for late stakers.
     uint256 public stakeBonusStart; // Start time of bonus for stakers.
+    uint256 public stakeBonusEnd = 259200; // End time of bonus for stakers (default 1 month).
 
     uint256 public upperLimiter = 101; // Percent numerator above minKojiTier1Stake so user can deposit enough for tier 1
     bool public enableRewardWithdraw = false; // Whether KOJIFLUX is withdrawable from this contract (default false).
@@ -128,7 +129,8 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     uint256 public unstakePenaltyDenominator = 1000;
 
     bool public promoActive = false; // Whether the promotional amount of KOJIFLUX is given out to new stakers (default is True).
-    bool public enableSuperMintBuying = false; // Whether users can purchase superMints with $KOJI (default is false).
+    bool public enableKojiSuperMintBuying = false; // Whether users can purchase superMints with $KOJI (default is false).
+    bool public enableFluxSuperMintBuying = false; // Whether users can purchase superMints with $KOJI (default is false).
     bool public enableTaxlessWithdrawals = false; // Switch to use in case of farming contract migration.
     bool public stakeBonusEnabled = false; // Switch to enable/disable kojiflux -> koji bonus during conversion.
 
@@ -560,7 +562,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
         require(userBalance[_msgSender()] > 0, "User does not have any pending rewards");
 
-        uint256 useramount = getConversionAmount(userBalance[_msgSender()]);
+        uint256 useramount = getConversionAmount(userBalance[_msgSender()], _msgSender());
         rewards.payPendingRewards(_msgSender(), useramount);
 
         userRealized[_msgSender()] = userRealized[_msgSender()].add(userBalance[_msgSender()]);
@@ -672,7 +674,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
             UserInfo storage user0 = userInfo[0][_address];
 
-            if (user0.stakeTime >= stakeBonusStart) {
+            if (user0.stakeTime >= stakeBonusStart && user0.stakeTime <= stakeBonusEnd) {
 
                 newamount = newamount.mul(bonusRate).div(100);
             }
@@ -795,6 +797,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
     // Function to buy superMint internally with KojiFlux
     function buySuperMint() external nonReentrant {
+        require(enableFluxSuperMintBuying, "superMint cannot be purchased with KOJI at this time");
         require(!superMint[_msgSender()], "This user already has an unused superMint");
         require(userBalance[_msgSender()] >= superMintFluxPrice, "Insufficient KojiFlux to purchase superMint");
 
@@ -804,7 +807,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
     // Function to buy superMint with $KOJI
     function buySuperMintKoji() external nonReentrant {
-        require(enableSuperMintBuying, "superMint cannot be purchased with KOJI at this time");
+        require(enableKojiSuperMintBuying, "superMint cannot be purchased with KOJI at this time");
         require(kojitoken.balanceOf(_msgSender()) >= superMintKojiPrice, "You do not have the required tokens for purchase"); 
         require(!superMint[_msgSender()], "This user already has an unused superMint");
 
@@ -869,11 +872,17 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
     }
 
-    function setStakeBonusParams(uint256 _stakeBonusStart, uint256 _bonusRate, bool _stakeBonusEnabled) external onlyAuthorized {
+    function setStakeBonusParams(uint256 _stakeBonusStart, uint256 _stakeBonusEnd, uint256 _bonusRate, bool _stakeBonusEnabled) external onlyAuthorized {
 
         stakeBonusStart = _stakeBonusStart;
+        stakeBonusEnd = _stakeBonusEnd;
         bonusRate = _bonusRate;
         stakeBonusEnabled = _stakeBonusEnabled;
 
+    }
+
+    function setSuperMintBuying(bool _fluxbuying, bool _kojibuying) external onlyAuthorized {
+        enableFluxSuperMintBuying = _fluxbuying;
+        enableKojiSuperMintBuying = _kojibuying;
     }
 }
