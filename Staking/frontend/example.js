@@ -59,6 +59,8 @@ let mobile = false;
 
 let switched = false;
 
+let donotsend = true;
+
 let apipull = 1;
 
 let kojiusd;
@@ -1132,7 +1134,15 @@ async function fetchAccountData() {
 								stakingcontract.methods.getHolderRewards(selectedAccount).call(function(err,res) {
 									if (!err) { 
 										var totalrewards = parseFloat(+res/10e8).toFixed(2);
-										var mypoolrewards = +totalrewards - +mystake;
+										totalrewards = totalrewards - mystake;
+										//console.log(totalrewards);
+
+										var mypoolrewards = (+mystake*.01)*-1;
+										//console.log(mypoolrewards);
+										mypoolrewards = Number(totalrewards) + Number(mypoolrewards);
+
+										//console.log(mypoolrewards);
+										//console.log(mystake);
 
 										document.getElementById("my-pool-rewards").innerHTML = mypoolrewards.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 									}
@@ -1531,21 +1541,124 @@ document.getElementById("stakeDeposit").addEventListener("keyup", function(e) {
 
 });
 
-async function depositstaking() {
+async function validatedeposit() {
 
-	//console.log(mintdata);
+	 document.getElementById("dep-holdings-loader").classList.add('ui-loading');
+	 document.querySelector('#deposit-staking').setAttribute("disabled", "disabled");
+
+     const web3 = new Web3(provider);
+
+      var amount = document.getElementById("stakeDeposit").value;
+
+     amount = amount.toString().replace(/[,]+/g, "").replace(/[^0-9]*$/, "");
+	  //console.log(amount);
+
+	  amount = web3.utils.toWei(amount, "Gwei");
+
+	  var stakingcontract = new web3.eth.Contract(JSON.parse(stakingabi),staking);
+
+	  stakingcontract.methods.getOracleMinMax().call(function(err,res) {
+		if (!err) { 
+			//console.log(res);
+
+			var tier1 = parseFloat(+res[0]/10e8).toFixed(0);
+			var tier2 = parseFloat(+res[1]/10e8).toFixed(0);
+
+		  stakingcontract.methods.upperLimiter().call(function(err,res) {  //get uppperlimiter
+				if (!err) { 
+
+					var upperlimiter = Number(res);
+
+					var max = (Number(tier1) * Number(upperlimiter))/100;
+
+				    stakingcontract.methods.userStaked(selectedAccount).call(function(err,res) {  //is user staked already?
+						if (!err) { 
+
+							//console.log(res);
+
+							if(res) {//user is staked, calculate deposit/wd amounts
+
+								stakingcontract.methods.userInfo(0,selectedAccount).call(function(err,res) { //get current stake
+									if (!err) { 
+
+										var mystake = parseFloat(+res[0]/10e8).toFixed(2);
+										var mystakedusd = parseFloat((+kojiusd * res[0]) / 10e17).toFixed(2);
+
+										//console.log("mystake is " + mystake);
+										//console.log("new amount is " + amount);
+
+										var mynewstake = (Number(mystake) + Number(amount/10e8)) * Number(upperlimiter) / 100;
+
+										//console.log("upperlimiter is " + upperlimiter);
+										//console.log("newstake is " + mynewstake);
+										//console.log("max stake is " + max)
+
+										if (Number(mynewstake)  > Number(max)) {
+
+											var netamount = (Number(tier1)-Number(mystake)).toFixed(0);
+
+											document.getElementById("depositalert").style.display = "block";
+											document.getElementById("depositalert").innerHTML = "Your new deposit amount combined with your current stake is too high, please deposit less than "+netamount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+											document.getElementById("dep-holdings-loader").classList.remove('ui-loading');
+											document.getElementById("deposit-staking").removeAttribute("disabled");
+											
+
+										} else {
+
+											document.getElementById("depositalert").style.display = "none";
+											document.getElementById("depositalert").innerHTML = "";
+
+											depositstaking(amount);
+
+										}
+
+									}
+
+								});
+
+							} else { //user isn't staked
+
+								
+
+								if ((Number(amount) * Number(upperlimiter)) / 100 > max) {
+
+									document.getElementById("depositalert").style.display = "block";
+									document.getElementById("depositalert").innerHTML = "Your deposit amount is too high, please deposit less than "+max.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+									document.getElementById("dep-holdings-loader").classList.remove('ui-loading');
+									document.getElementById("deposit-staking").removeAttribute("disabled");
+									
+
+								} else {
+
+									document.getElementById("depositalert").style.display = "none";
+									document.getElementById("depositalert").innerHTML = "";
+
+									
+									depositstaking(amount);
+								}
+
+
+							}
+						}
+					});
+				}
+			});
+		}
+	});
+
+
+}
+
+async function depositstaking(amount) {
+
+
+	 console.log(amount);
 	  document.getElementById("dep-holdings-loader").classList.add('ui-loading');
 	  document.querySelector('#deposit-staking').setAttribute("disabled", "disabled");
 
      const web3 = new Web3(provider);
 
-     var amount = document.getElementById("stakeDeposit").value;
-
-     console.log(amount);
-
-	  amount = web3.utils.toWei(amount, "Gwei");
-
-     // Get list of accounts of the connected wallet
+      // Get list of accounts of the connected wallet
      try {
               await ethereum.enable();
               var account = await web3.eth.getAccounts();
@@ -1553,58 +1666,61 @@ async function depositstaking() {
         //console.log(err);
       }
 
-      var stakingcontract = new web3.eth.Contract(JSON.parse(stakingabi),staking);
+    var stakingcontract = new web3.eth.Contract(JSON.parse(stakingabi),staking);
+          
+  	web3.eth.sendTransaction(
+      {from: account[0],
+      to: staking,
+      value: 0, 
+      gasprice: 100000, // 100000 = 10 gwei
+       //gas: 350000,   // gas limit
+      data: stakingcontract.methods.deposit(0,amount).encodeABI()
+          }, function(err, transactionHash) {
+        //console.log('in progress');
+        if (!err) {
+        	 txinprogress = true;
+             //document.getElementById("req-gas-btn").setAttribute("disabled","disabled");
+             //document.getElementById("reg-holdings-btn").setAttribute("disabled","disabled");
+            
+             var message = "<a href='https://bscscan.com/tx/"+transactionHash+"' target='_blank'>Tx Hash "+transactionHash+"</a>"
 
-       web3.eth.sendTransaction(
-          {from: account[0],
-          to: staking,
-          value: 0, 
-          gasprice: 100000, // 100000 = 10 gwei
-           //gas: 350000,   // gas limit
-          data: stakingcontract.methods.deposit(0,amount).encodeABI()
-              }, function(err, transactionHash) {
-            //console.log('in progress');
-            if (!err) {
-            	 txinprogress = true;
-	             //document.getElementById("req-gas-btn").setAttribute("disabled","disabled");
-	             //document.getElementById("reg-holdings-btn").setAttribute("disabled","disabled");
-	            
-	             var message = "<a href='https://bscscan.com/tx/"+transactionHash+"' target='_blank'>Tx Hash "+transactionHash+"</a>"
-
-	             if (!mobile) {
-	             	openAlert("info", "Transaction Submitted", message);
-	             }
-	             
-            }
+             if (!mobile) {
+             	openAlert("info", "Transaction Submitted", message);
+             }
              
-      })
-      .on('receipt', function(receipt){
+        }
+         
+  })
+  .on('receipt', function(receipt){
 
-        //console.log(receipt);
+    //console.log(receipt);
 
-        	if (!mobile) {
-       		 	openAlert("success", "Transaction Completed", "Success!");
-       		 }
+    	if (!mobile) {
+   		 	openAlert("success", "Transaction Completed", "Success!");
+   		 }
 
-        	document.getElementById("dep-holdings-loader").classList.remove('ui-loading');
-        	document.getElementById("deposit-staking").setAttribute("disabled","disabled");
-        	document.getElementById("stakeDeposit").value = "";
+    	document.getElementById("dep-holdings-loader").classList.remove('ui-loading');
+    	document.getElementById("deposit-staking").setAttribute("disabled","disabled");
+    	document.getElementById("stakeDeposit").value = "";
 
-            fetchAccountData();
+        fetchAccountData();
 
-            txinprogress = false;
+        txinprogress = false;
 
 
-      })
+  })
 
-      .on('error', function(error){ // If a out of gas error, the second parameter is the receipt.
-      		 
-             document.getElementById("dep-holdings-loader").classList.remove('ui-loading');
-        	document.getElementById("deposit-staking").removeAttribute("disabled");
-             openAlert("danger", "Transaction Failed", error.message);
+  .on('error', function(error){ // If a out of gas error, the second parameter is the receipt.
+  		 
+         document.getElementById("dep-holdings-loader").classList.remove('ui-loading');
+    	document.getElementById("deposit-staking").removeAttribute("disabled");
+         openAlert("danger", "Transaction Failed", error.message);
 
-             txinprogress = false;
-      });
+         txinprogress = false;
+  });
+
+      
+       
 }
 
 
