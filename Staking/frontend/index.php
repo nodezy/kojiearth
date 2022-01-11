@@ -1031,6 +1031,7 @@ include 'inc/header.php';
                                 
                                 <input class="mt20 mb20" type="text" id="stakeDeposit" name="deposit" placeholder="enter amount you want to stake">
 
+                                <span class="ui-note" style="color:red;display:block;margin-top:-15px" id="depositalert"></span>
                                 
 
                                 <button type="button" class="btn btn-sep bottom" id="approve-staking" onclick="approvestaking();" style="background-color:#2976ab; display:none">
@@ -1038,7 +1039,7 @@ include 'inc/header.php';
                                     <span>Approve KOJI for staking</span>
                                 </button>
 
-                                <button type="button" class="btn btn-sep bottom" id="deposit-staking" onclick="depositstaking();" style="background-color:#365036; display:none">
+                                <button type="button" class="btn btn-sep bottom" id="deposit-staking" onclick="validatedeposit();" style="background-color:#365036; display:none">
                                     <div><i class="fas fa-arrow-alt-to-bottom"></i></div>
                                     <span>Deposit KOJI</span>
                                 </button>
