@@ -331,7 +331,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
             }
             
             if(user.amount == 0) { // We only want the minimum to apply on first deposit, not subsequent ones
-                require(_amount >= minstake2 && _amount <= minstake1.mul(101).div(100)  , "Please input the correct amount of KOJI tokens to stake");
+                require(_amount >= minstake2 && _amount <= minstake1.mul(upperLimiter).div(100)  , "Please input the correct amount of KOJI tokens to stake");
                 user.stakeTime = block.timestamp;
                 user.unstakeTime = block.timestamp;
             }
@@ -860,7 +860,9 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
     function getUnstakePenalty(uint256 _staketime) public view returns (uint256) {
 
-        uint256 totaldays = _staketime.sub(block.timestamp).div(86400);
+        uint256 totaldays = block.timestamp.sub(_staketime);
+        
+        totaldays = totaldays.div(86400);
 
         uint256 totalunstakefee  = unstakePenaltyStartingTax.sub(totaldays);
 
