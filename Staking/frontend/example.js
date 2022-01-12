@@ -61,6 +61,8 @@ let switched = false;
 
 let donotsend = true;
 
+let functioncalled = false;
+
 let apipull = 1;
 
 let kojiusd;
@@ -313,6 +315,9 @@ async function fetchAccountData() {
   //console.log("Web3 instance is", web3);
 
   document.getElementById("connected").style.display = 'block';
+  //edit by andreas	
+  document.getElementById("page").classList.add('connected');
+  document.getElementById("page").classList.remove('disconnected');
 
   try {
 
@@ -1429,6 +1434,10 @@ async function fetchAccountData() {
 
 	});
 
+  	 if (!functioncalled) {
+	   	getwalletnft();
+	  }
+
 
 }
 
@@ -1533,7 +1542,7 @@ document.getElementById("stakeDeposit").addEventListener("keyup", function(e) {
 
 	//console.log(amount);
 
-	amount = amount.toString().replace(/[,]+/g, "").replace(/[^0-9]*$/, "");
+	amount = amount.toString().replace(/[, ]+/g, "").replace(/[^0-9]*$/, "");
 
 	//console.log(amount);
 
@@ -1550,7 +1559,7 @@ async function validatedeposit() {
 
       var amount = document.getElementById("stakeDeposit").value;
 
-     amount = amount.toString().replace(/[,]+/g, "").replace(/[^0-9]*$/, "");
+     amount = amount.toString().replace(/[, ]+/g, "").replace(/[^0-9]*$/, "");
 	  //console.log(amount);
 
 	  amount = web3.utils.toWei(amount, "Gwei");
@@ -1718,11 +1727,249 @@ async function depositstaking(amount) {
 
          txinprogress = false;
   });
+      
+}
+
+async function validatewithdrawal() {
+
+	 document.getElementById("wd-holdings-loader").classList.add('ui-loading');
+	 document.querySelector('#withdraw-staking').setAttribute("disabled", "disabled");
+
+     const web3 = new Web3(provider);
+
+      var amount = document.getElementById("stakeWithdraw").value;
+
+     amount = amount.toString().replace(/[, ]+/g, "").replace(/[^0-9]*$/, "");
+	  //console.log(amount);
+
+	  amount = web3.utils.toWei(amount, "Gwei");
+
+	  var stakingcontract = new web3.eth.Contract(JSON.parse(stakingabi),staking);
+
+	   stakingcontract.methods.userStaked(selectedAccount).call(function(err,res) {  //is user staked already?
+			if (!err) { 
+
+				//console.log(res);
+
+				if(res) {//user is staked, calculate deposit/wd amounts
+
+					document.getElementById("withdrawalert").style.display = "none";
+					document.getElementById("withdrawalert").innerHTML = "";
+
+					stakingcontract.methods.userInfo(0,selectedAccount).call(function(err,res) { //get current stake
+						if (!err) { 
+
+							var mystakeraw = Number(res);
+							var mystake = parseFloat(+res[0]/10e8).toFixed(2);
+							var mystakedusd = parseFloat((+kojiusd * res[0]) / 10e17).toFixed(2);
+
+							if (amount > mystakeraw) {
+
+								document.getElementById("withdrawalert").style.display = "block";
+								document.getElementById("withdrawalert").innerHTML = "Desired withdrawal amount is higher than user staked amount";
+
+							} else {
+
+								document.getElementById("withdrawalert").style.display = "none";
+								document.getElementById("withdrawalert").innerHTML = "";
+
+								withdrawstaking(amount);
+
+							}
+
+						}
+					});
+
+				} else {
+
+					document.getElementById("withdrawalert").style.display = "block";
+					document.getElementById("withdrawalert").innerHTML = "You don't have any stake to withdraw!";
+
+				}
+
+			}
+		});
+
+}
+
+document.getElementById("stakeWithdraw").addEventListener("keyup", function(e) {
+
+	var amount = document.getElementById("stakeWithdraw").value;
+
+	//console.log(amount);
+
+	amount = amount.toString().replace(/[, ]+/g, "").replace(/[^0-9]*$/, "");
+
+	//console.log(amount);
+
+	document.getElementById("stakeWithdraw").value = amount.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+});
+
+async function withdrawstaking(amount) {
+
+
+	 console.log(amount);
+	  document.getElementById("wd-holdings-loader").classList.add('ui-loading');
+	  document.querySelector('#withdraw-staking').setAttribute("disabled", "disabled");
+
+     const web3 = new Web3(provider);
+
+      // Get list of accounts of the connected wallet
+     try {
+              await ethereum.enable();
+              var account = await web3.eth.getAccounts();
+      } catch {
+        //console.log(err);
+      }
+
+    var stakingcontract = new web3.eth.Contract(JSON.parse(stakingabi),staking);
+          
+  	web3.eth.sendTransaction(
+      {from: account[0],
+      to: staking,
+      value: 0, 
+      gasprice: 100000, // 100000 = 10 gwei
+       //gas: 350000,   // gas limit
+      data: stakingcontract.methods.withdraw(0,amount).encodeABI()
+          }, function(err, transactionHash) {
+        //console.log('in progress');
+        if (!err) {
+        	 txinprogress = true;
+             //document.getElementById("req-gas-btn").setAttribute("disabled","disabled");
+             //document.getElementById("reg-holdings-btn").setAttribute("disabled","disabled");
+            
+             var message = "<a href='https://bscscan.com/tx/"+transactionHash+"' target='_blank'>Tx Hash "+transactionHash+"</a>"
+
+             if (!mobile) {
+             	openAlert("info", "Transaction Submitted", message);
+             }
+             
+        }
+         
+  })
+  .on('receipt', function(receipt){
+
+    //console.log(receipt);
+
+    	if (!mobile) {
+   		 	openAlert("success", "Transaction Completed", "Success!");
+   		 }
+
+    	document.getElementById("wd-holdings-loader").classList.remove('ui-loading');
+    	document.getElementById("withdraw-staking").setAttribute("disabled","disabled");
+    	document.getElementById("stakeWithdraw").value = "";
+
+        fetchAccountData();
+
+        txinprogress = false;
+
+
+  })
+
+  .on('error', function(error){ // If a out of gas error, the second parameter is the receipt.
+  		 
+         document.getElementById("wd-holdings-loader").classList.remove('ui-loading');
+    	document.getElementById("withdraw-staking").removeAttribute("disabled");
+         openAlert("danger", "Transaction Failed", error.message);
+
+         txinprogress = false;
+  });
 
       
        
 }
 
+//NFT Functions//////////////////////////////////////////////////////////////////////////
+
+async function getwalletnft() {
+	//console.log("function called");
+	functioncalled = true;
+	const web3 = new Web3(provider);
+
+      // Get list of accounts of the connected wallet
+     try {
+              await ethereum.enable();
+              var account = await web3.eth.getAccounts();
+      } catch {
+        //console.log(err);
+      }
+	var nftcontract = new web3.eth.Contract(JSON.parse(bscnftmintABI),bscnftaddress);
+	nftcontract.methods.tokenOfOwnerByIndex(account[0], 0).call(function(err,res){
+	        if(!err){
+
+	        	document.getElementById("no-nft").style.display = "none";
+	        	document.getElementById("nftdisplay").style.display = "block";
+	        	document.getElementById("nft-holdings-loader").classList.add('ui-loading');
+
+	        	var id = res;
+	        	//console.log("result is " +res);
+	        	nftcontract.methods.tokenURI(id).call(function(err,res){
+			        if(!err){
+			        	//get all JSON data
+			        	var mintedURI = res;        		
+
+		                var data = getJSON(mintedURI, {mode: 'cors'} ).then(data => populatenft(data, id));
+
+			        }
+		    	});
+	        } else {
+
+	        	//console.log("returned error");
+	        	document.getElementById("no-nft").style.display = "block";
+	        	document.getElementById("nftdisplay").style.display = "none";
+
+
+	        }
+	});
+
+	
+}
+
+async function populatenft(data, id) {
+	if (data !== null) {
+		//console.log(data);
+		//console.log(data.attributes[5].value);
+
+		const web3 = new Web3(provider);
+		var nftcontract = new web3.eth.Contract(JSON.parse(bscnftmintABI),bscnftaddress);
+		nftcontract.methods.mintedtier1().call(function(err,res){
+		        if(!err){
+		        	var tier1total = res;
+		        	nftcontract.methods.mintedtier2().call(function(err,res){
+				        if(!err){
+				        	//get all JSON data
+				        	var tier2total = res;        		
+
+			                var tempdata = "<div class='row'><span class='type'>" + data.attributes[0].trait_type + ": </span><span class='data'>" + data.attributes[0].value + "</span></div>"; //project
+					    	tempdata += "<div class='row'><span class='type'>" + data.attributes[1].trait_type + ": </span><span class='data'>" + data.attributes[1].value + "</span></div>"; //type
+					    	tempdata += "<div class='row'><span class='type'>" + data.attributes[2].trait_type + ": </span><span class='data'>" + data.attributes[2].value + "</span></div>"; //id
+					    	tempdata += "<div class='row'><span class='type'>" + data.attributes[3].trait_type + ": </span><span class='data'>" + data.attributes[3].value + "</span></div>"; //titel
+					    	tempdata += "<div class='row'><span class='type'>" + data.attributes[4].trait_type + ": </span><span class='data'>" + data.attributes[4].value + "</span></div>"; //rarity
+					    	tempdata += "<div class='row'><span class='type'>" + data.attributes[5].trait_type + ": </span><span class='data'>" + data.attributes[5].value + "</span></div>"; //tier
+					    	tempdata += "<div class='row'><span class='type'>" + data.attributes[6].trait_type + ": </span><span class='data'>" + data.attributes[6].value + "</span></div>"; //requirements
+					    	tempdata += "<div class='row'><span class='type'>" + data.attributes[7].trait_type + ": </span><span class='data'>" + data.attributes[7].value + "</span></div>"; //royalties
+					    	tempdata += "<span class='description'>" +data.description + "</span>";
+							tempdata += "<span class='total'>Tier 1 Total: <strong>" + tier1total + " mints</strong></span>";
+							tempdata += "<span class='total'>Tier 2 Total: <strong>" + tier2total + " mints</strong></span>";
+					    	
+
+						document.getElementById("nftdisplay").style.display = "block";
+						if (data.attributes[5].value == "Tier 1") {
+							document.getElementById("image").innerHTML = '<video width="100%" controls autoplay loop muted="muted"><source src="'+data.mp4+'" type="video/mp4">Your browser does not support the video tag.</video><br><div class="row"><span class="type" style="font-size:x-small">Contract: '+bscnftaddress+'</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="data" style="font-size:x-small">TokenID: '+id+'</span></div>';
+						} else {
+							document.getElementById("image").innerHTML = '<img src="'+data.image+'"><br><div class="row"><span class="type" style="font-size:x-small">Contract: '+bscnftaddress+'</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="data" style="font-size:x-small">TokenID: '+id+'</span></div>';
+						}
+						
+						document.getElementById("metadata").innerHTML = tempdata;
+						document.getElementById("nft-holdings-loader").classList.remove('ui-loading');
+
+				        }
+			    	});
+		        }
+		});
+	}
+}
 
 
 async function registerHoldings() {
@@ -2420,57 +2667,58 @@ window.addEventListener('load', async () => {
 
 });
 
-function tabselect(elementClass) {
+// edit by andreas, tab system moved out to ui specific js file
+// function tabselect(elementClass) {
 
-	var x = document.getElementsByClassName("nav-link");
-	var i;
-	for (i = 0; i < x.length; i++) {
-	  x[i].classList.remove('active');
-	}
+// 	var x = document.getElementsByClassName("nav-link");
+// 	var i;
+// 	for (i = 0; i < x.length; i++) {
+// 	  x[i].classList.remove('active');
+// 	}
 
-	console.log(elementClass);
+// 	console.log(elementClass);
 
-	document.getElementById(elementClass).classList.add('active');
+// 	document.getElementById(elementClass).classList.add('active');
 
-	var x = document.getElementsByClassName("_token");
-	var y = document.getElementsByClassName("_staking");
-	var z = document.getElementsByClassName("_nfts");
+// 	var x = document.getElementsByClassName("_token");
+// 	var y = document.getElementsByClassName("_staking");
+// 	var z = document.getElementsByClassName("_nfts");
 
-	if (elementClass == "token-link") {
+// 	if (elementClass == "token-link") {
 
-		for (var i = 0; i < x.length; i++) {
-		  x[i].style.display = "block";
-		}
-		for (var i = 0; i < y.length; i++) {
-		  y[i].style.display = "none";
-		}
-		for (var i = 0; i < z.length; i++) {
-		  z[i].style.display = "none";
-		}
+// 		for (var i = 0; i < x.length; i++) {
+// 		  x[i].style.display = "block";
+// 		}
+// 		for (var i = 0; i < y.length; i++) {
+// 		  y[i].style.display = "none";
+// 		}
+// 		for (var i = 0; i < z.length; i++) {
+// 		  z[i].style.display = "none";
+// 		}
 
-	}
+// 	}
 
-	if (elementClass == "staking-link") {
-		for (var i = 0; i < x.length; i++) {
-		  x[i].style.display = "none";
-		}
-		for (var i = 0; i < y.length; i++) {
-		  y[i].style.display = "block";
-		}
-		for (var i = 0; i < z.length; i++) {
-		  z[i].style.display = "none";
-		}
-	}
+// 	if (elementClass == "staking-link") {
+// 		for (var i = 0; i < x.length; i++) {
+// 		  x[i].style.display = "none";
+// 		}
+// 		for (var i = 0; i < y.length; i++) {
+// 		  y[i].style.display = "block";
+// 		}
+// 		for (var i = 0; i < z.length; i++) {
+// 		  z[i].style.display = "none";
+// 		}
+// 	}
 
-	if (elementClass == "nft-link") {
-		for (var i = 0; i < x.length; i++) {
-		  x[i].style.display = "none";
-		}
-		for (var i = 0; i < y.length; i++) {
-		  y[i].style.display = "none";
-		}
-		for (var i = 0; i < z.length; i++) {
-		  z[i].style.display = "block";
-		}
-	}
-}
+// 	if (elementClass == "nft-link") {
+// 		for (var i = 0; i < x.length; i++) {
+// 		  x[i].style.display = "none";
+// 		}
+// 		for (var i = 0; i < y.length; i++) {
+// 		  y[i].style.display = "none";
+// 		}
+// 		for (var i = 0; i < z.length; i++) {
+// 		  z[i].style.display = "block";
+// 		}
+// 	}
+// }
