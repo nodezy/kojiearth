@@ -429,7 +429,6 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
                         user.unstakeTime = block.timestamp;
                         user.tierAtStakeTime = 0;
                         user.blacklisted = true;
-                        removeStakeholder(_msgSender());
                     }
                 }
                 
