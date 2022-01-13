@@ -26,7 +26,7 @@ let bscnftaddress = "0x062C9545e61A7eD56F3BE4256EAAC19c5580868A"; //bsctest nft 
 let bscnftproxy = "0xe97E4c086283d6e6c407ac131F7413Fea3B32a46"; //bsctest nft proxy contract
 let liquidpair = "0x697666d38d339958ed416e0119bdc73abef58996";
 let oracle = "0x66F2495e1f139c22Dd839250858bB8936a7845Bc";
-let staking = "0x0597b0F8947eeBb4e1a77037E6552Ff8E7E657E1";
+let staking = "0x6540Bb9Ac05d15D34ACf0604a9B542c63e801275";
 let rewards = "0xDE554cA0E3B9861d120A7415C0dE6Ac32AFb4cE4";
 
 var kojitokenABI = JSON.stringify([{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"owner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[],"name":"AddToDistributorBalance","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"AddToDistributorDeposit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"AddToDistributorNetDivs","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_walletGas","type":"uint256"},{"internalType":"uint256","name":"_reinvestGas","type":"uint256"}],"name":"ChangeDistribGas","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_timelimit","type":"uint256"}],"name":"ChangeImpoundTimelimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"},{"internalType":"uint256","name":"_gas","type":"uint256"}],"name":"ChangeMinHold","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_percent","type":"uint256"}],"name":"Donate","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_holder","type":"address"}],"name":"GetClaimed","outputs":[{"internalType":"uint256","name":"pending","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"GetMinDistribution","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_holder","type":"address"}],"name":"GetPending","outputs":[{"internalType":"uint256","name":"pending","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"GetRewardsToken","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_holder","type":"address"}],"name":"GetShareholderExpired","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_percent","type":"uint256"},{"internalType":"uint256","name":"_amountOutMin","type":"uint256"}],"name":"Reinvest","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"RescueBNBfromDistributor","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"SetDistributionCriteria","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"SweepDivs","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_tokenAddr","type":"address"},{"internalType":"address","name":"_to","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"TransferBEP20fromDistributor","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"ViewHolderInfo","outputs":[{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"unpaid","type":"uint256"},{"internalType":"uint256","name":"realised","type":"uint256"},{"internalType":"uint256","name":"excluded","type":"uint256"},{"internalType":"bool","name":"rewardeligible","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"ViewMathInfo","outputs":[{"internalType":"uint256","name":"totalshares","type":"uint256"},{"internalType":"uint256","name":"netdividends","type":"uint256"},{"internalType":"uint256","name":"totaldistributed","type":"uint256"},{"internalType":"uint256","name":"totalreinvested","type":"uint256"},{"internalType":"uint256","name":"totalwithdrawn","type":"uint256"},{"internalType":"uint256","name":"totalDonated","type":"uint256"},{"internalType":"uint256","name":"totaldividends","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"ViewMinHold","outputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"WETHaddedToPool","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_percent","type":"uint256"}],"name":"Withdrawal","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"_maxTxAmountBuy","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"_maxTxAmountSell","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"_maxWalletToken","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_tokencontract","type":"address"},{"internalType":"uint256","name":"_minHoldAmount","type":"uint256"},{"internalType":"uint256","name":"_percent","type":"uint256"}],"name":"addPartnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"addToLiquid","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"adminWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"airdropEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"holder","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"}],"name":"approveMax","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"burnRatio","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_distributorgas","type":"uint256"},{"internalType":"uint256","name":"_walletgas","type":"uint256"}],"name":"changeContractGas","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_oracle","type":"address"}],"name":"changeOracle","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"charityWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"convertBNBtoWBNB","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"distributorDeposit","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"enableOracle","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"enablePartners","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"feeDenominator","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getCirculatingSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getDonationLeaders","outputs":[{"internalType":"address[]","name":"","type":"address[]"},{"internalType":"uint256[]","name":"","type":"uint256[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getPartnershipIndex","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bool","name":"bot","type":"bool"}],"name":"getTotalFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"isInBot","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"isOwner","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"launchEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"launchedAt","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"manualBurn","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"nftPoolActive","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"nftRewardWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"oracle","outputs":[{"internalType":"contract IOracle","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"pair","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"partnerFeeLimiter","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"registerShares","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_tokencontract","type":"address"}],"name":"removePartnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"rescueBNB","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"router","outputs":[{"internalType":"contract IDEXRouter","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setAddToLiquid","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"setAirdropDisabled","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"},{"internalType":"bool","name":"toggle","type":"bool"}],"name":"setBot","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"setBuyTxLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setDistributorDeposit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setEnableOracle","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setEnablePartners","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_totalFee","type":"uint256"}],"name":"setFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_charityWallet","type":"address"},{"internalType":"address","name":"_adminWallet","type":"address"},{"internalType":"address","name":"_nftRewardWallet","type":"address"},{"internalType":"address","name":"_stakePoolWallet","type":"address"}],"name":"setFeeReceivers","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"blocks","type":"uint256"}],"name":"setInitialBlockLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"holder","type":"address"},{"internalType":"bool","name":"exempt","type":"bool"}],"name":"setIsDividendExempt","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"holder","type":"address"},{"internalType":"bool","name":"exempt","type":"bool"}],"name":"setIsFeeExempt","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"holder","type":"address"},{"internalType":"bool","name":"exempt","type":"bool"}],"name":"setIsTxLimitExempt","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"setLaunchEnabled","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"setMaxWalletToken","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setNFTPoolActive","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_limiter","type":"uint256"}],"name":"setPartnerFeeLimiter","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"setSellTxLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setStakePoolActive","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_enabled","type":"bool"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"setSwapBackSettings","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setTeamWalletDeposit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"setburnRatio","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"setstakepoolRatio","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"settaxRatio","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"stakePoolActive","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"stakePoolWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"stakepoolRatio","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"swapEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"taxRatio","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"teamWalletDeposit","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalAdmin","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalCharity","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalNFTrewards","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalStakepool","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_tokenAddr","type":"address"},{"internalType":"address","name":"_to","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"transferBEP20Tokens","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address payable","name":"adr","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_index","type":"uint256"}],"name":"viewPartnership","outputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"string","name":"symbol","type":"string"},{"internalType":"uint8","name":"decimals","type":"uint8"},{"internalType":"address","name":"tokencontract","type":"address"},{"internalType":"uint256","name":"minHoldAmount","type":"uint256"},{"internalType":"uint256","name":"discount","type":"uint256"},{"internalType":"bool","name":"enabled","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"viewTeamWalletInfo","outputs":[{"internalType":"uint256","name":"charityDivs","type":"uint256"},{"internalType":"uint256","name":"adminDivs","type":"uint256"},{"internalType":"uint256","name":"nftDivs","type":"uint256"},{"internalType":"uint256","name":"stakeDivs","type":"uint256"}],"stateMutability":"view","type":"function"},{"stateMutability":"payable","type":"receive"}]);
@@ -582,7 +582,7 @@ async function fetchAccountData() {
 			    						if(!err){
 			    							var user_rewards_bool = res.rewardeligible;
 			    								if (!user_rewards_bool) { //user needs to register
-			    									document.querySelector('#registration').style.display = 'block';
+			    									document.querySelector('#registration').style.display = 'none';
 			    									document.querySelector('#ineligible').style.display = 'block';
 							    					document.querySelector('#eligible').style.display = 'none';
 			    									
@@ -631,6 +631,7 @@ async function fetchAccountData() {
 					       var kojiusdholdings = parseFloat(kojiusdvalue * balance).toFixed(2);
 					        
 					        document.getElementById("koji-balance").innerHTML = balance.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI <span class='usd-amount'>($" +kojiusdholdings+")</span>" ;
+					        document.getElementById("koji-balance-1").innerHTML = "Balance: "+balance.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 
 					        tokencontract.methods.GetPending(selectedAccount).call(function(err,res){
 					    		if(!err){
@@ -1112,7 +1113,7 @@ async function fetchAccountData() {
 			stakingcontract.methods.userStaked(selectedAccount).call(function(err,res) {
 				if (!err) { 
 
-					//console.log(res);
+					console.log(res);
 
 					if(res) {//user is staked, calculate deposit/wd amounts
 
@@ -1564,96 +1565,132 @@ async function validatedeposit() {
 
 	  amount = web3.utils.toWei(amount, "Gwei");
 
-	  var stakingcontract = new web3.eth.Contract(JSON.parse(stakingabi),staking);
+	  var tokencontract = new web3.eth.Contract(JSON.parse(kojitokenABI),kojitoken);
 
-	  stakingcontract.methods.getOracleMinMax().call(function(err,res) {
-		if (!err) { 
-			//console.log(res);
+	  tokencontract.methods.balanceOf(selectedAccount).call(function(err,res){
+		    if(!err){
+		    	var balance = res;
 
-			var tier1 = parseFloat(+res[0]/10e8).toFixed(0);
-			var tier2 = parseFloat(+res[1]/10e8).toFixed(0);
+		    	if (balance < res) {
 
-		  stakingcontract.methods.upperLimiter().call(function(err,res) {  //get uppperlimiter
-				if (!err) { 
+		    		document.getElementById("depositalert").style.display = "block";
+					document.getElementById("depositalert").innerHTML = "Insufficient balance";
+					document.getElementById("dep-holdings-loader").classList.remove('ui-loading');
+					document.getElementById("deposit-staking").removeAttribute("disabled");
 
-					var upperlimiter = Number(res);
+		    	} else {
 
-					var max = (Number(tier1) * Number(upperlimiter))/100;
+		    		var stakingcontract = new web3.eth.Contract(JSON.parse(stakingabi),staking);
 
-				    stakingcontract.methods.userStaked(selectedAccount).call(function(err,res) {  //is user staked already?
+					  stakingcontract.methods.getOracleMinMax().call(function(err,res) {
 						if (!err) { 
-
 							//console.log(res);
 
-							if(res) {//user is staked, calculate deposit/wd amounts
+							var tier1 = parseFloat(+res[0]/10e8).toFixed(0);
+							var tier2 = parseFloat(+res[1]/10e8).toFixed(0);
 
-								stakingcontract.methods.userInfo(0,selectedAccount).call(function(err,res) { //get current stake
-									if (!err) { 
+						  stakingcontract.methods.upperLimiter().call(function(err,res) {  //get uppperlimiter
+								if (!err) { 
 
-										var mystake = parseFloat(+res[0]/10e8).toFixed(2);
-										var mystakedusd = parseFloat((+kojiusd * res[0]) / 10e17).toFixed(2);
+									var upperlimiter = Number(res);
 
-										//console.log("mystake is " + mystake);
-										//console.log("new amount is " + amount);
+									var max = ((Number(tier1) * Number(upperlimiter))/100)*10e8;
+									var min = tier2*10e8;
 
-										var mynewstake = (Number(mystake) + Number(amount/10e8)) * Number(upperlimiter) / 100;
+								    stakingcontract.methods.userStaked(selectedAccount).call(function(err,res) {  //is user staked already?
+										if (!err) { 
 
-										//console.log("upperlimiter is " + upperlimiter);
-										//console.log("newstake is " + mynewstake);
-										//console.log("max stake is " + max)
+											//console.log(res);
 
-										if (Number(mynewstake)  > Number(max)) {
+											if(res) {//user is staked, calculate deposit/wd amounts
 
-											var netamount = (Number(tier1)-Number(mystake)).toFixed(0);
+												stakingcontract.methods.userInfo(0,selectedAccount).call(function(err,res) { //get current stake
+													if (!err) { 
 
-											document.getElementById("depositalert").style.display = "block";
-											document.getElementById("depositalert").innerHTML = "Your new deposit amount combined with your current stake is too high, please deposit less than "+netamount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-											document.getElementById("dep-holdings-loader").classList.remove('ui-loading');
-											document.getElementById("deposit-staking").removeAttribute("disabled");
-											
+														var mystake = res[0];
+														var mystakedusd = parseFloat((+kojiusd * res[0]) / 10e17).toFixed(2);
 
-										} else {
+														//console.log("mystake is " + mystake);
+														//console.log("new amount is " + amount);
 
-											document.getElementById("depositalert").style.display = "none";
-											document.getElementById("depositalert").innerHTML = "";
+														var mynewstake = Number(mystake) + Number(amount);
 
-											depositstaking(amount);
+														//console.log("upperlimiter is " + upperlimiter);
+														//console.log("newstake is " + mynewstake);
+														//console.log("max stake is " + max)
 
+														if (Number(mynewstake)  > Number(max)) {
+
+															var netamount = (Number(tier1)-Number(mystake)).toFixed(0);
+
+															document.getElementById("depositalert").style.display = "block";
+															document.getElementById("depositalert").innerHTML = "Your new deposit amount combined with your current stake is too high, please deposit less than "+netamount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+															document.getElementById("dep-holdings-loader").classList.remove('ui-loading');
+															document.getElementById("deposit-staking").removeAttribute("disabled");
+															
+
+														} else {
+
+															document.getElementById("depositalert").style.display = "none";
+															document.getElementById("depositalert").innerHTML = "";
+
+															depositstaking(amount);
+
+														}
+
+													}
+
+												});
+
+											} else { //user isn't staked
+
+												console.log(max);
+												console.log(upperlimiter);
+												console.log(Number(amount) *(Number(upperlimiter)/100));
+
+												if (Number(amount)  > Number(max)) {
+
+													document.getElementById("depositalert").style.display = "block";
+													document.getElementById("depositalert").innerHTML = "Your deposit amount is too high, please deposit less than "+ parseFloat(+max/10e8).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+													document.getElementById("dep-holdings-loader").classList.remove('ui-loading');
+													document.getElementById("deposit-staking").removeAttribute("disabled");
+													
+
+												} else {
+
+													if (Number(amount) < Number(min)) {
+
+														document.getElementById("depositalert").style.display = "block";
+														document.getElementById("depositalert").innerHTML = "Your deposit amount is too low, please deposit more than "+ parseFloat(+min/10e8).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+														document.getElementById("dep-holdings-loader").classList.remove('ui-loading');
+														document.getElementById("deposit-staking").removeAttribute("disabled");
+
+													} else {
+
+														document.getElementById("depositalert").style.display = "none";
+														document.getElementById("depositalert").innerHTML = "";
+
+													
+														depositstaking(amount);
+													}
+
+													
+												}
+
+
+											}
 										}
-
-									}
-
-								});
-
-							} else { //user isn't staked
-
-								
-
-								if ((Number(amount) * Number(upperlimiter)) / 100 > max) {
-
-									document.getElementById("depositalert").style.display = "block";
-									document.getElementById("depositalert").innerHTML = "Your deposit amount is too high, please deposit less than "+max.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-									document.getElementById("dep-holdings-loader").classList.remove('ui-loading');
-									document.getElementById("deposit-staking").removeAttribute("disabled");
-									
-
-								} else {
-
-									document.getElementById("depositalert").style.display = "none";
-									document.getElementById("depositalert").innerHTML = "";
-
-									
-									depositstaking(amount);
+									});
 								}
-
-
-							}
+							});
 						}
 					});
-				}
-			});
-		}
-	});
+
+		    	}
+		    }
+		});
+
+	  
 
 
 }
