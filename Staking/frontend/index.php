@@ -1473,7 +1473,7 @@ include 'inc/header.php';
                                   <span id="dep-holdings-loader" class="ui-loader"></span>
                                   <div class="ui-box">
 
-                                      <p>Deposit</p>
+                                      <div class="value"><p>Deposit</p><span style="float:right;font-size:12px;margin-top:5px" id="koji-balance-1"></span></div>
 
                                       <div class="data-row clearfix">
                                           <div class="title">For Tier 1 minting, please deposit at least: </div>
@@ -1492,7 +1492,7 @@ include 'inc/header.php';
                                       <input class="mt20 mb20" type="text" id="stakeDeposit" name="deposit"
                                           placeholder="enter amount you want to stake">
 
-                                      <span class="ui-note" style="color:red;display:block;margin-top:-15px"
+                                      <span class="ui-note" style="color:red;display:block;margin-top:-30px"
                                           id="depositalert"></span>
 
 
