@@ -1319,12 +1319,18 @@ include 'inc/header.php';
 
                       <!-- UI row with 3 column (staking)------------------------------------------------------------>
 
-                      <div class="ui-wrapper">
+                      <div class="ui-wrapper" id="staking-info-wrapper">
 
-                          <span class="ui-title"><i class="far fa-book-open"></i>Stake your KOJI to mint the NFT
-                              Comic</span>
+                          <span class="ui-title"><i class="far fa-book-open"></i>Stake your KOJI to mint the NFT Comic
+                              		<span id="show-toggle" style="float:right;">
+                              			<a href="#" onclick="javascript:showstakinginfo=true;$('#hide-toggle').show();$('#show-toggle').hide();$('#show-staking-info').show();$('#staking-info-wrapper').css('margin-bottom','40px');">Show (+)</a>
+                              		</span>
+                              		<span id="hide-toggle" style="float:right">
+                              			<a href="#" onclick="javascript:hidestakinginfo=true;$('#show-toggle').show();$('#hide-toggle').hide();$('#show-staking-info').hide();$('#staking-info-wrapper').css('margin-bottom','0px');">Hide (-)</a>
+                              		</span>
+                           </span>
 
-                          <div class="ui-row col-3">
+                          <div class="ui-row col-3" id="show-staking-info">
 
                               <div class="ui-col">
                                   <div class="ui-box">
@@ -1623,6 +1629,7 @@ include 'inc/header.php';
 
                                       <div class="data-row clearfix">
                                           <div class="title">superMint purchase status: </div>
+
                                           <div class="value right" id="supermint-flux-enabled" style="display:none">FLUX
                                               superMint purchases enabled <div class="dot-container"
                                                   style="display: inline;">
