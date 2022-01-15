@@ -63,6 +63,10 @@ let donotsend = true;
 
 let functioncalled = false;
 
+let showstakinginfo = false;
+
+let hidestakinginfo = false;
+
 let apipull = 1;
 
 let kojiusd;
@@ -1113,9 +1117,21 @@ async function fetchAccountData() {
 			stakingcontract.methods.userStaked(selectedAccount).call(function(err,res) {
 				if (!err) { 
 
-					console.log(res);
+					//console.log(res);
 
 					if(res) {//user is staked, calculate deposit/wd amounts
+
+						console.log(showstakinginfo);
+
+						if (!showstakinginfo) {
+
+						document.getElementById("show-staking-info").style.display = "none";
+						document.getElementById("staking-info-wrapper").style.marginBottom = "0px";
+						document.getElementById("hide-toggle").style.display = "none";
+						document.getElementById("show-toggle").style.display = "block";
+
+						}
+
 
 						stakingcontract.methods.userInfo(0,selectedAccount).call(function(err,res) {
 							if (!err) { 
@@ -1321,8 +1337,22 @@ async function fetchAccountData() {
 
 					} else { //user is not staked, reset deposit/staking amounts
 
+						console.log(hidestakinginfo);
+
+						if(!hidestakinginfo) {
+
+						document.getElementById("show-staking-info").style.display = "flex";
+						document.getElementById("staking-info-wrapper").style.marginBottom = "40px";
+						document.getElementById("hide-toggle").style.display = "block";
+						document.getElementById("show-toggle").style.display = "none";
+
+						}
+
+
 						document.getElementById("mintier1amount").innerHTML = tier1.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 						document.getElementById("mintier2amount").innerHTML = tier2.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+
+
 
 					}
 				}
@@ -1421,6 +1451,36 @@ async function fetchAccountData() {
 			document.getElementById("koji-supermint-price").innerHTML = parseFloat(+res[1]/10e8).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 		}
 
+	});
+
+	stakingcontract.methods.enableFluxSuperMintBuying().call(function(err,res) {
+		if (!err) { 
+				//console.log(res);
+			if (res) { //enabled
+
+				document.getElementById("supermint-flux-enabled").style.display = "inline-block";
+				document.getElementById("supermint-flux-disabled").style.display = "none";
+
+			} else { //disabled
+				document.getElementById("supermint-flux-enabled").style.display = "none";
+				document.getElementById("supermint-flux-disabled").style.display = "inline-block";
+			}
+		}
+	});
+
+	stakingcontract.methods.enableKojiSuperMintBuying().call(function(err,res) {
+		if (!err) { 
+				//console.log(res);
+			if (res) { //enabled
+
+				document.getElementById("supermint-koji-enabled").style.display = "inline-block";
+				document.getElementById("supermint-koji-disabled").style.display = "none";
+
+			} else { //disabled
+				document.getElementById("supermint-koji-enabled").style.display = "none";
+				document.getElementById("supermint-koji-disabled").style.display = "inline-block";
+			}
+		}
 	});
 
 
@@ -1796,14 +1856,19 @@ async function validatewithdrawal() {
 					stakingcontract.methods.userInfo(0,selectedAccount).call(function(err,res) { //get current stake
 						if (!err) { 
 
-							var mystakeraw = Number(res);
+							var mystakeraw = Number(res[0]);
 							var mystake = parseFloat(+res[0]/10e8).toFixed(2);
 							var mystakedusd = parseFloat((+kojiusd * res[0]) / 10e17).toFixed(2);
+
+							console.log(mystakeraw);
+							console.log(amount);
 
 							if (amount > mystakeraw) {
 
 								document.getElementById("withdrawalert").style.display = "block";
 								document.getElementById("withdrawalert").innerHTML = "Desired withdrawal amount is higher than user staked amount";
+								document.getElementById("dep-holdings-loader").classList.remove('ui-loading');
+								document.getElementById("deposit-staking").removeAttribute("disabled");
 
 							} else {
 
@@ -1861,6 +1926,7 @@ async function withdrawstaking(amount) {
       }
 
     var stakingcontract = new web3.eth.Contract(JSON.parse(stakingabi),staking);
+
           
   	web3.eth.sendTransaction(
       {from: account[0],
