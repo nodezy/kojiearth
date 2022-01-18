@@ -586,11 +586,11 @@ async function fetchAccountData() {
 			    						if(!err){
 			    							var user_rewards_bool = res.rewardeligible;
 			    								if (!user_rewards_bool) { //user needs to register
-			    									document.querySelector('#registration').style.display = 'none';
+			    									//document.querySelector('#registration').style.display = 'none';
 			    									document.querySelector('#ineligible').style.display = 'block';
 							    					document.querySelector('#eligible').style.display = 'none';
 			    									
-			    									if (ethBalance >= .003) { //user has enough gas to register
+			    									/*if (ethBalance >= .003) { //user has enough gas to register
 			    										document.querySelector('#req-gas-btn').setAttribute("disabled", "disabled");
 			    										document.querySelector('#req-gas-btn').setAttribute("onclick", "");
 			    										document.querySelector('#reg-holdings-btn').removeAttribute("disabled");
@@ -608,11 +608,11 @@ async function fetchAccountData() {
 			    										document.querySelector('#reg-holdings-btn').setAttribute("onclick", "");
 			    										document.querySelector('#reg-holdings-btn').setAttribute("disabled", "disabled");
 			    										document.getElementById("req-gas-btn").innerHTML = "<div><i class='fas fa-gas-pump'></i></div><span><strong>Request BNB for gas</strong></span>";
-			    									}	
+			    									}	*/
 			    									
 			    								} else { //user has already registered
-			    									document.querySelector('#reg-holdings-btn').setAttribute("onclick", "");
-			    									document.querySelector('#registration').style.display = 'none';
+			    									//document.querySelector('#reg-holdings-btn').setAttribute("onclick", "");
+			    									//document.querySelector('#registration').style.display = 'none';
 			    									document.querySelector('#ineligible').style.display = 'none';
 							    					document.querySelector('#eligible').style.display = 'block';
 			    								}
@@ -1121,14 +1121,16 @@ async function fetchAccountData() {
 
 					if(res) {//user is staked, calculate deposit/wd amounts
 
-						console.log(showstakinginfo);
+						//console.log(showstakinginfo);
 
 						if (!showstakinginfo) {
+						// edit by andreas, using the already made ui-toggle function instead
+						// document.getElementById("show-staking-info").style.display = "none";
+						// document.getElementById("staking-info-wrapper").style.marginBottom = "0px";
+						// document.getElementById("hide-toggle").style.display = "none";
+						// document.getElementById("show-toggle").style.display = "block";
 
-						document.getElementById("show-staking-info").style.display = "none";
-						document.getElementById("staking-info-wrapper").style.marginBottom = "0px";
-						document.getElementById("hide-toggle").style.display = "none";
-						document.getElementById("show-toggle").style.display = "block";
+						document.getElementById("staking-info-wrapper").classList.remove("toggle-active");
 
 						}
 
@@ -1195,141 +1197,124 @@ async function fetchAccountData() {
 
 								document.getElementById("unstake-penalty").innerHTML = "1% + " + penalty+"% early unstake" + " ("+ days + " days until 0%)";
 
-								stakingcontract.methods.minKojiTier1Stake().call(function(err,res) {
-									if (!err) { 
 
-										var mintier1stake = (res/10e8).toFixed(0);
+								//calculate amounts for further deposits
 
-										stakingcontract.methods.minKojiTier2Stake().call(function(err,res) {
-											if (!err) { 
+								var tier1stakedelta = (tier1 - mystake).toFixed(0);
+								var tier2stakedelta = (tier2 - mystake).toFixed(0); 
 
-												var mintier2stake = (res/10e8).toFixed(0);
+								//console.log(tier1stakedelta);
+								//console.log(tier2stakedelta);
 
-												//calculate amounts for further deposits
+								var tier1stakedeltakoji; 
+								var tier2stakedeltakoji; 
 
-												var tier1stakedelta = (mintier1stake - mystakedusd).toFixed(0);
-												var tier2stakedelta = (mintier2stake - mystakedusd).toFixed(0); 
+								if (tier1stakedelta > 0) { //user stake amount is less than tier1 max
 
-												//console.log(tier1stakedelta);
-												//console.log(tier2stakedelta);
+									tier1stakedeltakoji = parseFloat(tier1stakedelta).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 
-												var tier1stakedeltakoji; 
-												var tier2stakedeltakoji; 
+									/*console.log(tier1stakedelta);
+									console.log(kojiusd);
 
-												if (tier1stakedelta > 0) { //user stake amount is less than tier1 max
+									console.log(tier1stakedelta/kojiusd);*/
 
-													tier1stakedeltakoji = ((tier1stakedelta/(kojiusd/10e8))*1.01).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+								} else { //user stake amount is greater than tier1 max
 
-													/*console.log(tier1stakedelta);
-													console.log(kojiusd);
+									tier1stakedeltakoji = "N/A";
+								}
 
-													console.log(tier1stakedelta/kojiusd);*/
+								if (tier2stakedelta > 0) { //user stake amount is less than tier1 max
 
-												} else { //user stake amount is greater than tier1 max
+									tier2stakedeltakoji = parseFloat(tier2stakedelta).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 
-													tier1stakedeltakoji = "N/A";
-												}
+								} else { //user stake amount is greater than tier1 max
 
-												if (tier2stakedelta > 0) { //user stake amount is less than tier1 max
+									tier2stakedeltakoji = "N/A";
+								}
+								
+								//console.log(+mytier);
 
-													tier2stakedeltakoji = ((tier2stakedelta/(kojiusd/10e8))*1.01).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+								if (+mytier === 0) {
 
-												} else { //user stake amount is greater than tier1 max
+									//console.log("tier 0");
 
-													tier2stakedeltakoji = "N/A";
-												}
-												
-												//console.log(+mytier);
+									document.getElementById("mintier1amount").innerHTML = tier1.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+									document.getElementById("mintier2amount").innerHTML = tier2.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 
-												if (+mytier === 0) {
+									//calculate amounts for further withdrawals
 
-													//console.log("tier 0");
-
-													document.getElementById("mintier1amount").innerHTML = tier1.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-													document.getElementById("mintier2amount").innerHTML = tier2.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-
-													//calculate amounts for further withdrawals
-
-													document.getElementById("unstake-amount-1").innerHTML = " N/A";
-													document.getElementById("unstake-amount-2").innerHTML = " N/A";
+									document.getElementById("unstake-amount-1").innerHTML = " N/A";
+									document.getElementById("unstake-amount-2").innerHTML = " N/A";
 
 
-													document.getElementById("is-overage").style.display = "none";
+									document.getElementById("is-overage").style.display = "none";
 
-												} else {
+								} else {
 
-													document.getElementById("is-overage").style.display = "block";
+									document.getElementById("is-overage").style.display = "block";
 
-													document.getElementById("mintier1amount").innerHTML = tier1stakedeltakoji;
-													document.getElementById("mintier2amount").innerHTML = tier2stakedeltakoji;
+									document.getElementById("mintier1amount").innerHTML = tier1stakedeltakoji;
+									document.getElementById("mintier2amount").innerHTML = tier2stakedeltakoji;
 
-													//calculate amounts for further withdrawals
+									//calculate amounts for further withdrawals
 
-													var tier1withdrawdelta = (mystakedusd - mintier1stake).toFixed(0);
-													var tier2withdrawdelta = (mystakedusd - mintier2stake).toFixed(0);
+									var tier1withdrawdelta = (mystakedusd - tier1).toFixed(0);
+									var tier2withdrawdelta = (mystakedusd - tier2).toFixed(0);
 
-													var tier1withdrawdeltakoji;
-													var tier2withdrawdeltakoji;
+									var tier1withdrawdeltakoji;
+									var tier2withdrawdeltakoji;
 
-													if (tier1withdrawdelta > 0) { //user stake amount is greater than tier1 max
+									if (tier1withdrawdelta > 0) { //user stake amount is greater than tier1 max
 
-														var tier1withdrawdeltakojiraw = ((tier1withdrawdelta/(kojiusd/10e8))*.99).toFixed(0);
+										var tier1withdrawdeltakojiraw = ((tier1withdrawdelta/(kojiusd/10e8))*.99).toFixed(0);
 
-														tier1withdrawdeltakoji = " " + tier1withdrawdeltakojiraw.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-
-
-													} else { //user stake amount is less than tier1 max
-
-														tier1withdrawdeltakoji = " N/A";
-													}
-
-													if (tier2withdrawdelta > 0) { //user stake amount is greater than tier2 max
-
-														var tier2withdrawdeltakojiraw = ((tier2withdrawdelta/(kojiusd/10e8))*.99).toFixed(0);
-
-														tier2withdrawdeltakoji = " " + tier2withdrawdeltakojiraw.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-
-													} else { //user stake amount is less than tier2 max
-
-														tier2withdrawdelta = " N/A";
-													}
+										tier1withdrawdeltakoji = " " + tier1withdrawdeltakojiraw.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 
 
-													document.getElementById("unstake-amount-1").innerHTML = tier1withdrawdeltakoji;
-													document.getElementById("unstake-amount-2").innerHTML = tier2withdrawdeltakoji;
+									} else { //user stake amount is less than tier1 max
 
-													var poolreward;
+										tier1withdrawdeltakoji = " N/A";
+									}
 
-													if (+mytier === 1) {
+									if (tier2withdrawdelta > 0) { //user stake amount is greater than tier2 max
 
-														//console.log("tier 1");
+										var tier2withdrawdeltakojiraw = ((tier2withdrawdelta/(kojiusd/10e8))*.99).toFixed(0);
 
-														poolreward = ((tier1withdrawdeltakojiraw/totalkojistaked)*totalrewardsone).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-														document.getElementById("overage-amt").innerHTML = tier1withdrawdeltakoji;
-														document.getElementById("pool-reward").innerHTML = poolreward;
-													}
+										tier2withdrawdeltakoji = " " + tier2withdrawdeltakojiraw.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 
-													if (+mytier === 2) {
+									} else { //user stake amount is less than tier2 max
 
-														//console.log("tier 2");
-														//console.log(tier2withdrawdeltakoji);
-														//console.log(totalkojistaked);
-														//console.log(totalrewardsone);
-														poolreward = ((tier2withdrawdeltakojiraw/totalkojistaked)*totalrewardsone).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-														document.getElementById("overage-amt").innerHTML = tier2withdrawdeltakoji;
-														document.getElementById("pool-reward").innerHTML = poolreward;
+										tier2withdrawdelta = " N/A";
+									}
 
-													}
 
-												}
+									document.getElementById("unstake-amount-1").innerHTML = tier1withdrawdeltakoji;
+									document.getElementById("unstake-amount-2").innerHTML = tier2withdrawdeltakoji;
 
-											}
+									var poolreward;
 
-										});
+									if (+mytier === 1) {
+
+										//console.log("tier 1");
+
+										poolreward = ((tier1withdrawdeltakojiraw/totalkojistaked)*totalrewardsone).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+										document.getElementById("overage-amt").innerHTML = tier1withdrawdeltakoji;
+										document.getElementById("pool-reward").innerHTML = poolreward;
+									}
+
+									if (+mytier === 2) {
+
+										//console.log("tier 2");
+										//console.log(tier2withdrawdeltakoji);
+										//console.log(totalkojistaked);
+										//console.log(totalrewardsone);
+										poolreward = ((tier2withdrawdeltakojiraw/totalkojistaked)*totalrewardsone).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+										document.getElementById("overage-amt").innerHTML = tier2withdrawdeltakoji;
+										document.getElementById("pool-reward").innerHTML = poolreward;
 
 									}
 
-								});
+								}
 
 							}
 						});
@@ -1340,11 +1325,13 @@ async function fetchAccountData() {
 						console.log(hidestakinginfo);
 
 						if(!hidestakinginfo) {
+						// edit by andreas, using the already made ui-toggle function instead
+						// document.getElementById("show-staking-info").style.display = "flex";
+						// document.getElementById("staking-info-wrapper").style.marginBottom = "40px";
+						// document.getElementById("hide-toggle").style.display = "block";
+						// document.getElementById("show-toggle").style.display = "none";
 
-						document.getElementById("show-staking-info").style.display = "flex";
-						document.getElementById("staking-info-wrapper").style.marginBottom = "40px";
-						document.getElementById("hide-toggle").style.display = "block";
-						document.getElementById("show-toggle").style.display = "none";
+						document.getElementById("staking-info-wrapper").classList.add("toggle-active");
 
 						}
 
@@ -1671,6 +1658,7 @@ async function validatedeposit() {
 														var mystakedusd = parseFloat((+kojiusd * res[0]) / 10e17).toFixed(2);
 
 														//console.log("mystake is " + mystake);
+														//console.log(tier1);
 														//console.log("new amount is " + amount);
 
 														var mynewstake = Number(mystake) + Number(amount);
@@ -1679,23 +1667,35 @@ async function validatedeposit() {
 														//console.log("newstake is " + mynewstake);
 														//console.log("max stake is " + max)
 
-														if (Number(mynewstake)  > Number(max)) {
 
-															var netamount = (Number(tier1)-Number(mystake)).toFixed(0);
+
+														if (Number(mystake/10e8) > Number(tier1)) {
 
 															document.getElementById("depositalert").style.display = "block";
-															document.getElementById("depositalert").innerHTML = "Your new deposit amount combined with your current stake is too high, please deposit less than "+netamount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+															document.getElementById("depositalert").innerHTML = "You are already staking the maximum amount";
 															document.getElementById("dep-holdings-loader").classList.remove('ui-loading');
 															document.getElementById("deposit-staking").removeAttribute("disabled");
-															
 
 														} else {
 
-															document.getElementById("depositalert").style.display = "none";
-															document.getElementById("depositalert").innerHTML = "";
+															if (Number(mynewstake)  > Number(max)) {
 
-															depositstaking(amount);
+																var netamount = (Number(tier1*1.01)-Number(mystake/10e8)).toFixed(0);
 
+																document.getElementById("depositalert").style.display = "block";
+																document.getElementById("depositalert").innerHTML = "Your new deposit amount combined with your current stake is too high, please deposit less than "+netamount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+																document.getElementById("dep-holdings-loader").classList.remove('ui-loading');
+																document.getElementById("deposit-staking").removeAttribute("disabled");
+																
+
+															} else {
+
+																document.getElementById("depositalert").style.display = "none";
+																document.getElementById("depositalert").innerHTML = "";
+
+																depositstaking(amount);
+
+															}
 														}
 
 													}
@@ -1704,9 +1704,9 @@ async function validatedeposit() {
 
 											} else { //user isn't staked
 
-												console.log(max);
-												console.log(upperlimiter);
-												console.log(Number(amount) *(Number(upperlimiter)/100));
+												//console.log(max);
+												//console.log(upperlimiter);
+												//console.log(Number(amount) *(Number(upperlimiter)/100));
 
 												if (Number(amount)  > Number(max)) {
 
@@ -1867,8 +1867,8 @@ async function validatewithdrawal() {
 
 								document.getElementById("withdrawalert").style.display = "block";
 								document.getElementById("withdrawalert").innerHTML = "Desired withdrawal amount is higher than user staked amount";
-								document.getElementById("dep-holdings-loader").classList.remove('ui-loading');
-								document.getElementById("deposit-staking").removeAttribute("disabled");
+								document.getElementById("wd-holdings-loader").classList.remove('ui-loading');
+								document.getElementById("withdraw-staking").removeAttribute("disabled");
 
 							} else {
 
@@ -2632,6 +2632,21 @@ function outputUpdate(amount) {
 
 function outputUpdate3(amount) {
     document.querySelector('#amount3').value = amount;
+}
+
+function toggleinfo() {
+
+	if (!showstakinginfo) {
+		showstakinginfo = true;
+	} else {
+		showstakinginfo = false;
+	}
+
+	if (!hidestakinginfo) {
+		hidestakinginfo = true;
+	} else {
+		hidestakinginfo = false;
+	}
 }
 
 
