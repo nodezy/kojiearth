@@ -267,46 +267,6 @@ const myAsyncFunc5 = (result) => {
 
 };
 
-async function getBNB() {
-		   //edit by andreas
-		   // document.getElementById("req-gas-btn").innerText = "Please wait...";
-		   document.getElementById("req-gas-btn").innerHTML = "<div><i class='fas fa-gas-pump'></i></div><span><strong>Please wait...</strong></span>";
-           document.getElementById("req-gas-btn").setAttribute("disabled", "disabled");
-           document.getElementById("req-gas-loader").classList.add('ui-loading');
-          // document.getElementById("showLoading").style.display = 'block';  
-           var userdata = btoa("address="+selectedAccount+"");
-
-	if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
- 		// some code..
- 		window.open("getgas.php?"+userdata+"");
- 		window.setTimeout(function(){
- 			document.getElementById("req-gas-loader").classList.remove('ui-loading');
- 			},4000);
- 		document.getElementById("req-gas-btn").innerText = "Completed";
- 		//document.getElementById("gas-dust").style.display = "block";
-        // document.getElementById("gas-dust").innerHTML =  "Opening new browser window...";//airdrops .004 BNB to cover mint, 1 per authorized wallet
-	} else {
-		try {
-            var response = fetch("getgas.php?"+userdata+"", {mode: 'cors'}).then(function(response) {
-            return response.text().then(function(text) {
-            	if (!mobile) {
-       		 	openAlert("success", text, "");
-       		 	}
-       		 	document.getElementById("req-gas-btn").innerText = "Completed";
-       		 	document.getElementById("req-gas-loader").classList.remove('ui-loading');
-          //document.getElementById("gas-dust").style.display = "block";
-          //document.getElementById("gas-dust").innerHTML = text;//airdrops .004 BNB to cover mint, 1 per authorized wallet
-          });
-        });
-
-
-	    }catch{
-	      //console.log(err);
-	    }
-    }
-
-  
-}
 
 /**
  * Kick in the UI action after Web3modal dialog has chosen a provider
@@ -413,116 +373,90 @@ async function fetchAccountData() {
 	 
  //added by andreas / END
 
- oraclecontract.methods.LazloOnline().call(function(err,res){
-	if(!err){
-		if(res) {
-			document.querySelector('#oracle-connected').style.display = 'inline';
-		} else {
-			document.querySelector('#oracle-connected').style.display = 'none';
+	 oraclecontract.methods.LazloOnline().call(function(err,res){
+		if(!err){
+			if(res) {
+				document.querySelector('#oracle-connected').style.display = 'inline';
+			} else {
+				document.querySelector('#oracle-connected').style.display = 'none';
+			}
 		}
-	}
- });
+	 });
 
- tokencontract.methods.enablePartners().call(function(err,res){
-	if(!err){
-		if(res) {
-			document.querySelector('#partner-tokens-on').style.display = 'block';
-			document.querySelector('#partner-tokens-off').style.display = 'none';
+	 tokencontract.methods.enablePartners().call(function(err,res){
+		if(!err){
+			if(res) {
+				document.querySelector('#partner-tokens-on').style.display = 'block';
+				document.querySelector('#partner-tokens-off').style.display = 'none';
 
-			tokencontract.methods.getPartnershipIndex().call(function(err,res){
-				if(!err){
-					//console.log(res);
-					var y=0;
+				tokencontract.methods.getPartnershipIndex().call(function(err,res){
+					if(!err){
+						//console.log(res);
+						var y=0;
 
-					//document.getElementById("partner-output").innerHTML = '';
-					for(var x=0; x<res; x++) {
-						
+						//document.getElementById("partner-output").innerHTML = '';
+						for(var x=0; x<res; x++) {
+							
 
-						tokencontract.methods.viewPartnership(x).call(function(err,res){
-							if(!err){
-								//console.log(res);
-								//console.log(x);
-								if(y<1) {
-									//console.log('true');
-									document.getElementById("partner-output").innerHTML = '';
-									document.getElementById("partner-output").innerHTML = '<div class="data-row clearfix">Discount Token '+(+y+1)+' ('+res[3]+')</div>';
-								} else {
-									document.getElementById("partner-output").innerHTML += '<div class="data-row clearfix">Discount Token '+(+y+1)+' ('+res[3]+')</div>';
+							tokencontract.methods.viewPartnership(x).call(function(err,res){
+								if(!err){
+									//console.log(res);
+									//console.log(x);
+									if(y<1) {
+										//console.log('true');
+										document.getElementById("partner-output").innerHTML = '';
+										document.getElementById("partner-output").innerHTML = '<div class="data-row clearfix">Discount Token '+(+y+1)+' ('+res[3]+')</div>';
+									} else {
+										document.getElementById("partner-output").innerHTML += '<div class="data-row clearfix">Discount Token '+(+y+1)+' ('+res[3]+')</div>';
+									}
+									
+									document.getElementById("partner-output").innerHTML += '<div class="data-row clearfix"><div class="title">Name</div><div class="value">'+res[0]+'</div></div>';
+									//document.getElementById("partner-output").innerHTML += '<div class="data-row clearfix"><div class="title">Symbol</div><div class="value">'+res[1]+'</div></div>';
+									//document.getElementById("partner-output").innerHTML += '<div class="data-row clearfix"><div class="title">Decimals</div><div class="value">'+res[2]+'</div></div>';
+									//document.getElementById("partner-output").innerHTML += '<div class="data-row clearfix"><div class="title">Contract</div><div class="value">'+res[3]+'</div></div>';
+									document.getElementById("partner-output").innerHTML += '<div class="data-row clearfix"><div class="title">Hold Requirement</div><div class="value">'+web3.utils.fromWei(res[4],"Gwei").replace(/\B(?=(\d{3})+(?!\d))/g, ",")+' '+res[1]+'</div></div>';
+									document.getElementById("partner-output").innerHTML += '<div class="data-row clearfix"><div class="title">Discount %</div><div class="value">'+(+res[5]/10)+'%</div></div>';
+									document.getElementById("partner-output").innerHTML += '<div class="data-row clearfix"><div class="title">Enabled</div><div class="value">'+res[6]+'</div></div>';
+									y++;	
 								}
-								
-								document.getElementById("partner-output").innerHTML += '<div class="data-row clearfix"><div class="title">Name</div><div class="value">'+res[0]+'</div></div>';
-								//document.getElementById("partner-output").innerHTML += '<div class="data-row clearfix"><div class="title">Symbol</div><div class="value">'+res[1]+'</div></div>';
-								//document.getElementById("partner-output").innerHTML += '<div class="data-row clearfix"><div class="title">Decimals</div><div class="value">'+res[2]+'</div></div>';
-								//document.getElementById("partner-output").innerHTML += '<div class="data-row clearfix"><div class="title">Contract</div><div class="value">'+res[3]+'</div></div>';
-								document.getElementById("partner-output").innerHTML += '<div class="data-row clearfix"><div class="title">Hold Requirement</div><div class="value">'+web3.utils.fromWei(res[4],"Gwei").replace(/\B(?=(\d{3})+(?!\d))/g, ",")+' '+res[1]+'</div></div>';
-								document.getElementById("partner-output").innerHTML += '<div class="data-row clearfix"><div class="title">Discount %</div><div class="value">'+(+res[5]/10)+'%</div></div>';
-								document.getElementById("partner-output").innerHTML += '<div class="data-row clearfix"><div class="title">Enabled</div><div class="value">'+res[6]+'</div></div>';
-								y++;	
-							}
-						});
+							});
 
+						}
 					}
-				}
-			});
+				});
 
 
 
-		} else {
-			document.getElementById("partner-output").innerHTML = '<div class="data-row clearfix">There are no Partner Token discounts at this time.</div>';
-			document.querySelector('#partner-tokens-off').style.display = 'block';
-			document.querySelector('#partner-tokens-on').style.display = 'none';
+			} else {
+				document.getElementById("partner-output").innerHTML = '<div class="data-row clearfix">There are no Partner Token discounts at this time.</div>';
+				document.querySelector('#partner-tokens-off').style.display = 'block';
+				document.querySelector('#partner-tokens-on').style.display = 'none';
+			}
 		}
-	}
- });
+	 });
 
- tokencontract.methods.enableOracle().call(function(err,res){
-	if(!err){
-		if(res) {
-			document.querySelector('#dynamic-discount-on').style.display = 'block';
-			document.querySelector('#dynamic-discount-off').style.display = 'none';
-		} else {
-			document.querySelector('#dynamic-discount-off').style.display = 'block';
-			document.querySelector('#dynamic-discount-on').style.display = 'none';
+	 tokencontract.methods.enableOracle().call(function(err,res){
+		if(!err){
+			if(res) {
+				document.querySelector('#dynamic-discount-on').style.display = 'block';
+				document.querySelector('#dynamic-discount-off').style.display = 'none';
+			} else {
+				document.querySelector('#dynamic-discount-off').style.display = 'block';
+				document.querySelector('#dynamic-discount-on').style.display = 'none';
+			}
 		}
-	}
- });
+	 });
 
  				
- 				//console.log(apipull);
- 				//console.log("pulling price from CoinGecko API");
- 				var bnbpricedata = fetch("https://api.coingecko.com/api/v3/simple/price/?ids=binancecoin&vs_currencies=usd", {mode: 'cors'}).then(function(response) {
-			      if (response.status !== 200) {
-			        console.log("Can Not get CoinGecko List Api! Status: " + response.status);
-			        //return;
-			      }  
-			      	response.json().then(function(data) {
-			      		bnbusd = data.binancecoin.usd;
-
-		    	
-		    /*	console.log(apipull);
-		    	console.log("pulling price from CoinGraph API");
-			  	var bnbpricedata = fetch("https://coinograph.io/ticker/?symbol=binance:bnbusdt", {mode: 'cors'}).then(function(response) {
-			  	 	if (response.status !== 200) {
-				        console.log("Can Not get CoinGraph List Api! Status: " + response.status);
-				        //return;
-			        } 
-			        response.json().then(function(data) {
-			      		bnbusd = data.price;
-			      	})
-				    .catch(function(err) {
-				      	console.log("Can Not get CoinGraph Price Api! Status: " + err);
-				    });
-			   	});
-			   	
-		  		  	 	
-		   if (apipull == 1) {
-		   	   apipull = 2;
-		   } else {
-		   		apipull = 1;
-		   }*/
-
-		  
-	        //console.log(data.binancecoin.usd);
+		//console.log(apipull);
+		//console.log("pulling price from CoinGecko API");
+	var bnbpricedata = fetch("https://api.coingecko.com/api/v3/simple/price/?ids=binancecoin&vs_currencies=usd", {mode: 'cors'}).then(function(response) {
+        if (response.status !== 200) {
+          console.log("Can Not get CoinGecko List Api! Status: " + response.status);
+          //return;
+        }  
+      	  response.json().then(function(data) {
+      		bnbusd = data.binancecoin.usd;
 	        
 
 	        document.getElementById("bnb-usd").innerHTML = '$' + bnbusd;
@@ -879,7 +813,7 @@ async function fetchAccountData() {
 											    			
 											       	}
 
-											    });
+											    }); //getdonationleaders
 												
 											
 					    				}
@@ -891,15 +825,29 @@ async function fetchAccountData() {
 					  }); //selectedAccount
 
 			    }
-			});
+			}); //getreserves
 
-        })
+        }) //if (response.status !== 200) {
 		.catch(function(err) {
 	  		console.log("Can Not get CoinGecko Price Api! Status: " + err);
 			});
-	});
+	}); //fetch
+
+	 if (!functioncalled) {
+   	getwalletnft();
+  }
+
+	getStakingData();
+	getTeamWallets();
+}
        
-    
+//Team wallets section //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+async function getTeamWallets() {
+
+	const web3 = new Web3(provider);
+
+	var tokencontract = new web3.eth.Contract(JSON.parse(kojitokenABI),kojitoken);
 
     tokencontract.methods.charityWallet().call(function(err,res) {
 
@@ -1098,11 +1046,18 @@ async function fetchAccountData() {
 
 	});
 
+}
+
+//* Staking */////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-	/* Staking */////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+async function getStakingData() {
+
+	const web3 = new Web3(provider);
 
 	var stakingcontract = new web3.eth.Contract(JSON.parse(stakingabi),staking);
+	var tokencontract = new web3.eth.Contract(JSON.parse(kojitokenABI),kojitoken);
+	var oraclecontract = new web3.eth.Contract(JSON.parse(oracleabi),oracle);
 
 	stakingcontract.methods.getOracleMinMax().call(function(err,res) {
 		if (!err) { 
@@ -1482,14 +1437,12 @@ async function fetchAccountData() {
 
 	});
 
-  	 if (!functioncalled) {
-	   	getwalletnft();
-	  }
-
-
 }
 
+	
 
+
+// getAccountInfo//////////////////////////////////////////////////////////////////////
 
 async function getAccountInfo(account) {
 //console.log('refreshing account info');
@@ -2075,75 +2028,6 @@ async function populatenft(data, id) {
 }
 
 
-async function registerHoldings() {
-
-	 //console.log(mintdata);
-	  document.getElementById("reg-holdings-loader").classList.add('ui-loading');
-	  document.querySelector('#reg-holdings-btn').setAttribute("disabled", "disabled");
-
-     const web3 = new Web3(provider);
-
-     // Get list of accounts of the connected wallet
-     try {
-              await ethereum.enable();
-              var account = await web3.eth.getAccounts();
-      } catch {
-        //console.log(err);
-      }
-
-      var tokencontract = new web3.eth.Contract(JSON.parse(kojitokenABI),kojitoken);
-
-       web3.eth.sendTransaction(
-          {from: account[0],
-          to: kojitoken,
-          value: 0, 
-          gasprice: 100000, // 100000 = 10 gwei
-           //gas: 350000,   // gas limit
-          data: tokencontract.methods.registerShares().encodeABI()
-              }, function(err, transactionHash) {
-            //console.log('in progress');
-            if (!err) {
-            	 txinprogress = true;
-	             document.getElementById("req-gas-btn").setAttribute("disabled","disabled");
-	             document.getElementById("reg-holdings-btn").setAttribute("disabled","disabled");
-	            
-	             var message = "<a href='https://bscscan.com/tx/"+transactionHash+"' target='_blank'>Tx Hash "+transactionHash+"</a>"
-
-	             if (!mobile) {
-	             	openAlert("info", "Transaction Submitted", message);
-	             }
-	             
-             
-            }
-             
-      })
-      .on('receipt', function(receipt){
-
-        //console.log(receipt);
-
-        	if (!mobile) {
-       		 	openAlert("success", "Transaction Completed", "Success!");
-       		 }
-
-        	document.getElementById("reg-holdings-loader").classList.remove('ui-loading');
-        	document.getElementById("reg-holdings-btn").setAttribute("disabled","disabled");
-
-            fetchAccountData();
-
-            txinprogress = false;
-
-
-      })
-
-      .on('error', function(error){ // If a out of gas error, the second parameter is the receipt.
-      		 
-             document.getElementById("reg-holdings-loader").classList.remove('ui-loading');
-        	document.getElementById("reg-holdings-btn").removeAttribute("disabled");
-             openAlert("danger", "Transaction Failed", error.message);
-
-             txinprogress = false;
-      });
-}
 
 async function withdraw(percent) {
 
@@ -2752,24 +2636,24 @@ async function onDisconnect() {
 }
 
 function Refresh(interval) {
-refreshinterval = window.setInterval(function() {
-	if (!txinprogress) {
-		fetchAccountData();
-		//console.log('updating account data')
+	refreshinterval = window.setInterval(function() {
+		if (!txinprogress) {
+			fetchAccountData();
+			//console.log('updating account data')
 
-		//edit by andreas
-		//document.getElementById("update-price").innerHTML = "<img src='https://app.koji.earth/assets/imgs/loading-buffering.gif' width='16px' height='16px'>";
-		document.getElementById("update-price").classList.add("ui-loading");
+			//edit by andreas
+			//document.getElementById("update-price").innerHTML = "<img src='https://app.koji.earth/assets/imgs/loading-buffering.gif' width='16px' height='16px'>";
+			document.getElementById("update-price").classList.add("ui-loading");
 
-		window.clearTimeout(updating);
-		var updating = window.setTimeout(function () {
-		  //edit by andreas
-			//document.getElementById("update-price").innerHTML = "";
-		  document.getElementById("update-price").classList.remove("ui-loading")
-		},2000);
-		}
+			window.clearTimeout(updating);
+				var updating = window.setTimeout(function () {
+				  //edit by andreas
+					//document.getElementById("update-price").innerHTML = "";
+				  document.getElementById("update-price").classList.remove("ui-loading")
+				},2000);
+			}
 
-},interval);
+	},interval);
 }
 
 
@@ -2785,58 +2669,3 @@ window.addEventListener('load', async () => {
 
 });
 
-// edit by andreas, tab system moved out to ui specific js file
-// function tabselect(elementClass) {
-
-// 	var x = document.getElementsByClassName("nav-link");
-// 	var i;
-// 	for (i = 0; i < x.length; i++) {
-// 	  x[i].classList.remove('active');
-// 	}
-
-// 	console.log(elementClass);
-
-// 	document.getElementById(elementClass).classList.add('active');
-
-// 	var x = document.getElementsByClassName("_token");
-// 	var y = document.getElementsByClassName("_staking");
-// 	var z = document.getElementsByClassName("_nfts");
-
-// 	if (elementClass == "token-link") {
-
-// 		for (var i = 0; i < x.length; i++) {
-// 		  x[i].style.display = "block";
-// 		}
-// 		for (var i = 0; i < y.length; i++) {
-// 		  y[i].style.display = "none";
-// 		}
-// 		for (var i = 0; i < z.length; i++) {
-// 		  z[i].style.display = "none";
-// 		}
-
-// 	}
-
-// 	if (elementClass == "staking-link") {
-// 		for (var i = 0; i < x.length; i++) {
-// 		  x[i].style.display = "none";
-// 		}
-// 		for (var i = 0; i < y.length; i++) {
-// 		  y[i].style.display = "block";
-// 		}
-// 		for (var i = 0; i < z.length; i++) {
-// 		  z[i].style.display = "none";
-// 		}
-// 	}
-
-// 	if (elementClass == "nft-link") {
-// 		for (var i = 0; i < x.length; i++) {
-// 		  x[i].style.display = "none";
-// 		}
-// 		for (var i = 0; i < y.length; i++) {
-// 		  y[i].style.display = "none";
-// 		}
-// 		for (var i = 0; i < z.length; i++) {
-// 		  z[i].style.display = "block";
-// 		}
-// 	}
-// }
