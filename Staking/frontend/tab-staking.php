@@ -1,8 +1,11 @@
                      
                       <div class="ui-wrapper ui-toggle toggle-active" id="staking-info-wrapper">
 
-                         <span class="ui-title clearfix"><i class="far fa-book-open"></i><span>Stake KOJI to mint our NFTs</span>
-                            <a onclick="toggleinfo();"><span class="toggle-icon"><i class="fas fa-chevron-down"></i></span></span></a>
+                         <span class="ui-title clearfix"><i class="far fa-book-open"></i>
+                            <span>Stake KOJI to mint our NFTs</span>
+                            <a onclick="toggleinfo();">
+                              <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
+                            </a>
                         </span>
 
                            
@@ -115,7 +118,7 @@
 
                               <div class="ui-col">
                                   <div class="ui-box">
-                                      <i class="fas fa-sack-dollar"></i>&nbsp;&nbsp;<span>Total Staked Value:</span>
+                                      <i class="fas fa-money-bill"></i>&nbsp;&nbsp;<span>Total Staked Value:</span>
                                       <div class="data-row clearfix">
                                           <div class="value" style="width:100%;text-align: center">
                                               <span id="total-staked-usd"></span>
@@ -148,7 +151,7 @@
 
                           </div><!-- .ui-row -->
 
-                          <span class="ui-title"><i class="far fa-pennant"></i>Stake Your KOJI</span>
+                          <span class="ui-title"><i class="far fa-piggy-bank"></i>Stake Your KOJI</span>
 
                           <div class="ui-row col-3">
 
@@ -175,7 +178,7 @@
                                       <input class="mt20 mb20" type="text" id="stakeDeposit" name="deposit"
                                           placeholder="enter amount you want to stake">
 
-                                      <span class="ui-note" style="color:red;display:block;margin-top:-30px"
+                                      <span class="ui-note" style="color:red;display:block;margin-top:-15px"
                                           id="depositalert"></span>
 
 
@@ -269,43 +272,52 @@
 
                       <!-- UI row with 2 column ------------------------------------------------------------>
 
-                      <div class="ui-wrapper">
+                      <div class="ui-wrapper ui-toggle">
 
-                          <span class="ui-title"><i class="far fa-piggy-bank"></i>Manage Rewards || superMints</span>
+                          <span class="ui-title"><i class="far fa-sack-dollar"></i>Manage Rewards</span>
 
-                          <div class="ui-row col-2">
+                          <div class="ui-row col-1">
 
                               <div class="ui-col">
                                   <div class="ui-box">
+
+                                    <span class="ui-title clearfix">
+                                      <span>Rewards Info</span>
+                                      <a onclick="toggleinfo();">
+                                        <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
+                                      </a>
+                                  </span>
+
+                                    <div class="ui-toggleable clearfix">
                                       <span>There are two rewards pools for staking KOJI:</span>
-                                      <ul>
-                                          <li>Rewards pool 1 (KOJI Pool rewards): This rewards pool is from the 1% - 3% taxes from unstaking. You will automatically receive rewards from this pool when you unstake any amount from the pool, proportional to how much you've unstaked.</li>
-                                          <li>The calculation for the net reward amount from pool 1 is: <strong>(withdrawal amount / total pooled KOJI) x total pool 1 rewards - (unstake fee + early unstake penalty)</strong></li>
-                                      </ul>
-                                       <ul>
-                                          <li>Rewards pool 2 (FLUX Pool rewards): <strong>KOJI FLUX</strong> is our custom staking rewards currency. This rewards pool is from the 1% tax on all KOJI buys/sells/transfers, as well as a pre-allocation of 10% of the total KOJI supply. You will automatically receive FLUX rewards from this pool per block, proportional to your stake amount in the pool.</li>
-                                          <li>FLUX can be converted to KOJI at any time based on the ratio conversion amount</li>
-                                          <li>FLUX can also be used to purchase superMints</li>
-                                      </ul>
-                                      
+                                        <ul>
+                                            <li>Rewards pool 1 (KOJI Pool rewards): This rewards pool is from the 1% - 3% taxes from unstaking. You will automatically receive rewards from this pool when you unstake any amount from the pool, proportional to how much you've unstaked.</li>
+                                            <li>The calculation for the net reward amount from pool 1 is: <strong>(withdrawal amount / total pooled KOJI) x total pool 1 rewards - (unstake fee + early unstake penalty)</strong></li>
+                                        </ul>
+                                         <ul>
+                                            <li>Rewards pool 2 (FLUX Pool rewards): <strong>KOJI FLUX</strong> is our custom staking rewards currency. This rewards pool is from the 1% tax on all KOJI buys/sells/transfers, as well as a pre-allocation of 10% of the total KOJI supply. You will automatically receive FLUX rewards from this pool per block, proportional to your stake amount in the pool.</li>
+                                            <li>FLUX can be converted to KOJI at any time based on the ratio conversion amount</li>
+                                            <li>FLUX can also be used to purchase superMints</li>
+                                        </ul>
+                                      </div>
                                       <div class="data-row clearfix">
                                             <div class="title">converstionRate: <span class="tooltip conversion" data-tooltip="converstionRate: used to adjust the FLUX -> KOJI conversion amount to balance the FLUX rewards pool. Can be used in conjunction with bonusRate below."><i class="icon-question-circle"></i></span></div>
-                                          <div class="value right" id="supermint-balance">1 FLUX = 1 KOJI v2</div>
+                                          <div class="value " id="supermint-balance">1 FLUX = 1 KOJI v2</div>
                                       </div>
 
                                       <div class="data-row clearfix">
                                           <div class="title">bonusRate status: <span class="tooltip bonus" data-tooltip="bonusRate: used to adjust rewards for new stakers who could receive less FLUX if the price of KOJI increases. New stakers would receive less FLUX because if the price of KOJI increases, they are required to stake less KOJI and would thus receive less FLUX. This variable helps offset that."><i class="icon-question-circle"></i></span></div>
 
-                                          <div class="value right" id="bonusrate-enabled" style="display:none">bonusRate enabled <div class="dot-container"
+                                          <div class="value " id="bonusrate-enabled" style="display:none">bonusRate enabled <div class="dot-container"
                                                   style="display: inline;">
                                                   <div class="dot green"
-                                                      style="float:right;display:inline-block;margin: 5px 0 10px 5px;">
+                                                      style="float:;display:inline-block;margin: 5px 0 0px 5px;">
                                                   </div>
                                               </div>
                                           </div>
-                                          <div class="value right" id="bonusrate-disabled">bonusRate disabled <div class="dot-container" style="display: inline;">
+                                          <div class="value " id="bonusrate-disabled">bonusRate disabled <div class="dot-container" style="display: inline;">
                                                   <div class="dot red"
-                                                      style="float:right;display:inline-block;margin: 5px 0 10px 5px;">
+                                                      style="float:;display:inline-block;margin: 5px 0 0px 5px;">
                                                   </div>
                                               </div>
                                           </div>
@@ -313,24 +325,42 @@
 
                                       <div class="data-row clearfix">
                                           <div class="title">bonusRate: </div>
-                                          <div class="value right" id="bonusrate">120%</div>
+                                          <div class="value " id="bonusrate">120%</div>
                                       </div>
 
                                       <div class="data-row clearfix" style="margin-top:15px">
                                           <div class="title">net FLUX -> KOJI conversion: </div>
-                                          <div class="value right" id="netrate">N/A</div>
+                                          <div class="value " id="netrate">N/A</div>
                                       </div>
 
-                                      <button type="button" class="btn btn-sep mt20" style="background-color:#365036">
+                                      <button type="button" class="btn btn-sep" style="background-color:#365036; margin-top:0px !important">
                                           <div><i class="icon-external-link"></i></div>
                                           <span>Redeem FLUX for KOJI</span>
                                       </button>
                                   </div>
                               </div>
 
+                          </div><!-- .ui-row -->
+
+                      </div><!-- .ui-wrapper -->
+
+                       <div class="ui-wrapper ui-toggle">
+
+                          <span class="ui-title"><i class="far fa-file-plus"></i>Manage superMints</span>
+
+                          <div class="ui-row col-1">
+
                               <div class="ui-col">
                                   <div class="ui-box">
 
+                                    <span class="ui-title clearfix">
+                                      <span>superMint Info</span>
+                                      <a onclick="toggleinfo();">
+                                        <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
+                                      </a>
+                                  </span>
+
+                                    <div class="ui-toggleable clearfix">
                                       <p><strong>superMints</strong> are special currency that can be used to mint comic
                                           NFT pages that ordinarily cannot be minted otherwise.</p>
                                       <span>superMints allow the staker to do the following:</span>
@@ -343,72 +373,74 @@
                                           minimum stake amount in order to use the superMint. superMints cannot be sold
                                           or traded, and the purchase price of a superMint is subject to change based on
                                           the conversion price of FLUX and/or the market price of KOJI.</p>
-
-                                      <div class="data-row clearfix">
-                                          <div class="title">superMint purchase status: </div>
-
-                                          <div class="value right" id="supermint-flux-enabled" style="display:none">FLUX
-                                              superMint purchases enabled <div class="dot-container"
-                                                  style="display: inline;">
-                                                  <div class="dot green"
-                                                      style="float:right;display:inline-block;margin: 5px 0 10px 5px;">
-                                                  </div>
-                                              </div>
-                                          </div>
-                                          <div class="value right" id="supermint-flux-disabled">FLUX superMint purchases
-                                              disabled <div class="dot-container" style="display: inline;">
-                                                  <div class="dot red"
-                                                      style="float:right;display:inline-block;margin: 5px 0 10px 5px;">
-                                                  </div>
-                                              </div>
-                                          </div>
-                                          <div class="value right" id="supermint-koji-enabled"
-                                              style="display:none;float:right;">KOJI superMint purchases enabled <div
-                                                  class="dot-container" style="display: inline;">
-                                                  <div class="dot green"
-                                                      style="float:right;display:inline-block;margin: 5px -5px 10px 5px;">
-                                                  </div>
-                                              </div>
-                                          </div>
-                                          <div class="value right" id="supermint-koji-disabled" style="float:right;">
-                                              KOJI superMint purchases disabled <div class="dot-container"
-                                                  style="display: inline;">
-                                                  <div class="dot red"
-                                                      style="float:right;display:inline-block;margin: 5px -5px 10px 5px;">
-                                                  </div>
-                                              </div>
-                                          </div>
-                                      </div>
+                                    </div>
 
                                       <div class="data-row clearfix">
                                           <div class="title">My superMint balance: </div>
-                                          <div class="value right" id="supermint-balance">0 superMint</div>
+                                          <div class="value " id="supermint-balance">0 superMint</div>
                                       </div>
+                                      <div class="data-row clearfix" style="margin-top:15px !important">
+                                          <div class="title">FLUX superMint purchases: </div>
 
+                                          <div class="value " id="supermint-flux-enabled" style="display:none">enabled 
+                                            <div class="dot-container"
+                                                  style="display: inline;">
+                                                  <div class="dot green"
+                                                      style="float:;display:inline-block;margin: 5px 0 0px 5px;">
+                                                  </div>
+                                              </div>
+                                          </div>
+                                          <div class="value " id="supermint-flux-disabled">disabled 
+                                            <div class="dot-container" style="display: inline;">
+                                                  <div class="dot red"
+                                                      style="float:;display:inline-block;margin: 5px 0px 0px 5px;">
+                                                  </div>
+                                              </div>
+                                          </div>
+                                      </div>
                                       <div class="data-row clearfix">
                                           <div class="title">superMint FLUX price: </div>
-                                          <div class="value right" id="flux-supermint-price"></div>
+                                          <div class="value " id="flux-supermint-price"></div>
                                       </div>
 
-                                      <button type="button" class="btn btn-sep mt20 mb40" id="btn-supermint-flux"
-                                          style="background-color:#365036">
+                                      <button type="button" class="btn btn-sep" id="btn-supermint-flux"
+                                          style="background-color:#365036;margin-top:0px !important">
                                           <div><i class="fas fa-chart-network"></i></div>
                                           <span>Buy superMint with FLUX</span>
                                       </button>
-
-                                      <div class="data-row clearfix" style="margin-top:10px">
+                                      <div class="data-row clearfix" style="margin-top:15px !important">
+                                          <div class="title">KOJI superMint purchases: </div>
+                                          <div class="value " id="supermint-koji-enabled"
+                                              style="display:none;">enabled 
+                                              <div class="dot-container" style="display: inline;">
+                                                  <div class="dot green"
+                                                      style="float:;display:inline-block;margin: 5px 0px 0px 5px;">
+                                                  </div>
+                                              </div>
+                                          </div>
+                                          <div class="value " id="supermint-koji-disabled">disabled 
+                                            <div class="dot-container"
+                                                  style="display: inline;float:right;margin-right:5px">
+                                                  <div class="dot red"
+                                                      style="float:;display:inline-block;margin: 5px 0px 0px 5px;">
+                                                  </div>
+                                              </div>
+                                          </div>
+                                      </div>
+                                      <div class="data-row clearfix" >
                                           <div class="title">superMint KOJI price: </div>
-                                          <div class="value right" id="koji-supermint-price"></div>
+                                          <div class="value " id="koji-supermint-price"></div>
                                       </div>
 
-                                      <button type="button" class="btn btn-sep mt20" id="btn-supermint-koji"
-                                          style="background-color:#365036">
+                                      <button type="button" class="btn btn-sep" id="btn-supermint-koji"
+                                          style="background-color:#365036; margin-top:0px !important">
                                           <div><i class="fas fa-mask"></i></div>
                                           <span>Buy superMint with KOJI</span>
                                       </button>
 
                                   </div>
                               </div>
+
 
                           </div><!-- .ui-row -->
 
