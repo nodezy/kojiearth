@@ -841,10 +841,14 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     }
 
     function removeStakeholder(address stakeholder) internal {
+         if (!userStaked[stakeholder]) {
+            return;
+        } else {
         stakeholders[stakeholderIndexes[stakeholder]] = stakeholders[stakeholders.length-1];
         stakeholderIndexes[stakeholders[stakeholders.length-1]] = stakeholderIndexes[stakeholder];
         stakeholders.pop();
         userStaked[stakeholder] = false;
+        }
     }
 
     function giveAllsuperMint() external onlyAuthorized {
