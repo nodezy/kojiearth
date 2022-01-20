@@ -1,11 +1,11 @@
                      
                       <div class="ui-wrapper ui-toggle toggle-active" id="staking-info-wrapper">
 
-                         <span class="ui-title clearfix"><i class="far fa-book-open"></i>
-                            <span>Stake KOJI to mint our NFTs</span>
-                            <a onclick="toggleinfo();">
-                              <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
-                            </a>
+                         <span class="ui-title clearfix"><i class="fad fa-book-open"></i>
+                            <span>Stake KOJI to mint our NFTs</span> 
+                            <a onclick="toggleinfo();"><!--sir, please leave this in, it allows the show/hide to survive refresh if the user wants to show it after its been auto-hidden-->                  
+                              <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>   
+                            </a><!--this too =) -->                        
                         </span>
 
                            
@@ -97,20 +97,21 @@
 
                       </div><!-- .ui-wrapper -->
 
-                      <!-- UI row with 4 column ------------------------------------------------------------>
+                      <!-- staking pool info ------------------------------------------------------------>
 
-                      <div class="ui-wrapper">
+                      <div class="ui-wrapper pool-info">
 
-                          <span class="ui-title"><i class="far fa-chart-pie"></i>Staking Pool Info</span>
+                          <span class="ui-title"><i class="fad fa-chart-pie"></i>Staking Pool Info</span>
 
-                          <div class="ui-row col-4" style="margin-bottom:10px">
+                          <div class="ui-row col-3">
 
                               <div class="ui-col">
                                   <div class="ui-box">
-                                      <i class="fas fa-mask"></i>&nbsp;&nbsp;<span>Total KOJI Staked:</span>
+                                      <span class="title"><i class="fas fa-mask"></i>Total KOJI Staked:</span>
                                       <div class="data-row clearfix">
-                                          <div class="value" style="width:100%;text-align: center">
-                                              <span id="total-koji-staked"></span>
+                                          <div class="value">
+                                              <span id="total-koji-staked" class="pool-amount"></span>
+                                              <span class="usd-amount">(<span id="total-staked-usd"></span>)</span>
                                           </div>
                                       </div>
                                   </div>
@@ -118,10 +119,11 @@
 
                               <div class="ui-col">
                                   <div class="ui-box">
-                                      <i class="fas fa-money-bill"></i>&nbsp;&nbsp;<span>Total Staked Value:</span>
+                                  <span class="title"><i class="fas fa-coins"></i>Stake Rewards Pool:</span>
                                       <div class="data-row clearfix">
-                                          <div class="value" style="width:100%;text-align: center">
-                                              <span id="total-staked-usd"></span>
+                                          <div class="value">
+                                              <span id="rewards-pool-one" class="pool-amount"></span>
+                                              <span class="usd-amount">(<span id="rewards-pool-one-usd"></span>)</span>
                                           </div>
                                       </div>
                                   </div>
@@ -129,21 +131,11 @@
 
                               <div class="ui-col">
                                   <div class="ui-box">
-                                      <i class="fas fa-coins"></i>&nbsp;&nbsp;<span>Stake Rewards Pool:</span>
+                                  <span class="title"><i class="fas fa-chart-network"></i>Flux Rewards Pool:</span>
                                       <div class="data-row clearfix">
-                                          <div class="value" style="width:100%;text-align: center">
-                                              <span id="rewards-pool-one"></span>
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>
-
-                              <div class="ui-col">
-                                  <div class="ui-box">
-                                      <i class="fas fa-chart-network"></i>&nbsp;&nbsp;<span>Flux Rewards Pool:</span>
-                                      <div class="data-row clearfix">
-                                          <div class="value" style="width:100%;text-align: center">
-                                              <span id="rewards-pool-two"></span>
+                                          <div class="value">
+                                              <span id="rewards-pool-two" class="pool-amount"></span>
+                                              <span class="usd-amount">(<span id="rewards-pool-two-usd"></span>)</span>
                                           </div>
                                       </div>
                                   </div>
@@ -151,7 +143,14 @@
 
                           </div><!-- .ui-row -->
 
-                          <span class="ui-title"><i class="far fa-piggy-bank"></i>Stake Your KOJI</span>
+                          </div><!-- .ui-wrapper -->
+
+
+                        <!-- staking KOJI ------------------------------------------------------------>
+
+                        <div class="ui-wrapper">
+
+                          <span class="ui-title"><i class="fad fa-piggy-bank"></i>Stake Your KOJI</span>
 
                           <div class="ui-row col-3">
 
@@ -270,39 +269,46 @@
 
                       </div><!-- .ui-wrapper -->
 
-                      <!-- UI row with 2 column ------------------------------------------------------------>
 
-                      <div class="ui-wrapper ui-toggle">
+                      <!-- manage staking rewards ------------------------------------------------------------>
 
-                          <span class="ui-title"><i class="far fa-sack-dollar"></i>Manage Rewards</span>
+                      <div class="ui-wrapper">
+
+                          <span class="ui-title"><i class="fad fa-sack-dollar"></i>Manage Rewards</span>
 
                           <div class="ui-row col-1">
 
                               <div class="ui-col">
                                   <div class="ui-box">
 
-                                    <span class="ui-title clearfix">
-                                      <span>Rewards Info</span>
-                                      <a onclick="toggleinfo();">
-                                        <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
-                                      </a>
-                                  </span>
+                               
+                                    <div class="alert alert-info mt0 alert-toggle">
 
-                                    <div class="ui-toggleable clearfix">
-                                      <span>There are two rewards pools for staking KOJI:</span>
-                                        <ul>
-                                            <li>Rewards pool 1 (KOJI Pool rewards): This rewards pool is from the 1% - 3% taxes from unstaking. You will automatically receive rewards from this pool when you unstake any amount from the pool, proportional to how much you've unstaked.</li>
-                                            <li>The calculation for the net reward amount from pool 1 is: <strong>(withdrawal amount / total pooled KOJI) x total pool 1 rewards - (unstake fee + early unstake penalty)</strong></li>
-                                        </ul>
-                                         <ul>
-                                            <li>Rewards pool 2 (FLUX Pool rewards): <strong>KOJI FLUX</strong> is our custom staking rewards currency. This rewards pool is from the 1% tax on all KOJI buys/sells/transfers, as well as a pre-allocation of 10% of the total KOJI supply. You will automatically receive FLUX rewards from this pool per block, proportional to your stake amount in the pool.</li>
-                                            <li>FLUX can be converted to KOJI at any time based on the ratio conversion amount</li>
-                                            <li>FLUX can also be used to purchase superMints</li>
-                                        </ul>
-                                      </div>
+                                            <span class="alert-title">
+                                                <i class="fas fa-exclamation-circle"></i> Reward Info
+                                                <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
+                                            </span>
+
+                                            <div class="alert-toggleable">
+
+                                            <span>There are two rewards pools for staking KOJI:</span>
+                                                <ul>
+                                                    <li>Rewards pool 1 (KOJI Pool rewards): This rewards pool is from the 1% - 3% taxes from unstaking. You will automatically receive rewards from this pool when you unstake any amount from the pool, proportional to how much you've unstaked.</li>
+                                                    <li>The calculation for the net reward amount from pool 1 is: <strong>(withdrawal amount / total pooled KOJI) x total pool 1 rewards - (unstake fee + early unstake penalty)</strong></li>
+                                                </ul>
+                                                <ul>
+                                                    <li>Rewards pool 2 (FLUX Pool rewards): <strong>KOJI FLUX</strong> is our custom staking rewards currency. This rewards pool is from the 1% tax on all KOJI buys/sells/transfers, as well as a pre-allocation of 10% of the total KOJI supply. You will automatically receive FLUX rewards from this pool per block, proportional to your stake amount in the pool.</li>
+                                                    <li>FLUX can be converted to KOJI at any time based on the ratio conversion amount</li>
+                                                    <li>FLUX can also be used to purchase superMints</li>
+                                                </ul>
+
+                                            </div>                                       
+                                    </div>
+               
+
                                       <div class="data-row clearfix">
                                             <div class="title">converstionRate: <span class="tooltip conversion" data-tooltip="converstionRate: used to adjust the FLUX -> KOJI conversion amount to balance the FLUX rewards pool. Can be used in conjunction with bonusRate below."><i class="icon-question-circle"></i></span></div>
-                                          <div class="value " id="supermint-balance">1 FLUX = 1 KOJI v2</div>
+                                          <div class="value ">1 FLUX = <span id="flux-koji"></span> KOJI v2</div>
                                       </div>
 
                                       <div class="data-row clearfix">
@@ -333,7 +339,7 @@
                                           <div class="value " id="netrate">N/A</div>
                                       </div>
 
-                                      <button type="button" class="btn btn-sep" style="background-color:#365036; margin-top:0px !important">
+                                      <button type="button" class="btn green btn-sep mt20">
                                           <div><i class="icon-external-link"></i></div>
                                           <span>Redeem FLUX for KOJI</span>
                                       </button>
@@ -344,36 +350,45 @@
 
                       </div><!-- .ui-wrapper -->
 
-                       <div class="ui-wrapper ui-toggle">
 
-                          <span class="ui-title"><i class="far fa-file-plus"></i>Manage superMints</span>
+                      <!-- manage superMints ------------------------------------------------------------>
+
+                       <div class="ui-wrapper">
+
+                          <span class="ui-title"><i class="fad fa-file-plus"></i>Manage superMints</span>
 
                           <div class="ui-row col-1">
 
                               <div class="ui-col">
                                   <div class="ui-box">
 
-                                    <span class="ui-title clearfix">
-                                      <span>superMint Info</span>
-                                      <a onclick="toggleinfo();">
-                                        <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
-                                      </a>
-                                  </span>
 
-                                    <div class="ui-toggleable clearfix">
-                                      <p><strong>superMints</strong> are special currency that can be used to mint comic
-                                          NFT pages that ordinarily cannot be minted otherwise.</p>
-                                      <span>superMints allow the staker to do the following:</span>
-                                      <ul>
-                                          <li>Mint an NFT page after the minting window is closed</li>
-                                          <li>Mint an NFT page from a tier the staker isn't eligible for</li>
-                                          <li>Mint a duplicate NFT the staker already minted</li>
-                                      </ul>
-                                      <p>Stakers can only have one (1) superMint at a time, and also must hold the
-                                          minimum stake amount in order to use the superMint. superMints cannot be sold
-                                          or traded, and the purchase price of a superMint is subject to change based on
-                                          the conversion price of FLUX and/or the market price of KOJI.</p>
+                                    <div class="alert alert-info mt0 alert-toggle">
+
+                                        <span class="alert-title">
+                                            <i class="fas fa-exclamation-circle"></i> superMint Info
+                                            <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
+                                        </span>
+
+                                        <div class="alert-toggleable"> 
+                                            
+                                            <p><strong>superMints</strong> are special currency that can be used to mint comic
+                                            NFT pages that ordinarily cannot be minted otherwise.</p>
+                                            <span>superMints allow the staker to do the following:</span>
+                                            <ul>
+                                                <li>Mint an NFT page after the minting window is closed</li>
+                                                <li>Mint an NFT page from a tier the staker isn't eligible for</li>
+                                                <li>Mint a duplicate NFT the staker already minted</li>
+                                            </ul>
+                                            <p>Stakers can only have one (1) superMint at a time, and also must hold the
+                                                minimum stake amount in order to use the superMint. superMints cannot be sold
+                                                or traded, and the purchase price of a superMint is subject to change based on
+                                                the conversion price of FLUX and/or the market price of KOJI.</p>
+
+                                        </div>                                       
                                     </div>
+
+
 
                                       <div class="data-row clearfix">
                                           <div class="title">My superMint balance: </div>
@@ -403,8 +418,7 @@
                                           <div class="value " id="flux-supermint-price"></div>
                                       </div>
 
-                                      <button type="button" class="btn btn-sep" id="btn-supermint-flux"
-                                          style="background-color:#365036;margin-top:0px !important">
+                                      <button type="button" class="btn green btn-sep mt20 mb40" id="btn-supermint-flux">
                                           <div><i class="fas fa-chart-network"></i></div>
                                           <span>Buy superMint with FLUX</span>
                                       </button>
@@ -432,8 +446,7 @@
                                           <div class="value " id="koji-supermint-price"></div>
                                       </div>
 
-                                      <button type="button" class="btn btn-sep" id="btn-supermint-koji"
-                                          style="background-color:#365036; margin-top:0px !important">
+                                      <button type="button" class="btn green btn-sep mt20" id="btn-supermint-koji">
                                           <div><i class="fas fa-mask"></i></div>
                                           <span>Buy superMint with KOJI</span>
                                       </button>
