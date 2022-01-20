@@ -344,7 +344,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
             user.tierAtStakeTime = getTierequivalent(user.amount);
             user.blacklisted = false;
         
-            if (user.tierAtStakeTime >= 2) {
+            if (user.tierAtStakeTime == 1 || user.tierAtStakeTime == 2) {
                 addStakeholder(_msgSender());
             }
 
@@ -409,7 +409,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
                 emit Withdraw(_msgSender(), _pid, netamount);
             }               
 
-            if (userAmount == netamount) { // User is retrieving entire balance, set rewardDebt to zero
+            if (userAmount == _amount) { // User is retrieving entire balance, set rewardDebt to zero
                 user.rewardDebt = 0;
                 user.unstakeTime = block.timestamp;
                 user.tierAtStakeTime = 0;
