@@ -403,7 +403,8 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
                 } else {
                      uint256 taxfeenumerator = getUnstakePenalty(user.unstakeTime);
                      uint256 taxfee = taxableAmount.sub(taxableAmount.mul(taxfeenumerator).div(unstakePenaltyDenominator));
-                     netamount = netamount.mul(taxfee).div(100).add(reflectAmount);
+                     netamount = netamount.mul(taxfee).div(100);
+                     netamount = netamount.add(reflectAmount);
                 }
                 pool.stakeToken.safeTransfer(address(_msgSender()), netamount);
                 emit Withdraw(_msgSender(), _pid, netamount);
