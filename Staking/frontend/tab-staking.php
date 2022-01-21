@@ -249,7 +249,7 @@
 
                                       <span class="ui-note" id="is-overage" style="display: none">* A withdrawal of
                                           <span id="overage-amt"></span> will result in <span id="pool-reward"></span>
-                                          stake pool reward distribution. </span>
+                                          stake pool reward distribution (estimated). </span>
 
                                       <input class="mt20 mb20" type="text" id="stakeWithdraw" name="withdraw"
                                           placeholder="enter amount you want to withdraw">
@@ -272,13 +272,14 @@
 
                       <!-- manage staking rewards ------------------------------------------------------------>
 
-                      <div class="ui-wrapper">
+                      <div class="ui-wrapper" id="manage-rewards" style="display: none">
 
                           <span class="ui-title"><i class="fad fa-sack-dollar"></i>Manage Rewards</span>
 
                           <div class="ui-row col-1">
 
                               <div class="ui-col">
+                                <span id="wd-rewards-loader" class="ui-loader"></span>
                                   <div class="ui-box">
 
                                
@@ -329,7 +330,7 @@
                                           </div>
                                       </div>
 
-                                      <div class="data-row clearfix">
+                                      <div class="data-row clearfix" id="bonus-section">
                                           <div class="title">bonusRate: </div>
                                           <div class="value " id="bonusrate">120%</div>
                                       </div>
@@ -339,7 +340,10 @@
                                           <div class="value " id="netrate">N/A</div>
                                       </div>
 
-                                      <button type="button" class="btn green btn-sep mt20">
+                                      <span class="ui-note" style="color:red;display:block;margin-top:-15px"
+                                          id="redeemfluxalert"></span>
+
+                                      <button type="button" class="btn green btn-sep mt20" id="redeem-flux" onclick="validaterewards();">
                                           <div><i class="icon-external-link"></i></div>
                                           <span>Redeem FLUX for KOJI</span>
                                       </button>
@@ -353,7 +357,7 @@
 
                       <!-- manage superMints ------------------------------------------------------------>
 
-                       <div class="ui-wrapper">
+                       <div class="ui-wrapper" id="manage-supermints" style="display: none">
 
                           <span class="ui-title"><i class="fad fa-file-plus"></i>Manage superMints</span>
 
