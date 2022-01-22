@@ -13,4 +13,4 @@ jobs:
         token: ${{ secrets.TELEGRAM_TOKEN }}
         disable_web_page_preview: true
         message: |  #https://help.github.com/en/actions/reference/contexts-and-expression-syntax-for-github-actions#github-context#
-          ${{ github.event_name }} commit in kojiearth by @nodezy. [${{github.sha}}@${{ github.ref_name }}] ${{ github.server_url }}/${{ github.repository }}/commits/main
+          ${{ github.event_name }} commit in kojiearth by "${{ github.actor }}". [${{github.sha}}@${{ github.ref_name }}] ${{ github.server_url }}/${{ github.repository }}/commits/main
