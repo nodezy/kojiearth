@@ -123,7 +123,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     uint256 public promoAmount = 200000000000; // Amount of KOJIFLUX to give to new stakers (default 200 KOJIFLUX).
     uint256 public superMintFluxPrice = 10000000000000000; // KOJIFLUX Cost to purchase a superMint (10M default).
     uint256 public superMintKojiPrice = 100000000000000000; // KOJIFLUX Cost to purchase a superMint (100M default).
-    uint256 internal taxableAmount = 100;
+    uint256 internal taxableAmount = 1000;
     uint256 public unstakePenaltyStartingTax = 30;
     uint256 public unstakePenaltyDefaultTax = 10;
     uint256 public unstakePenaltyDenominator = 1000;
@@ -138,7 +138,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     mapping(address => uint256) private userBalance; // Balance of KOJIFLUX for each user that survives staking/unstaking/redeeming.
     mapping(address => uint256) private userRealized; // Balance of KOJIFLUX for each user that survives staking/unstaking/redeeming.
     mapping(address => bool) private promoWallet; // Whether the wallet has received promotional KOJIFLUX.
-    mapping(address => bool) private superMint; // Whether the wallet has a mint booster allowing require bypass.
+    mapping(address => bool) public superMint; // Whether the wallet has a mint booster allowing require bypass.
     mapping(address => bool) public userStaked; // Denotes whether the user is currently staked or not, must be eligible for tiers 1/2 for true.
     
     address public NFTAddress; //NFT contract address
@@ -367,7 +367,6 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         uint256 userAmount = user.amount;
         require(_amount > 0, "Withdrawal amount must be greater than zero");
         require(user.amount >= _amount, "Withdraw amount is greater than user amount");
-        
 
         updatePool(_pid);
 
@@ -375,6 +374,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
  
             uint256 tokenSupply = pool.stakeToken.balanceOf(address(this)); // Get total amount of KOJI tokens
             uint256 totalRewards = tokenSupply.sub(pool.runningTotal); // Get difference between contract address amount and ledger amount
+            
             if (totalRewards == 0) { // No rewards, just return 100% to the user
 
                 uint256 tempRewards = pendingRewards(_pid, _msgSender());
@@ -385,27 +385,21 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
                 user.amount = user.amount.sub(_amount);
                 emit Withdraw(_msgSender(), _pid, _amount);
                 
-            } 
-            uint256 netamount = _amount; //stack too deep
-            if (totalRewards > 0) { //include reflection
+            } else { //include reflection
+
+                uint256 netamount = _amount; //stack too deep
 
                 uint256 tempRewards = pendingRewards(_pid, _msgSender());
                 userBalance[_msgSender()] = userBalance[_msgSender()].add(tempRewards);
 
-                uint256 percentRewards = netamount.mul(100).div(pool.runningTotal); // Get % of share out of 100
-                uint256 reflectAmount = percentRewards.mul(totalRewards).div(100); // Get % of reflect amount
+                if(!enableTaxlessWithdrawals) { // Switch for tax free / reflection free withdrawals
 
-                pool.runningTotal = pool.runningTotal.sub(netamount);
-                user.amount = user.amount.sub(netamount);
-                
-                if(enableTaxlessWithdrawals) { // Switch for tax free / reflection free withdrawals
-                     netamount = netamount;
-                } else {
-                     uint256 taxfeenumerator = getUnstakePenalty(user.unstakeTime);
-                     uint256 taxfee = taxableAmount.sub(taxableAmount.mul(taxfeenumerator).div(unstakePenaltyDenominator));
-                     netamount = netamount.mul(taxfee).div(100);
-                     netamount = netamount.add(reflectAmount);
+                   netamount = getWithdrawResult(_msgSender(), _amount);
                 }
+
+                pool.runningTotal = pool.runningTotal.sub(_amount);
+                user.amount = user.amount.sub(_amount);
+
                 pool.stakeToken.safeTransfer(address(_msgSender()), netamount);
                 emit Withdraw(_msgSender(), _pid, netamount);
             }               
@@ -413,20 +407,24 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
             if (userAmount == _amount) { // User is retrieving entire balance, set rewardDebt to zero
                 user.rewardDebt = 0;
                 user.unstakeTime = block.timestamp;
+                user.usdEquiv = 0;
                 user.tierAtStakeTime = 0;
                 user.blacklisted = true;
                 removeStakeholder(_msgSender());
             } else {
                 if (getTierequivalent(user.amount) == 1) {
+                    user.usdEquiv = getUSDequivalent(user.amount);
                     user.unstakeTime = block.timestamp;
                     user.tierAtStakeTime = 1;
                     user.blacklisted = false;
                 } else {
                     if (getTierequivalent(user.amount) == 2) {
+                    user.usdEquiv = getUSDequivalent(user.amount);
                     user.unstakeTime = block.timestamp;
                     user.tierAtStakeTime = 2;
                     user.blacklisted = false;
                     } else {
+                        user.usdEquiv = getUSDequivalent(user.amount);
                         user.unstakeTime = block.timestamp;
                         user.tierAtStakeTime = 0;
                         user.blacklisted = true;
@@ -436,9 +434,8 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
                 user.rewardDebt = user.amount.mul(pool.accKojiPerShare).div(1e12); 
             }
 
-        }
-        
-                        
+        } 
+                      
     }
 
     // Safe KOJIFLUX token transfer function, just in case if
@@ -675,14 +672,12 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
             UserInfo storage user0 = userInfo[0][_address];
 
-            if (user0.stakeTime >= stakeBonusStart && user0.stakeTime <= stakeBonusEnd) {
+            if (user0.stakeTime >= stakeBonusStart && block.timestamp.add(stakeBonusStart) <= stakeBonusEnd) {
 
                 newamount = newamount.mul(bonusRate).div(100);
             }
 
-
         }
-
 
         return newamount;
     }
@@ -704,30 +699,6 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         uint256 pendingusdamount = getConversionPrice(pendingamount);
 
         return pendingusdamount.div(10**9);
-    }
-
-
-    // Get the holder rewards of users staked $koji if they were to withdraw
-    function getHolderRewards(address _address) external view returns (uint256) {
-        PoolInfo storage pool = poolInfo[0];
-        UserInfo storage user = userInfo[0][_address];
-
-        uint256 _amount = user.amount;
-        uint256 tokenSupply = pool.stakeToken.balanceOf(address(this)); // Get total amount of tokens
-        uint256 totalRewards = tokenSupply.sub(pool.runningTotal); // Get difference between contract address amount and ledger amount
-        
-         if (totalRewards > 0) { // Include reflection
-            uint256 percentRewards = _amount.mul(100).div(pool.runningTotal); // Get % of share out of 100
-            uint256 reflectAmount = percentRewards.mul(totalRewards).div(100); // Get % of reflect amount
-
-            return _amount.add(reflectAmount); // Add pool rewards to users original staked amount
-
-         } else {
-
-             return 0;
-
-         }
-
     }
 
     // Sets min/max staking amounts for Koji token
@@ -777,10 +748,10 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
         uint256 totalvalue = getUSDequivalent(_amount);
 
-        if (totalvalue >= minKojiTier1Stake) {
+        if (totalvalue >= minKojiTier1Stake.sub(1000000000)) {
             return 1;
         } else {
-            if (totalvalue >= minKojiTier2Stake && totalvalue <= minKojiTier1Stake) {
+            if (totalvalue >= minKojiTier2Stake.sub(1000000000) && totalvalue < minKojiTier1Stake.sub(1000000000)) {
                 return 2;
             } else {
                 return 0;
@@ -870,7 +841,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
         uint256 totalunstakefee  = unstakePenaltyStartingTax.sub(totaldays);
 
-        if (totalunstakefee < unstakePenaltyDefaultTax) {
+        if (totalunstakefee <= unstakePenaltyDefaultTax) {
             return unstakePenaltyDefaultTax;
         } else {
             return totalunstakefee;
@@ -895,5 +866,84 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
     function getSuperMintPrices() external view returns (uint256 fluxprice, uint256 kojiprice) {
         return (superMintFluxPrice,superMintKojiPrice);
+    }
+
+    // Get the holder rewards of users staked $koji if they were to withdraw
+    function getWithdrawResult(address _holder, uint256 _amount) public view returns (uint256) {
+
+        PoolInfo storage pool = poolInfo[0];
+        UserInfo storage user = userInfo[0][_holder];
+
+        if (_amount == 0) { //pass 0 to use full user.amount, otherwise pass partial amount
+            _amount = user.amount;
+        } 
+
+        uint256 netamount;
+
+        uint256 tokenSupply = pool.stakeToken.balanceOf(address(this)); // Get total amount of KOJI tokens
+        uint256 totalRewards = tokenSupply.sub(pool.runningTotal); // Get difference between contract address amount and ledger amount
+        uint256 percentRewards = _amount.mul(100).div(pool.runningTotal); // Get % of share out of 100
+        uint256 reflectAmount = percentRewards.mul(totalRewards).div(100); // Get % of reflect amount           
+        uint256 taxfeenumerator = getUnstakePenalty(user.unstakeTime);
+        uint256 taxfee = taxableAmount.sub(taxableAmount.mul(taxfeenumerator).div(unstakePenaltyDenominator));
+        netamount = _amount.mul(taxfee).div(unstakePenaltyDenominator);
+        netamount = netamount.add(reflectAmount);
+
+        return netamount;
+
+    }
+
+    function getHolderRewards(address _address, uint256 _amount) external view returns (uint256) {
+        PoolInfo storage pool = poolInfo[0];
+        UserInfo storage user = userInfo[0][_address];
+
+        if (_amount == 0) { //pass 0 to use full user.amount, otherwise pass partial amount
+            _amount = user.amount;
+        } 
+        uint256 tokenSupply = pool.stakeToken.balanceOf(address(this)); // Get total amount of tokens
+        uint256 totalRewards = tokenSupply.sub(pool.runningTotal); // Get difference between contract address amount and ledger amount
+        
+         if (totalRewards > 0) { // Include reflection
+            uint256 percentRewards = _amount.mul(100).div(pool.runningTotal); // Get % of share out of 100
+            uint256 reflectAmount = percentRewards.mul(totalRewards).div(100); // Get % of reflect amount
+
+            return reflectAmount; // return reflection amount
+
+         } else {
+
+             return 0;
+
+         }
+
+    }
+
+    function setTaxlessWithdrawals(bool _status) external onlyOwner {
+        enableTaxlessWithdrawals = _status;
+    }
+
+    // Get the holder rewards of users staked $koji if they were to withdraw
+    function getWithdrawResultTest(address _holder, uint256 _tempamount) external view returns (uint256[] memory) {
+
+        PoolInfo storage pool = poolInfo[0];
+        UserInfo storage user = userInfo[0][_holder];
+
+        uint256[] memory temp = new uint256[](7);
+
+        if (_tempamount == 0) { //pass 0 to use full user.amount, otherwise pass partial amount
+            _tempamount = user.amount;
+        } 
+
+        uint256 stackdeep =_tempamount;
+
+        temp[0] = pool.stakeToken.balanceOf(address(this)); // Get total amount of KOJI tokens
+        temp[1] = temp[0].sub(pool.runningTotal); // Get difference between contract address amount and ledger amount
+        temp[2] = stackdeep.mul(100).div(pool.runningTotal); // Get % of share out of 100
+        temp[3] = temp[2].mul(temp[1]).div(100); // Get % of reflect amount           
+        temp[4] = getUnstakePenalty(user.unstakeTime);
+        temp[5] = taxableAmount.sub(taxableAmount.mul(temp[4]).div(unstakePenaltyDenominator));
+        temp[6] = stackdeep.mul(temp[5]).div(unstakePenaltyDenominator);
+        
+        return temp;
+
     }
 }
