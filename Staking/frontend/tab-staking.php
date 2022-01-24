@@ -19,7 +19,7 @@
                                       <p>You will also be rewarded in FLUX which can be converted into KOJI v2 or used
                                           to buy superMints which allow you to mint any pages you have missed.</p>
 
-                                      <img style="margin-bottom:17px" src="./assets/imgs/kojiflux.jpg" />
+                                      <img style="margin-bottom:17px" src="./assets/imgs/andreas_flux.jpg" />
 
                                       <span>FLUX will also be used in our ecosystem for games and lottery type
                                           activities.</span>
@@ -162,12 +162,12 @@
 
                                       <div class="data-row clearfix">
                                           <div class="title">For Tier 1 minting, please deposit at least: </div>
-                                          <div class="value" id="mintier1amount"></div>
+                                          <div class="value"><span id="mintier1amount"></span><span id="max1span" style='font-size:small;display:none;float:right'><a href='#' id='max1' onclick='return false;'>(Stake Max)</a></span></div>
                                       </div>
 
-                                      <div class="data-row clearfix">
+                                      <div class="data-row clearfix" style="margin-bottom:20px">
                                           <div class="title">For tier 2 minting, please deposit at least: </div>
-                                          <div class="value" id="mintier2amount"></div>
+                                          <div class="value"><span id="mintier2amount"></span><span id="max2span" style='font-size:small;display:none;float:right'><a href='#' id='max2' onclick='return false;'>(Stake Max)</a></span></div>
                                       </div>
 
                                       <span class="ui-note">* Please note that you can only mint 1 (one) tier 1 OR tier
@@ -175,7 +175,7 @@
 
 
                                       <input class="mt20 mb20" type="text" id="stakeDeposit" name="deposit"
-                                          placeholder="enter amount you want to stake">
+                                          placeholder="enter amount you want to deposit">
 
                                       <span class="ui-note" style="color:red;display:block;margin-top:-15px"
                                           id="depositalert"></span>
@@ -190,7 +190,7 @@
                                       <button type="button" class="btn btn-sep mt30" id="deposit-staking"
                                           onclick="validatedeposit();" style="background-color:#365036; display:none">
                                           <div><i class="fas fa-arrow-alt-to-bottom"></i></div>
-                                          <span>Deposit KOJI</span>
+                                          <span>Stake KOJI</span>
                                       </button>
                                   </div>
                               </div>
@@ -236,7 +236,7 @@
                                   <div class="ui-box">
                                       <p>Withdraw</p>
                                       <div class="data-row clearfix">
-                                          <div class="title">Withdraw Fees: </div>
+                                          <div class="title">Unstake Fees: </div>
                                           <div class="value" id="unstake-penalty">1% + any early unstake %</div>
                                       </div>
 
@@ -249,7 +249,7 @@
 
                                       <span class="ui-note" id="is-overage" style="display: none">* A withdrawal of
                                           <span id="overage-amt"></span> will result in <span id="pool-reward"></span>
-                                          stake pool reward distribution (estimated). </span>
+                                          pool rewards (estimated <span id="netout"></span> out with tax + unstake fees). </span>
 
                                       <input class="mt20 mb20" type="text" id="stakeWithdraw" name="withdraw"
                                           placeholder="enter amount you want to withdraw">
@@ -260,7 +260,7 @@
                                       <button type="button" class="btn btn-sep mt30" id="withdraw-staking"
                                           onclick="validatewithdrawal();" style="background-color:#365036">
                                           <div><i class="fas fa-arrow-alt-from-bottom"></i></div>
-                                          <span>Withdraw KOJI</span>
+                                          <span>Unstake KOJI</span>
                                       </button>
                                   </div>
                               </div>
