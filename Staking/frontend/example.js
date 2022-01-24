@@ -26,7 +26,7 @@ let bscnftaddress = "0x062C9545e61A7eD56F3BE4256EAAC19c5580868A"; //bsctest nft 
 let bscnftproxy = "0xe97E4c086283d6e6c407ac131F7413Fea3B32a46"; //bsctest nft proxy contract
 let liquidpair = "0x697666d38d339958ed416e0119bdc73abef58996";
 let oracle = "0x66F2495e1f139c22Dd839250858bB8936a7845Bc";
-let staking = "0x524734CEEe0Cc3Baa856C12C1cBD5cE7e2fe7F1c";
+let staking = "0x196CD1da7a89175Cd5Ba5737be4b62FD734047dF";
 let rewards = "0xDE554cA0E3B9861d120A7415C0dE6Ac32AFb4cE4";
 
 var kojitokenABI = JSON.stringify([{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"owner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[],"name":"AddToDistributorBalance","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"AddToDistributorDeposit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"AddToDistributorNetDivs","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_walletGas","type":"uint256"},{"internalType":"uint256","name":"_reinvestGas","type":"uint256"}],"name":"ChangeDistribGas","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_timelimit","type":"uint256"}],"name":"ChangeImpoundTimelimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"},{"internalType":"uint256","name":"_gas","type":"uint256"}],"name":"ChangeMinHold","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_percent","type":"uint256"}],"name":"Donate","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_holder","type":"address"}],"name":"GetClaimed","outputs":[{"internalType":"uint256","name":"pending","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"GetMinDistribution","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_holder","type":"address"}],"name":"GetPending","outputs":[{"internalType":"uint256","name":"pending","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"GetRewardsToken","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_holder","type":"address"}],"name":"GetShareholderExpired","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_percent","type":"uint256"},{"internalType":"uint256","name":"_amountOutMin","type":"uint256"}],"name":"Reinvest","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"RescueBNBfromDistributor","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"SetDistributionCriteria","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"SweepDivs","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_tokenAddr","type":"address"},{"internalType":"address","name":"_to","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"TransferBEP20fromDistributor","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"ViewHolderInfo","outputs":[{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"unpaid","type":"uint256"},{"internalType":"uint256","name":"realised","type":"uint256"},{"internalType":"uint256","name":"excluded","type":"uint256"},{"internalType":"bool","name":"rewardeligible","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"ViewMathInfo","outputs":[{"internalType":"uint256","name":"totalshares","type":"uint256"},{"internalType":"uint256","name":"netdividends","type":"uint256"},{"internalType":"uint256","name":"totaldistributed","type":"uint256"},{"internalType":"uint256","name":"totalreinvested","type":"uint256"},{"internalType":"uint256","name":"totalwithdrawn","type":"uint256"},{"internalType":"uint256","name":"totalDonated","type":"uint256"},{"internalType":"uint256","name":"totaldividends","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"ViewMinHold","outputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"WETHaddedToPool","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_percent","type":"uint256"}],"name":"Withdrawal","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"_maxTxAmountBuy","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"_maxTxAmountSell","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"_maxWalletToken","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_tokencontract","type":"address"},{"internalType":"uint256","name":"_minHoldAmount","type":"uint256"},{"internalType":"uint256","name":"_percent","type":"uint256"}],"name":"addPartnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"addToLiquid","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"adminWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"airdropEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"holder","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"}],"name":"approveMax","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"burnRatio","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_distributorgas","type":"uint256"},{"internalType":"uint256","name":"_walletgas","type":"uint256"}],"name":"changeContractGas","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_oracle","type":"address"}],"name":"changeOracle","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"charityWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"convertBNBtoWBNB","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"distributorDeposit","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"enableOracle","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"enablePartners","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"feeDenominator","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getCirculatingSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getDonationLeaders","outputs":[{"internalType":"address[]","name":"","type":"address[]"},{"internalType":"uint256[]","name":"","type":"uint256[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getPartnershipIndex","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bool","name":"bot","type":"bool"}],"name":"getTotalFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"isInBot","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"isOwner","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"launchEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"launchedAt","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"manualBurn","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"nftPoolActive","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"nftRewardWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"oracle","outputs":[{"internalType":"contract IOracle","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"pair","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"partnerFeeLimiter","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"registerShares","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_tokencontract","type":"address"}],"name":"removePartnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"rescueBNB","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"router","outputs":[{"internalType":"contract IDEXRouter","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setAddToLiquid","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"setAirdropDisabled","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"},{"internalType":"bool","name":"toggle","type":"bool"}],"name":"setBot","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"setBuyTxLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setDistributorDeposit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setEnableOracle","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setEnablePartners","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_totalFee","type":"uint256"}],"name":"setFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_charityWallet","type":"address"},{"internalType":"address","name":"_adminWallet","type":"address"},{"internalType":"address","name":"_nftRewardWallet","type":"address"},{"internalType":"address","name":"_stakePoolWallet","type":"address"}],"name":"setFeeReceivers","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"blocks","type":"uint256"}],"name":"setInitialBlockLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"holder","type":"address"},{"internalType":"bool","name":"exempt","type":"bool"}],"name":"setIsDividendExempt","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"holder","type":"address"},{"internalType":"bool","name":"exempt","type":"bool"}],"name":"setIsFeeExempt","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"holder","type":"address"},{"internalType":"bool","name":"exempt","type":"bool"}],"name":"setIsTxLimitExempt","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"setLaunchEnabled","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"setMaxWalletToken","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setNFTPoolActive","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_limiter","type":"uint256"}],"name":"setPartnerFeeLimiter","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"setSellTxLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setStakePoolActive","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_enabled","type":"bool"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"setSwapBackSettings","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setTeamWalletDeposit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"setburnRatio","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"setstakepoolRatio","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"settaxRatio","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"stakePoolActive","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"stakePoolWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"stakepoolRatio","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"swapEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"taxRatio","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"teamWalletDeposit","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalAdmin","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalCharity","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalNFTrewards","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalStakepool","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_tokenAddr","type":"address"},{"internalType":"address","name":"_to","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"transferBEP20Tokens","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address payable","name":"adr","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_index","type":"uint256"}],"name":"viewPartnership","outputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"string","name":"symbol","type":"string"},{"internalType":"uint8","name":"decimals","type":"uint8"},{"internalType":"address","name":"tokencontract","type":"address"},{"internalType":"uint256","name":"minHoldAmount","type":"uint256"},{"internalType":"uint256","name":"discount","type":"uint256"},{"internalType":"bool","name":"enabled","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"viewTeamWalletInfo","outputs":[{"internalType":"uint256","name":"charityDivs","type":"uint256"},{"internalType":"uint256","name":"adminDivs","type":"uint256"},{"internalType":"uint256","name":"nftDivs","type":"uint256"},{"internalType":"uint256","name":"stakeDivs","type":"uint256"}],"stateMutability":"view","type":"function"},{"stateMutability":"payable","type":"receive"}]);
@@ -34,7 +34,7 @@ var bscnftmintABI = JSON.stringify([{"inputs":[{"internalType":"uint256","name":
 var bscnftproxyABI = JSON.stringify([{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"inputs":[],"name":"NFTAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function","constant":true},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function","constant":true},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_nftaddress","type":"address"}],"name":"setNFTAddress","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_sender","type":"address"},{"internalType":"bytes32","name":"_tier","type":"bytes32"},{"internalType":"bytes32","name":"_redherring","type":"bytes32"}],"name":"method_unknown","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"rescueETHFromContract","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_tokenAddr","type":"address"},{"internalType":"address","name":"_to","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"transferERC20Tokens","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"returnstring1","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function","constant":true},{"inputs":[],"name":"returnstring2","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function","constant":true},{"inputs":[],"name":"changeTier1URI","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"changeTier2URI","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"_uri","type":"string"}],"name":"changeTier1URIstring","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"_uri","type":"string"}],"name":"changeTier2URIstring","outputs":[],"stateMutability":"nonpayable","type":"function"}]);
 var liquidpairabi = JSON.stringify([{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount0","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount1","type":"uint256"},{"indexed":true,"internalType":"address","name":"to","type":"address"}],"name":"Burn","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount0","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount1","type":"uint256"}],"name":"Mint","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount0In","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount1In","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount0Out","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount1Out","type":"uint256"},{"indexed":true,"internalType":"address","name":"to","type":"address"}],"name":"Swap","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint112","name":"reserve0","type":"uint112"},{"indexed":false,"internalType":"uint112","name":"reserve1","type":"uint112"}],"name":"Sync","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"constant":true,"inputs":[],"name":"DOMAIN_SEPARATOR","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"MINIMUM_LIQUIDITY","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"PERMIT_TYPEHASH","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"to","type":"address"}],"name":"burn","outputs":[{"internalType":"uint256","name":"amount0","type":"uint256"},{"internalType":"uint256","name":"amount1","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"factory","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"_token0","type":"address"},{"internalType":"address","name":"_token1","type":"address"}],"name":"initialize","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"kLast","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"to","type":"address"}],"name":"mint","outputs":[{"internalType":"uint256","name":"liquidity","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"nonces","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"},{"internalType":"uint256","name":"deadline","type":"uint256"},{"internalType":"uint8","name":"v","type":"uint8"},{"internalType":"bytes32","name":"r","type":"bytes32"},{"internalType":"bytes32","name":"s","type":"bytes32"}],"name":"permit","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"price0CumulativeLast","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"price1CumulativeLast","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"to","type":"address"}],"name":"skim","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"uint256","name":"amount0Out","type":"uint256"},{"internalType":"uint256","name":"amount1Out","type":"uint256"},{"internalType":"address","name":"to","type":"address"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"swap","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"sync","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"token1","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]);
 var oracleabi = JSON.stringify([{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"inputs":[],"name":"LazloOnline","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"address","name":"_pair","type":"address"}],"name":"changePair","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"tier1","type":"uint256"},{"internalType":"uint256","name":"tier2","type":"uint256"}],"name":"changeTierAmounts","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getKojiUSDPrice","outputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getLatestPrice","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getMinKOJITier1Amount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getMinKOJITier2Amount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint256","name":"reserve0","type":"uint256"},{"internalType":"uint256","name":"reserve1","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"getbnbequivalent","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"getdiscount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"minTier1Amount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"minTier2Amount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"}]);
-var stakingabi = JSON.stringify([{"inputs":[{"internalType":"contract KojiFlux","name":"_kojiflux","type":"address"},{"internalType":"uint256","name":"_startBlock","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":true,"internalType":"uint256","name":"pid","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"Deposit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":true,"internalType":"uint256","name":"pid","type":"uint256"}],"name":"Unstake","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":true,"internalType":"uint256","name":"pid","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"Withdraw","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"WithdrawRewardsOnly","type":"event"},{"inputs":[],"name":"KojiFluxAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"NFTAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_allocPoint","type":"uint256"},{"internalType":"contract IERC20","name":"_stakeToken","type":"address"},{"internalType":"bool","name":"_withUpdate","type":"bool"}],"name":"add","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_toAdd","type":"address"}],"name":"addAuthorized","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"addedstakeTokens","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"authorized","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"blockRewardLastUpdateTime","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"blockRewardPercentage","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"blockRewardUpdateCycle","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"blocksPerDay","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"bonusRate","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"boostersEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"buySuperMint","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"buySuperMintKoji","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_oracle","type":"address"}],"name":"changeOracle","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_rewards","type":"address"}],"name":"changeRewards","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_upperlimit","type":"uint256"}],"name":"changeUpperLimiter","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"conversionRate","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"convertAndWithdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_pid","type":"uint256"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"deposit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"enableFluxSuperMintBuying","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"enableKojiSuperMintBuying","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"enableRewardWithdraw","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"enableRewardWithdrawals","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"enableTaxlessWithdrawals","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_user","type":"address"}],"name":"getAccruedRewards","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"},{"internalType":"address","name":"_address","type":"address"}],"name":"getConversionAmount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"getConversionPrice","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getConversionRate","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"getHolderRewards","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getKojiPerBlock","outputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getKojiPerBlockUpdateTime","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getOracleMinMax","outputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_holder","type":"address"}],"name":"getPendingUSDRewards","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_pid","type":"uint256"}],"name":"getRunningDepositTotal","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getSuperMintPrices","outputs":[{"internalType":"uint256","name":"fluxprice","type":"uint256"},{"internalType":"uint256","name":"kojiprice","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"getTierequivalent","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_user","type":"address"}],"name":"getTotalPendingRewards","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_user","type":"address"}],"name":"getTotalRewards","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_pid","type":"uint256"},{"internalType":"address","name":"_user","type":"address"}],"name":"getTotalStake","outputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"contract IERC20","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"getUSDequivalent","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_staketime","type":"uint256"}],"name":"getUnstakePenalty","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"giveAllsuperMint","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"increaseKojiFluxBalance","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"kojiflux","outputs":[{"internalType":"contract KojiFlux","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"massUpdatePools","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"minKojiTier1Stake","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"minKojiTier2Stake","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"moveRewardsToEscrow","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"oracle","outputs":[{"internalType":"contract IOracle","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_pid","type":"uint256"},{"internalType":"address","name":"_user","type":"address"}],"name":"pendingRewards","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"poolInfo","outputs":[{"internalType":"contract IERC20","name":"stakeToken","type":"address"},{"internalType":"uint256","name":"allocPoint","type":"uint256"},{"internalType":"uint256","name":"lastRewardBlock","type":"uint256"},{"internalType":"uint256","name":"accKojiPerShare","type":"uint256"},{"internalType":"uint256","name":"runningTotal","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"poolLength","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"poolReward","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"promoActive","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"promoAmount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_nftID","type":"uint256"}],"name":"redeemtier1","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_nftID","type":"uint256"}],"name":"redeemtier2","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"reduceKojiFluxBalance","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_toRemove","type":"address"}],"name":"removeAuthorized","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"rescueETHFromContract","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"rewardWithdrawalStatus","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"rewards","outputs":[{"internalType":"contract IKojiRewards","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_pid","type":"uint256"},{"internalType":"uint256","name":"_allocPoint","type":"uint256"},{"internalType":"bool","name":"_withUpdate","type":"bool"}],"name":"set","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_blockRewardPercentage","type":"uint256"}],"name":"setBlockRewardPercentage","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_blockRewardUpdateCycle","type":"uint256"}],"name":"setBlockRewardUpdateCycle","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_blocksPerDay","type":"uint256"}],"name":"setBlocksPerDay","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_rate","type":"uint256"}],"name":"setConverstionRate","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"setKojiFluxAddress","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"setKojiFluxBalance","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_min1","type":"uint256"},{"internalType":"uint256","name":"_min2","type":"uint256"}],"name":"setKojiStakingMinMax","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"setNFTAddress","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setPromoStatus","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_stakeBonusStart","type":"uint256"},{"internalType":"uint256","name":"_stakeBonusEnd","type":"uint256"},{"internalType":"uint256","name":"_bonusRate","type":"uint256"},{"internalType":"bool","name":"_stakeBonusEnabled","type":"bool"}],"name":"setStakeBonusParams","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_fluxbuying","type":"bool"},{"internalType":"bool","name":"_kojibuying","type":"bool"}],"name":"setSuperMintBuying","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"stakeBonusEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"stakeBonusEnd","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"stakeBonusStart","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"startBlock","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"superMintFluxPrice","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"superMintKojiPrice","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_nftID","type":"uint256"}],"name":"superminttier1","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_nftID","type":"uint256"}],"name":"superminttier2","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"totalAllocPoint","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_tokenAddr","type":"address"},{"internalType":"address","name":"_to","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"transferERC20Tokens","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"unstakePenaltyDefaultTax","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"unstakePenaltyDenominator","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"unstakePenaltyStartingTax","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_pid","type":"uint256"}],"name":"updatePool","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"updatePoolReward","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"upperLimiter","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"address","name":"","type":"address"}],"name":"userInfo","outputs":[{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"rewardDebt","type":"uint256"},{"internalType":"uint256","name":"usdEquiv","type":"uint256"},{"internalType":"uint256","name":"stakeTime","type":"uint256"},{"internalType":"uint256","name":"unstakeTime","type":"uint256"},{"internalType":"uint256","name":"tierAtStakeTime","type":"uint256"},{"internalType":"bool","name":"blacklisted","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"userStaked","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_pid","type":"uint256"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"withdrawRewardsOnly","outputs":[],"stateMutability":"nonpayable","type":"function"}]);
+var stakingabi = JSON.stringify([{"inputs":[{"internalType":"contract KojiFlux","name":"_kojiflux","type":"address"},{"internalType":"uint256","name":"_startBlock","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":true,"internalType":"uint256","name":"pid","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"Deposit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":true,"internalType":"uint256","name":"pid","type":"uint256"}],"name":"Unstake","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":true,"internalType":"uint256","name":"pid","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"Withdraw","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"WithdrawRewardsOnly","type":"event"},{"inputs":[],"name":"KojiFluxAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"NFTAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_allocPoint","type":"uint256"},{"internalType":"contract IERC20","name":"_stakeToken","type":"address"},{"internalType":"bool","name":"_withUpdate","type":"bool"}],"name":"add","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_toAdd","type":"address"}],"name":"addAuthorized","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"addedstakeTokens","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"authorized","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"blockRewardLastUpdateTime","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"blockRewardPercentage","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"blockRewardUpdateCycle","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"blocksPerDay","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"bonusRate","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"boostersEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"buySuperMint","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"buySuperMintKoji","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_oracle","type":"address"}],"name":"changeOracle","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_rewards","type":"address"}],"name":"changeRewards","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_upperlimit","type":"uint256"}],"name":"changeUpperLimiter","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"conversionRate","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"convertAndWithdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_pid","type":"uint256"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"deposit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"enableFluxSuperMintBuying","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"enableKojiSuperMintBuying","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"enableRewardWithdraw","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"enableRewardWithdrawals","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"enableTaxlessWithdrawals","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_user","type":"address"}],"name":"getAccruedRewards","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"},{"internalType":"address","name":"_address","type":"address"}],"name":"getConversionAmount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"getConversionPrice","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getConversionRate","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"getHolderRewards","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getKojiPerBlock","outputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getKojiPerBlockUpdateTime","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getOracleMinMax","outputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_holder","type":"address"}],"name":"getPendingUSDRewards","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_pid","type":"uint256"}],"name":"getRunningDepositTotal","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getSuperMintPrices","outputs":[{"internalType":"uint256","name":"fluxprice","type":"uint256"},{"internalType":"uint256","name":"kojiprice","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"getTierequivalent","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_user","type":"address"}],"name":"getTotalPendingRewards","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_user","type":"address"}],"name":"getTotalRewards","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_pid","type":"uint256"},{"internalType":"address","name":"_user","type":"address"}],"name":"getTotalStake","outputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"contract IERC20","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"getUSDequivalent","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_staketime","type":"uint256"}],"name":"getUnstakePenalty","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_holder","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"getWithdrawResult","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"giveAllsuperMint","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"increaseKojiFluxBalance","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"kojiflux","outputs":[{"internalType":"contract KojiFlux","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"massUpdatePools","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"minKojiTier1Stake","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"minKojiTier2Stake","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"moveRewardsToEscrow","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"oracle","outputs":[{"internalType":"contract IOracle","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_pid","type":"uint256"},{"internalType":"address","name":"_user","type":"address"}],"name":"pendingRewards","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"poolInfo","outputs":[{"internalType":"contract IERC20","name":"stakeToken","type":"address"},{"internalType":"uint256","name":"allocPoint","type":"uint256"},{"internalType":"uint256","name":"lastRewardBlock","type":"uint256"},{"internalType":"uint256","name":"accKojiPerShare","type":"uint256"},{"internalType":"uint256","name":"runningTotal","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"poolLength","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"poolReward","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"promoActive","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"promoAmount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_nftID","type":"uint256"}],"name":"redeemtier1","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_nftID","type":"uint256"}],"name":"redeemtier2","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"reduceKojiFluxBalance","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_toRemove","type":"address"}],"name":"removeAuthorized","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"rescueETHFromContract","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"rewardWithdrawalStatus","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"rewards","outputs":[{"internalType":"contract IKojiRewards","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_pid","type":"uint256"},{"internalType":"uint256","name":"_allocPoint","type":"uint256"},{"internalType":"bool","name":"_withUpdate","type":"bool"}],"name":"set","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_blockRewardPercentage","type":"uint256"}],"name":"setBlockRewardPercentage","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_blockRewardUpdateCycle","type":"uint256"}],"name":"setBlockRewardUpdateCycle","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_blocksPerDay","type":"uint256"}],"name":"setBlocksPerDay","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_rate","type":"uint256"}],"name":"setConverstionRate","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"setKojiFluxAddress","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"setKojiFluxBalance","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_min1","type":"uint256"},{"internalType":"uint256","name":"_min2","type":"uint256"}],"name":"setKojiStakingMinMax","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"setNFTAddress","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_status","type":"bool"}],"name":"setPromoStatus","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_stakeBonusStart","type":"uint256"},{"internalType":"uint256","name":"_stakeBonusEnd","type":"uint256"},{"internalType":"uint256","name":"_bonusRate","type":"uint256"},{"internalType":"bool","name":"_stakeBonusEnabled","type":"bool"}],"name":"setStakeBonusParams","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_fluxbuying","type":"bool"},{"internalType":"bool","name":"_kojibuying","type":"bool"}],"name":"setSuperMintBuying","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"stakeBonusEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"stakeBonusEnd","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"stakeBonusStart","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"startBlock","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"superMint","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"superMintFluxPrice","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"superMintKojiPrice","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_nftID","type":"uint256"}],"name":"superminttier1","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_nftID","type":"uint256"}],"name":"superminttier2","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"totalAllocPoint","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_tokenAddr","type":"address"},{"internalType":"address","name":"_to","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"transferERC20Tokens","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"unstakePenaltyDefaultTax","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"unstakePenaltyDenominator","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"unstakePenaltyStartingTax","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_pid","type":"uint256"}],"name":"updatePool","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"updatePoolReward","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"upperLimiter","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"address","name":"","type":"address"}],"name":"userInfo","outputs":[{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"rewardDebt","type":"uint256"},{"internalType":"uint256","name":"usdEquiv","type":"uint256"},{"internalType":"uint256","name":"stakeTime","type":"uint256"},{"internalType":"uint256","name":"unstakeTime","type":"uint256"},{"internalType":"uint256","name":"tierAtStakeTime","type":"uint256"},{"internalType":"bool","name":"blacklisted","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"userStaked","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_pid","type":"uint256"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"withdrawRewardsOnly","outputs":[],"stateMutability":"nonpayable","type":"function"}]);
 var rewardsabi = JSON.stringify([{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"blacklisted","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"holderRealized","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"holderRewardLast","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"kojiflux","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_holder","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"payPendingRewards","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"rescueETHFromContract","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"rewardsEnabled","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"setstakingContract","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"stakingContract","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tokencontractv2","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_tokenAddr","type":"address"},{"internalType":"address","name":"_to","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"transferERC20Tokens","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"}]);
 
 let sessionwallet; 
@@ -1125,229 +1125,307 @@ async function getStakingData() {
 
 								document.getElementById("my-total-stake").innerHTML = mystake.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 								document.getElementById("my-stake-value").innerHTML = "$"+ mystakedusd.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " USD";
-								document.getElementById("my-stake-tier").innerHTML = "Tier " + res[5];
+								
+
+								if (res[5] === 0) {
+									document.getElementById("my-stake-tier").innerHTML = "ineligible";
+								} else {
+									document.getElementById("my-stake-tier").innerHTML = "Tier " + res[5];
+								}
 
 								var mytier = res[5];
 
 
 								var unstaketime = res[4];
-								var timenow = Math.floor(Date.now() / 1000);
+								
 
-								var timedelta = timenow - unstaketime;
-
-								var days = parseFloat(20-(timedelta/86400)).toFixed(0);
-
-								var penalty = parseFloat(20-(timedelta/86400)).toFixed(2); 
-
-								penalty = (penalty/10).toFixed(2);
-
-								//1.5% (15 days until 0%)
-
-								document.getElementById("unstake-penalty").innerHTML = "1% + " + penalty+"% early unstake" + " ("+ days + " days until 0%)";
-
-								stakingcontract.methods.getHolderRewards(selectedAccount).call(function(err,res) {
+								stakingcontract.methods.getUnstakePenalty(unstaketime).call(function(err,res) {
 									if (!err) { 
-										var totalrewards = parseFloat(+res/10e8).toFixed(2);
-										totalrewards = Number(totalrewards);
-										var mypoolrewards = 0;
 
-										//console.log("total rewards is " +totalrewards);
+										//console.log(res);
 
-										if(totalrewards === 0) {
-											
+										var penalty = res; 
 
-											mypoolrewards = (+mystake*((penalty/100)+.01))*-1;
-											//console.log(mypoolrewards);
-											mypoolrewards = Number(totalrewards) + Number(mypoolrewards);
-										} else {
-											totalrewards = totalrewards - mystake;
-											mypoolrewards = (+mystake*((penalty/100)+.01))*-1;
-											//console.log(mypoolrewards);
-											mypoolrewards = Number(totalrewards) + Number(mypoolrewards);
-										}
+										var days = penalty - 10;
+
+										penalty = (penalty/10).toFixed(1);
+
+										var pseudopenalty = penalty - 1;
+
+
+										//1.5% (15 days until 0%)
+
+										document.getElementById("unstake-penalty").innerHTML = "1% + " + pseudopenalty+"% early unstake" + " ("+ days + " days until 0%)";
+
+										stakingcontract.methods.getHolderRewards(selectedAccount,0).call(function(err,res) {
+											if (!err) { 
+												var totalrewards = parseFloat(+res/10e8).toFixed(2);
+												totalrewards = Number(totalrewards);
+												var mypoolrewards = 0;
+
+												//console.log("total rewards is " +totalrewards);
+
+												if(totalrewards === 0) {
+													
+													mypoolrewards = (+mystake*((penalty/100)))*-1;
+													//console.log(mypoolrewards);
+													mypoolrewards = Number(totalrewards) + Number(mypoolrewards);
+												} else {
+													//totalrewards = totalrewards - mystake;
+													mypoolrewards = (+mystake*((penalty/100)))*-1;
+													//console.log(mypoolrewards);
+													mypoolrewards = Number(totalrewards) + Number(mypoolrewards);
+												}
+												
+												//console.log(mypoolrewards);
+												//console.log(mystake);
+
+												document.getElementById("my-pool-rewards").innerHTML = mypoolrewards.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+											}
+										});
+
+
+										//calculate amounts for further deposits
+
+										var tier1stakedelta = (tier1 - mystake).toFixed(0);
+										var tier2stakedelta = (tier2 - mystake).toFixed(0); 
+
 										
-										//console.log(mypoolrewards);
-										//console.log(mystake);
 
-										document.getElementById("my-pool-rewards").innerHTML = mypoolrewards.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+										var tier1stakedeltakoji; 
+										var tier2stakedeltakoji; 
+
+										if (tier1stakedelta > 0) { //user stake amount is less than tier1 max
+
+											tier1stakedeltakoji = parseFloat(tier1stakedelta*1.001).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+											document.getElementById("max1span").style.display = "inline";
+
+											/*console.log(tier1stakedelta);
+											console.log(kojiusd);
+
+											console.log(tier1stakedelta/kojiusd);*/
+
+										} else { //user stake amount is greater than tier1 max
+
+											tier1stakedeltakoji = "N/A";
+											document.getElementById("max1span").style.display = "none";
+					
+										}
+
+										if (tier2stakedelta > 0) { //user stake amount is less than tier1 max
+
+											tier2stakedeltakoji = parseFloat(tier2stakedelta*1.001).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+											document.getElementById("max1span").style.display = "inline";
+
+										} else { //user stake amount is greater than tier1 max
+
+											tier2stakedeltakoji = "N/A";
+											document.getElementById("max2span").style.display = "none";
+										}
+
+										//console.log(tier1stakedeltakoji);
+										//console.log(tier2stakedeltakoji);
+										
+										//console.log(+mytier);
+
+										if (+mytier === 0) {
+
+											//console.log("tier 0");
+
+											document.getElementById("mintier1amount").innerHTML = parseFloat(Number(tier1)*1.001).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+											document.getElementById("mintier2amount").innerHTML = parseFloat(Number(tier2)*1.001).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+
+											//calculate amounts for further withdrawals
+
+											document.getElementById("unstake-amount-1").innerHTML = " N/A";
+											document.getElementById("unstake-amount-2").innerHTML = " N/A";
+
+
+											document.getElementById("is-overage").style.display = "none";
+
+										} else {
+
+											document.getElementById("is-overage").style.display = "block";
+
+											if (+mytier === 1 && tier1stakedeltakoji != "N/A") {
+
+												document.getElementById("mintier1amount").innerHTML = tier1stakedeltakoji + ' (optional) <span class="tooltip conversion" data-tooltip="You already qualifty for tier 1, but you may optionally deposit more KOJI up to the max if desired."><i class="icon-question-circle"></i></span>';
+
+											} else {
+
+												document.getElementById("mintier1amount").innerHTML = tier1stakedeltakoji;
+
+											}
+
+											document.getElementById("mintier2amount").innerHTML = tier2stakedeltakoji;
+
+											//calculate amounts for further withdrawals
+
+											var tier1withdrawdelta = (mystake - tier1).toFixed(0);
+											var tier2withdrawdelta = (mystake - tier2).toFixed(0);
+
+											//console.log(tier2withdrawdelta);
+
+											var tier1withdrawdeltakoji;
+											var tier2withdrawdeltakoji;
+
+											if (tier1withdrawdelta > 0) { //user stake amount is greater than tier1 max
+
+												var tier1withdrawdeltakojiraw = parseFloat(tier1withdrawdelta).toFixed(0);
+
+												tier1withdrawdeltakoji = " " + tier1withdrawdeltakojiraw.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+
+
+											} else { //user stake amount is less than tier1 max
+
+												tier1withdrawdeltakoji = " N/A";
+											}
+
+											if (tier2withdrawdelta > 0) { //user stake amount is greater than tier2 max
+
+
+												var tier2withdrawdeltakojiraw = parseFloat(tier2withdrawdelta).toFixed(0);
+
+												tier2withdrawdeltakoji = " " + tier2withdrawdeltakojiraw.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+
+
+											} else { //user stake amount is less than tier2 max
+
+												tier2withdrawdeltakoji = " N/A";
+											}
+
+											//console.log(tier2withdrawdelta);
+											//console.log(tier2withdrawdeltakojiraw);
+											//console.log(tier2withdrawdeltakoji);
+											document.getElementById("unstake-amount-1").innerHTML = tier1withdrawdeltakoji;
+											document.getElementById("unstake-amount-2").innerHTML = tier2withdrawdeltakoji;
+
+											var poolreward;
+											var reflect1Amount;
+											var reflect2Amount;
+
+											if (+mytier === 1) {					                
+
+												if (tier1withdrawdeltakoji != " N/A") {
+
+													//console.log("raw withdraw is " + tier1withdrawdeltakojiraw);
+
+													stakingcontract.methods.getWithdrawResult(selectedAccount,web3.utils.toWei(tier1withdrawdeltakojiraw, "Gwei")).call(function(err,res) {
+														if (!err) { 
+															//console.log("net wd result is " +res);
+
+															var net1outfixed = parseFloat(web3.utils.fromWei(res, "Gwei")).toFixed(0);
+
+															//console.log("raw withdraw is " + tier1withdrawdeltakojiraw);
+															//console.log("net out is " +net1outfixed);
+
+															if (tier1withdrawdeltakojiraw >= net1outfixed) { //poow reward + unstake penalties make total reward negative
+
+																reflect1Amount = (Number(tier1withdrawdeltakojiraw) - Number(net1outfixed))*-1;
+
+															} else {
+																reflect1Amount = Number(net1outfixed) - Number(tier1withdrawdeltakojiraw);
+															}
+
+															document.getElementById("overage-amt").innerHTML = tier1withdrawdeltakoji;
+
+															reflect1Amount = parseFloat(reflect1Amount).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+															document.getElementById("pool-reward").innerHTML = reflect1Amount;
+
+															 net1outfixed = parseFloat(net1outfixed).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+
+															 document.getElementById("netout").innerHTML = net1outfixed;
+														}
+													});
+
+												} else {
+
+													//console.log("raw withdraw is " + web3.utils.toWei(tier2withdrawdeltakojiraw, "Gwei"));
+
+													stakingcontract.methods.getWithdrawResult(selectedAccount,web3.utils.toWei(tier2withdrawdeltakojiraw, "Gwei")).call(function(err,res) {
+														if (!err) { 
+															//console.log("net wd result is " +res);
+
+															var net2outfixed = parseFloat(web3.utils.fromWei(res, "Gwei")).toFixed(0);
+
+															//console.log("raw withdraw is " + tier2withdrawdeltakojiraw);
+															//console.log("net out is " +net2outfixed);
+
+															if (tier2withdrawdeltakojiraw >= net2outfixed) { //poow reward + unstake penalties make total reward negative
+
+																reflect2Amount = (Number(tier2withdrawdeltakojiraw) - Number(net2outfixed))*-1;
+
+															} else {
+																reflect2Amount = Number(net2outfixed) - Number(tier2withdrawdeltakojiraw);
+															}
+
+															document.getElementById("overage-amt").innerHTML = tier2withdrawdeltakoji;
+
+															reflect2Amount = parseFloat(reflect2Amount).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+															document.getElementById("pool-reward").innerHTML = reflect2Amount;
+
+															 net2outfixed = parseFloat(net2outfixed).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+
+															 document.getElementById("netout").innerHTML = net2outfixed;
+														}
+													});
+
+												}
+												
+											}
+
+											if (+mytier === 2) {
+
+												if (tier2withdrawdeltakoji != " N/A") {
+
+													stakingcontract.methods.getWithdrawResult(selectedAccount,web3.utils.toWei(tier2withdrawdeltakojiraw, "Gwei")).call(function(err,res) {
+														if (!err) { 
+															//console.log("net wd result is " +res);
+
+															var net2outfixed = parseFloat(web3.utils.fromWei(res, "Gwei")).toFixed(0);
+
+															//console.log("raw withdraw is " + tier2withdrawdeltakojiraw);
+															//console.log("net out is " +net2outfixed);
+
+															if (tier2withdrawdeltakojiraw >= net2outfixed) { //poow reward + unstake penalties make total reward negative
+
+																reflect2Amount = (Number(tier2withdrawdeltakojiraw) - Number(net2outfixed))*-1;
+
+															} else {
+																reflect2Amount = Number(net2outfixed) - Number(tier2withdrawdeltakojiraw);
+															}
+
+															document.getElementById("overage-amt").innerHTML = tier2withdrawdeltakoji;
+
+															reflect2Amount = parseFloat(reflect2Amount).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+															document.getElementById("pool-reward").innerHTML = reflect2Amount;
+
+															 net2outfixed = parseFloat(net2outfixed).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+
+															 document.getElementById("netout").innerHTML = net2outfixed;
+														}
+													});
+
+												} else {
+													//console.log(tier1withdrawdeltakoji);
+													document.getElementById("is-overage").style.display = "none";
+
+												}
+											}
+
+										}
+
 									}
 								});
 
 
-								//calculate amounts for further deposits
+							} 
 
-								var tier1stakedelta = (tier1 - mystake).toFixed(0);
-								var tier2stakedelta = (tier2 - mystake).toFixed(0); 
-
-								
-
-								var tier1stakedeltakoji; 
-								var tier2stakedeltakoji; 
-
-								if (tier1stakedelta > 0) { //user stake amount is less than tier1 max
-
-									tier1stakedeltakoji = parseFloat(tier1stakedelta).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-
-									/*console.log(tier1stakedelta);
-									console.log(kojiusd);
-
-									console.log(tier1stakedelta/kojiusd);*/
-
-								} else { //user stake amount is greater than tier1 max
-
-									tier1stakedeltakoji = "N/A";
-								}
-
-								if (tier2stakedelta > 0) { //user stake amount is less than tier1 max
-
-									tier2stakedeltakoji = parseFloat(tier2stakedelta).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-
-								} else { //user stake amount is greater than tier1 max
-
-									tier2stakedeltakoji = "N/A";
-								}
-
-								//console.log(tier1stakedeltakoji);
-								//console.log(tier2stakedeltakoji);
-								
-								//console.log(+mytier);
-
-								if (+mytier === 0) {
-
-									//console.log("tier 0");
-
-									document.getElementById("mintier1amount").innerHTML = tier1.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-									document.getElementById("mintier2amount").innerHTML = tier2.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-
-									//calculate amounts for further withdrawals
-
-									document.getElementById("unstake-amount-1").innerHTML = " N/A";
-									document.getElementById("unstake-amount-2").innerHTML = " N/A";
-
-
-									document.getElementById("is-overage").style.display = "none";
-
-								} else {
-
-									document.getElementById("is-overage").style.display = "block";
-
-									if (+mytier === 1) {
-
-										document.getElementById("mintier1amount").innerHTML = tier1stakedeltakoji + ' (optional) <span class="tooltip conversion" data-tooltip="You already qualifty for tier 1, but you may optionally deposit more KOJI up to the max if desired."><i class="icon-question-circle"></i></span>';
-
-									} else {
-
-										document.getElementById("mintier1amount").innerHTML = tier1stakedeltakoji;
-
-									}
-
-									document.getElementById("mintier2amount").innerHTML = tier2stakedeltakoji;
-
-									//calculate amounts for further withdrawals
-
-									var tier1withdrawdelta = (mystake - tier1).toFixed(0);
-									var tier2withdrawdelta = (mystake - tier2).toFixed(0);
-
-									//console.log(tier2withdrawdelta);
-
-									var tier1withdrawdeltakoji;
-									var tier2withdrawdeltakoji;
-
-									if (tier1withdrawdelta > 0) { //user stake amount is greater than tier1 max
-
-										var tier1withdrawdeltakojiraw = (tier1withdrawdelta*.99).toFixed(0);
-
-										tier1withdrawdeltakoji = " " + tier1withdrawdeltakojiraw.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-
-
-									} else { //user stake amount is less than tier1 max
-
-										tier1withdrawdeltakoji = " N/A";
-									}
-
-									if (tier2withdrawdelta > 0) { //user stake amount is greater than tier2 max
-
-
-										var tier2withdrawdeltakojiraw = (tier2withdrawdelta*.99).toFixed(0);
-
-										tier2withdrawdeltakoji = " " + tier2withdrawdeltakojiraw.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-
-
-									} else { //user stake amount is less than tier2 max
-
-										tier2withdrawdelta = " N/A";
-									}
-
-									//console.log(tier2withdrawdelta);
-									//console.log(tier2withdrawdeltakojiraw);
-									//console.log(tier2withdrawdeltakoji);
-									document.getElementById("unstake-amount-1").innerHTML = tier1withdrawdeltakoji;
-									document.getElementById("unstake-amount-2").innerHTML = tier2withdrawdeltakoji;
-
-									var poolreward;
-
-									var percent1Rewards = tier1withdrawdeltakojiraw/totalkojistaked; // Get % of share out of 100
-						                //console.log("percent rewards is " +percentRewards);
-						            var percent2Rewards = tier2withdrawdeltakojiraw/totalkojistaked; // Get % of share out of 100
-						                
-					                var reflect1Amountraw = percent1Rewards*totalrewardsone; // Get % of reflect amount
-					                var reflect2Amountraw = percent2Rewards*totalrewardsone; // Get % of reflect amount
-					                var reflect1Amount = reflect1Amountraw.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-					                var reflect2Amount = reflect2Amountraw.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-					                //console.log("reflect amount is " +reflectAmountraw);					                
-					                
-					                var taxfeenumerator = (penalty/100)+.01;
-					                //console.log(taxfeenumerator);
-
-					                var taxfee = 1-taxfeenumerator;
-					                //console.log("tax fee is " +taxfee);
-
-					                //console.log("raw withdraw is " + tier1withdrawdeltakojiraw);
-
-					                var net1out = (tier1withdrawdeltakojiraw*taxfee) + reflect1Amountraw;
-					                //console.log("net out is " +netout);
-
-					                var net2out = (tier2withdrawdeltakojiraw*taxfee) + reflect2Amountraw;
-
-									if (+mytier === 1) {					                
-
-										if (tier1withdrawdeltakoji != " N/A") {
-											document.getElementById("overage-amt").innerHTML = tier1withdrawdeltakoji;
-											document.getElementById("pool-reward").innerHTML = reflect1Amount;
-
-										} else {
-
-											document.getElementById("overage-amt").innerHTML = tier2withdrawdeltakoji;
-											document.getElementById("pool-reward").innerHTML = reflect2Amount;
-
-										}
-
-										
-									}
-
-									if (+mytier === 2) {
-
-										if (tier1withdrawdeltakoji != " N/A") {
-
-										document.getElementById("overage-amt").innerHTML = tier2withdrawdeltakoji;
-										document.getElementById("pool-reward").innerHTML = reflect2Amount;
-
-										} else {
-
-											document.getElementById("is-overage").style.display = "none";
-
-										}
-									}
-
-								}
-
-							}
 						});
-
 
 					} else { //user is not staked, reset deposit/staking amounts
 
-						//console.log(hidestakinginfo);
+					//console.log(hidestakinginfo);
 
 						if(!hidestakinginfo) {
 						// edit by andreas, using the already made ui-toggle function instead
@@ -1360,24 +1438,25 @@ async function getStakingData() {
 
 						}
 
-						document.getElementById("my-total-stake").innerHTML = "0 KOJI";
-						document.getElementById("my-stake-value").innerHTML = "$0.00 USD";
-						document.getElementById("my-stake-tier").innerHTML = "N/A"
-						document.getElementById("my-pool-rewards").innerHTML = "0 KOJI";
+					document.getElementById("my-total-stake").innerHTML = "0 KOJI";
+					document.getElementById("my-stake-value").innerHTML = "$0.00 USD";
+					document.getElementById("my-stake-tier").innerHTML = "N/A"
+					document.getElementById("my-pool-rewards").innerHTML = "0 KOJI";
 
-						document.getElementById("unstake-amount-1").innerHTML = " N/A";
-						document.getElementById("unstake-amount-2").innerHTML = " N/A";
+					document.getElementById("unstake-amount-1").innerHTML = " N/A";
+					document.getElementById("unstake-amount-2").innerHTML = " N/A";
 
-						document.getElementById("is-overage").style.display = "none";
+					document.getElementById("is-overage").style.display = "none";
 
-						document.getElementById("manage-rewards").style.display = "none";
-						document.getElementById("manage-supermints").style.display = "none";
+					document.getElementById("manage-rewards").style.display = "none";
+					document.getElementById("manage-supermints").style.display = "none";
+
+					document.getElementById("max1span").style.display = "inline";
+					document.getElementById("max2span").style.display = "inline";
 
 
-						document.getElementById("mintier1amount").innerHTML = tier1.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-						document.getElementById("mintier2amount").innerHTML = tier2.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-
-
+					document.getElementById("mintier1amount").innerHTML = parseFloat(Number(tier1)*1.001).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+					document.getElementById("mintier2amount").innerHTML = parseFloat(Number(tier2)*1.001).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
 
 					}
 				}
@@ -1476,6 +1555,8 @@ async function getStakingData() {
 	//koji-supermint-price
 	btn-supermint-koji*/
 
+	// SUPERMINTS //////////////////////////////////////////////////////////////////////////////////////////////////
+
 	stakingcontract.methods.getSuperMintPrices().call(function(err,res) {
 		if (!err) { 
 			document.getElementById("flux-supermint-price").innerHTML = parseFloat(+res[0]/10e8).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " FLUX";
@@ -1515,7 +1596,7 @@ async function getStakingData() {
 	});
 
 
-	//var rewardscontract = new web3.eth.Contract(JSON.parse(rewardsabi),rewards);
+	// FLUX INFOS ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   	tokencontract.methods.balanceOf(rewards).call(function(err,res) {
 		if (!err) { 
@@ -1544,59 +1625,73 @@ async function getStakingData() {
 
 							fluxrewards = Number(totalpending);
 
-							//console.log(totalpending);
+							//console.log(fluxrewards);
 
-							document.getElementById("my-flux-rewards").innerHTML = totalpending.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " FLUX";
-
-							stakingcontract.methods.stakeBonusEnabled().call(function(err,res) {
+							//getAccruedRewards
+							stakingcontract.methods.getAccruedRewards(selectedAccount).call(function(err,res) {
 								if (!err) { 
-									if (res) { //bonus enabled
-										document.getElementById("bonus-section").style.display = "block";
-										document.getElementById("bonusrate-enabled").style.display = "block";
-										document.getElementById("bonusrate-disabled").style.display = "none";
+									var totalaccrued = parseFloat(+res/10e8).toFixed(2);
 
-										stakingcontract.methods.stakeBonusStart().call(function(err,res) {
-											if (!err) { 
-												var bonusstart = res;
+									//console.log(totalaccrued);
+
+									fluxrewards = Number(fluxrewards) + Number(totalaccrued);
+
+									//console.log(fluxrewards);
+
+									document.getElementById("my-flux-rewards").innerHTML = parseFloat(fluxrewards).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " FLUX";
+							
+
+									stakingcontract.methods.stakeBonusEnabled().call(function(err,res) {
+										if (!err) { 
+											if (res) { //bonus enabled
+												document.getElementById("bonus-section").style.display = "block";
+												document.getElementById("bonusrate-enabled").style.display = "block";
+												document.getElementById("bonusrate-disabled").style.display = "none";
+
+												stakingcontract.methods.stakeBonusStart().call(function(err,res) {
+													if (!err) { 
+														var bonusstart = res;
+													}
+												});
+
+												stakingcontract.methods.stakeBonusStart().call(function(err,res) {
+													if (!err) { 
+														var bonusend = res;
+													}
+												});
+
+												stakingcontract.methods.bonusRate().call(function(err,res) {
+													if (!err) { 
+														var bonusrate = res;
+													}
+												});
+
+												if (starttime >= bonusstart && starttime <= bonusend) {
+													fluxrewards = (fluxrewards * conversionrate) * bonusrate;
+												} else {
+													fluxrewards = fluxrewards * conversionrate;
+												}
+												
+
+												document.getElementById("netrate").innerHTML = fluxrewards.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+
+											} else { //bonus not enabled
+
+												//console.log(totalpending);
+
+												fluxrewards = fluxrewards * conversionrate;
+
+												//console.log(totalpending);
+
+												document.getElementById("netrate").innerHTML = fluxrewards.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
+
+												document.getElementById("bonus-section").style.display = "none";
+												document.getElementById("bonusrate-enabled").style.display = "none";
+												document.getElementById("bonusrate-disabled").style.display = "block";
 											}
-										});
 
-										stakingcontract.methods.stakeBonusStart().call(function(err,res) {
-											if (!err) { 
-												var bonusend = res;
-											}
-										});
-
-										stakingcontract.methods.bonusRate().call(function(err,res) {
-											if (!err) { 
-												var bonusrate = res;
-											}
-										});
-
-										if (starttime >= bonusstart && starttime <= bonusend) {
-											totalpending = (totalpending * conversionrate) * bonusrate;
-										} else {
-											totalpending = totalpending * conversionrate;
 										}
-										
-
-										document.getElementById("netrate").innerHTML = totalpending.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-
-									} else { //bonus not enabled
-
-										//console.log(totalpending);
-
-										totalpending = totalpending * conversionrate;
-
-										//console.log(totalpending);
-
-										document.getElementById("netrate").innerHTML = totalpending.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " KOJI";
-
-										document.getElementById("bonus-section").style.display = "none";
-										document.getElementById("bonusrate-enabled").style.display = "none";
-										document.getElementById("bonusrate-disabled").style.display = "block";
-									}
-
+									});
 								}
 							});
 
@@ -1832,7 +1927,9 @@ async function validatedeposit() {
 
       var amount = document.getElementById("stakeDeposit").value;
 
-	  amount = Number(amount);
+       amount = amount.toString().replace(/[, ]+/g, "").replace(/[^0-9]*$/, "");
+
+	  //amount = Number(amount);
 
 	 // console.log(amount);
 
@@ -1846,7 +1943,7 @@ async function validatedeposit() {
 	  } else {
 	  	document.getElementById("depositalert").style.display = "none";
 
-	  	 amount = amount.toString().replace(/[, ]+/g, "").replace(/[^0-9]*$/, "");
+	  	
 	  //console.log(amount);
 
 	  amount = web3.utils.toWei(amount, "Gwei");
@@ -2172,7 +2269,7 @@ document.getElementById("stakeWithdraw").addEventListener("keyup", function(e) {
 async function withdrawstaking(amount) {
 
 
-	 //console.log(amount);
+	 console.log(amount);
 	  document.getElementById("wd-holdings-loader").classList.add('ui-loading');
 	  document.querySelector('#withdraw-staking').setAttribute("disabled", "disabled");
 
@@ -2769,6 +2866,22 @@ document.getElementById("slider3").addEventListener("input", function(e){
 	document.getElementById("donate-btn").setAttribute('onclick', 'donate('+percent+')');
 
 
+});
+
+// For max staking onclick /////////////////////////////////////////////////////////////////////////
+
+document.querySelector("#max1").addEventListener("click", function() {
+	var mt1 = document.getElementById("mintier1amount").innerText;
+	console.log(mt1);
+	document.getElementById("stakeDeposit").value = "";
+	document.getElementById("stakeDeposit").value = mt1.replace(/[^0-9]*$/, "");
+});
+
+document.querySelector("#max2").addEventListener("click", function() {
+	var mt2 = document.getElementById("mintier2amount").innerText;
+	console.log(mt2);
+	document.getElementById("stakeDeposit").value ="";
+	document.getElementById("stakeDeposit").value = mt2.replace(/[^0-9]*$/, "");
 });
 
 
