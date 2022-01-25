@@ -334,8 +334,11 @@
                                           <div class="title">bonusRate: </div>
                                           <div class="value " id="bonusrate">120%</div>
                                       </div>
-
                                       <div class="data-row clearfix" style="margin-top:15px">
+                                          <div class="title">My FLUX balance: </div>
+                                          <div class="value " ><span id="my-flux-rewards-1">0 FLUX</span></div>
+                                      </div>
+                                      <div class="data-row clearfix">
                                           <div class="title">net FLUX -> KOJI conversion: </div>
                                           <div class="value " id="netrate">N/A</div>
                                       </div>
@@ -364,6 +367,7 @@
                           <div class="ui-row col-1">
 
                               <div class="ui-col">
+                                <span id="buy-supermints-loader" class="ui-loader"></span>
                                   <div class="ui-box">
 
 
@@ -396,7 +400,11 @@
 
                                       <div class="data-row clearfix">
                                           <div class="title">My superMint balance: </div>
-                                          <div class="value " id="supermint-balance">0 superMint</div>
+                                          <div class="value " ><span id="supermint-balance">0</span> superMint</div>
+                                      </div>
+                                      <div class="data-row clearfix">
+                                          <div class="title">My FLUX balance: </div>
+                                          <div class="value " ><span id="my-flux-rewards-2">0 FLUX</span></div>
                                       </div>
                                       <div class="data-row clearfix" style="margin-top:15px !important">
                                           <div class="title">FLUX superMint purchases: </div>
@@ -422,10 +430,24 @@
                                           <div class="value " id="flux-supermint-price"></div>
                                       </div>
 
-                                      <button type="button" class="btn green btn-sep mt20 mb40" id="btn-supermint-flux">
+                                      <span class="ui-note" style="color:red;display:block;margin-top:0px"
+                                          id="redeemsmfluxalert"></span>
+
+                                      <button type="button" class="btn green btn-sep mt20 mb40" id="btn-supermint-flux"  onclick="buysupermintflux();" style="display:none">
                                           <div><i class="fas fa-chart-network"></i></div>
                                           <span>Buy superMint with FLUX</span>
                                       </button>
+
+                                      <button type="button" class="btn btn-sep mt20 mb40 disabled" id="btn-supermint-flux-disabled" style="cursor:not-allowed;">
+                                          <div><i class="fas fa-chart-network"></i></div>
+                                          <span>Buy superMint with FLUX</span>
+                                      </button>
+
+                                      <div class="data-row clearfix" >
+                                          <div class="title">my KOJI balance: </div>
+                                          <div class="value " id="koji-balance-2">0 KOJI</div>
+                                      </div>
+
                                       <div class="data-row clearfix" style="margin-top:15px !important">
                                           <div class="title">KOJI superMint purchases: </div>
                                           <div class="value " id="supermint-koji-enabled"
@@ -450,8 +472,16 @@
                                           <div class="value " id="koji-supermint-price"></div>
                                       </div>
 
-                                      <button type="button" class="btn green btn-sep mt20" id="btn-supermint-koji">
+                                      <span class="ui-note" style="color:red;display:block;margin-top:0px"
+                                          id="redeemsmkojialert"></span>
+
+                                      <button type="button" class="btn green btn-sep mt20" id="btn-supermint-koji" onclick="buysupermintkoji();">
                                           <div><i class="fas fa-mask"></i></div>
+                                          <span>Buy superMint with KOJI</span>
+                                      </button>
+
+                                      <button type="button" class="btn btn-sep mt20 mb40 disabled" id="btn-supermint-koji-disabled" style="cursor:not-allowed;">
+                                          <div><i class="fas fa-chart-network"></i></div>
                                           <span>Buy superMint with KOJI</span>
                                       </button>
 
