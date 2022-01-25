@@ -165,6 +165,8 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         KojiFluxAddress = address(_kojiflux);
         startBlock = _startBlock;
 
+        authorized[_msgSender()] = true;
+
         oracle = IOracle(0x66F2495e1f139c22Dd839250858bB8936a7845Bc); // Oracle
         rewards = IKojiRewards(0xDE554cA0E3B9861d120A7415C0dE6Ac32AFb4cE4); // Rewards contract
 
@@ -769,8 +771,11 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
     // Function to buy superMint internally with KojiFlux
     function buySuperMint() external nonReentrant {
-        require(enableFluxSuperMintBuying, "superMint cannot be purchased with KOJI at this time");
+        require(enableFluxSuperMintBuying, "superMint cannot be purchased with FLUX at this time");
         require(!superMint[_msgSender()], "This user already has an unused superMint");
+
+        redeemTotalRewards(_msgSender());
+
         require(userBalance[_msgSender()] >= superMintFluxPrice, "Insufficient KojiFlux to purchase superMint");
 
         userBalance[_msgSender()] = userBalance[_msgSender()].sub(superMintFluxPrice);
@@ -864,6 +869,11 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         enableKojiSuperMintBuying = _kojibuying;
     }
 
+    function setSuperMintPrices(uint256 _fluxprice, uint256 _kojiprice) external onlyAuthorized  {
+        superMintFluxPrice = _fluxprice;
+        superMintKojiPrice = _kojiprice;
+    }
+
     function getSuperMintPrices() external view returns (uint256 fluxprice, uint256 kojiprice) {
         return (superMintFluxPrice,superMintKojiPrice);
     }
@@ -917,33 +927,12 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
     }
 
-    function setTaxlessWithdrawals(bool _status) external onlyOwner {
+    function setTaxlessWithdrawals(bool _status) external onlyAuthorized {
         enableTaxlessWithdrawals = _status;
     }
 
-    // Get the holder rewards of users staked $koji if they were to withdraw
-    function getWithdrawResultTest(address _holder, uint256 _tempamount) external view returns (uint256[] memory) {
-
-        PoolInfo storage pool = poolInfo[0];
-        UserInfo storage user = userInfo[0][_holder];
-
-        uint256[] memory temp = new uint256[](7);
-
-        if (_tempamount == 0) { //pass 0 to use full user.amount, otherwise pass partial amount
-            _tempamount = user.amount;
-        } 
-
-        uint256 stackdeep =_tempamount;
-
-        temp[0] = pool.stakeToken.balanceOf(address(this)); // Get total amount of KOJI tokens
-        temp[1] = temp[0].sub(pool.runningTotal); // Get difference between contract address amount and ledger amount
-        temp[2] = stackdeep.mul(100).div(pool.runningTotal); // Get % of share out of 100
-        temp[3] = temp[2].mul(temp[1]).div(100); // Get % of reflect amount           
-        temp[4] = getUnstakePenalty(user.unstakeTime);
-        temp[5] = taxableAmount.sub(taxableAmount.mul(temp[4]).div(unstakePenaltyDenominator));
-        temp[6] = stackdeep.mul(temp[5]).div(unstakePenaltyDenominator);
-        
-        return temp;
-
+    function setSuperMintStatus(address _holder, bool _status) external {
+        superMint[_holder] = _status;
     }
+
 }
