@@ -601,19 +601,26 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
     // Redeem the NFT via supermint (tier 1)
     function superminttier1(uint256 _nftID) external nonReentrant {
-        // Get user tier/info
-        UserInfo storage user = userInfo[0][_msgSender()];
-
-        (uint256 timestart, uint256 timeend) = IKojiNFT(NFTAddress).getNFTwindow(_nftID);
-
-        require(block.timestamp >= timestart, "The minting window for this NFT hasn't opened");
-        require(block.timestamp <= timeend, "The minting window for this NFT has closed");
-        require(user.tierAtStakeTime != 0, "You still need the minimum stake requirment to use superMint");
 
         if (superMint[_msgSender()]) {
+
+            // Get user tier/info
+            UserInfo storage user = userInfo[0][_msgSender()];
+
+            (uint256 timestart, uint256 timeend) = IKojiNFT(NFTAddress).getNFTwindow(_nftID);
+            bool superminted = IKojiNFT(NFTAddress).getIfMinted(_msgSender(), _nftID);
+
+            require(!superminted, "You have already superMinted one tier of this NFT");
+            require(block.timestamp >= timestart, "The minting window for this NFT hasn't opened");
+            require(block.timestamp <= timeend, "The minting window for this NFT has closed");
+            require(user.tierAtStakeTime != 0, "You still need the minimum stake requirment to use superMint");
+
             superMint[_msgSender()] = false;
             IKojiNFT(NFTAddress).mintNFT(_msgSender(), 1, _nftID, true);
-        } 
+
+        } else {
+            require(superMint[_msgSender()], "You do not possess a superMint");
+        }
     }
 
     // Redeem the NFT (tier 2)
@@ -626,7 +633,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         (uint256 timestart, uint256 timeend) = IKojiNFT(NFTAddress).getNFTwindow(_nftID);
 
         require(!minted, "You have already minted one tier of this NFT");
-        require(user.usdEquiv >= minKojiTier2Stake.mul(95).div(100), "Your stake is not sufficient to mint this tier");
+        require(user.tierAtStakeTime == 2, "Your stake value is not sufficient to mint this tier");
         require(block.timestamp >= timestart, "The minting window for this NFT hasn't opened");
         require(block.timestamp <= timeend, "The minting window for this NFT has closed");
         
@@ -636,19 +643,25 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
     // Redeem the NFT via supermint (tier 2)
     function superminttier2(uint256 _nftID) external nonReentrant {
-        // Get user tier/info
-        UserInfo storage user = userInfo[0][_msgSender()];
-
-        (uint256 timestart, uint256 timeend) = IKojiNFT(NFTAddress).getNFTwindow(_nftID);
-
-        require(block.timestamp >= timestart, "The minting window for this NFT hasn't opened");
-        require(block.timestamp <= timeend, "The minting window for this NFT has closed");
-        require(user.tierAtStakeTime != 0, "You still need the minimum stake requirment to use superMint");
 
         if (superMint[_msgSender()]) {
+
+            // Get user tier/info
+            UserInfo storage user = userInfo[0][_msgSender()];
+
+            (uint256 timestart, uint256 timeend) = IKojiNFT(NFTAddress).getNFTwindow(_nftID);
+            bool superminted = IKojiNFT(NFTAddress).getIfMinted(_msgSender(), _nftID);
+
+            require(!superminted, "You have already superMinted one tier of this NFT");
+            require(block.timestamp >= timestart, "The minting window for this NFT hasn't opened");
+            require(block.timestamp <= timeend, "The minting window for this NFT has closed");
+            require(user.tierAtStakeTime != 0, "You still need the minimum stake requirment to use superMint");
+
             superMint[_msgSender()] = false;
             IKojiNFT(NFTAddress).mintNFT(_msgSender(), 2, _nftID, true);
-        } 
+        } else {
+            require(superMint[_msgSender()], "You do not possess a superMint");
+        }
     }
 
     // We can give the artists/influencers a KojiFlux balance so they can redeem their own NFTs
