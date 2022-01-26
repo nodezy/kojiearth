@@ -83,12 +83,14 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
 
     mapping(uint256 => NFTInfo) public nftInfo; // Info of each NFT artist/infuencer wallet.
     mapping(uint256 => mapping(address => mapping(uint256 => bool))) public nftTierMinted; //nftTierMinted[_nftID][recipient][tier#]
-    mapping(uint256 => mapping(address => bool)) public nftMinted; //nftTierMinted[_nftID][recipient][tier#]
+    mapping(uint256 => mapping(address => bool)) public nftMinted; //nftMinted[_nftID][recipient]
+    mapping(uint256 => mapping(address => bool)) public nftSuperMinted; //nftMinted[_nftID][recipient]
     mapping (uint256 => mapping(uint => uint256)) public mintTotals; //mintTotals[_nftID][tier#]
     mapping (string => uint256) public mintTotalsURI; //mintTotalsURI[_nftID][URI]
     mapping (string => bool) private uriExists;
 
     uint royaltyNumerator = 1;
+    uint256 windowSpan = 7776000; //90 days from time added to system to mint, regardless of method
 
     address public receiver = 0xb629Fb3426877640C6fB6734360D81D719062bF6; //KOJI charity address
     address public stakingContract;
@@ -146,14 +148,15 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
 
     }
 
-    function mintNFT(address recipient, uint256 minttier, uint256 id) public returns (uint256) {   
+    function mintNFT(address recipient, uint256 minttier, uint256 id, bool superMinted) public returns (uint256) {   
 
-        if(!authorized[address(recipient)]) {
+        if(!authorized[address(recipient)]) { //remove for production
 
             require(msg.sender == address(stakingContract), "Minting not allowed outside of the staking contract");
         }       
 
         NFTInfo storage nft = nftInfo[id];
+
         uint256 minted;
 
         _tokenIds.increment();
@@ -177,6 +180,8 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         //record this NFT & tier as being minted by the recipient
         nftTierMinted[id][recipient][minttier] = true;
         nftMinted[id][recipient] = true;
+
+        if(superMinted) {nftSuperMinted[id][recipient] = true;}
 
         //increment total # of NFT minted for this ID/Tier
         minted = mintTotals[id][minttier];
@@ -238,14 +243,14 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         royaltyNumerator = _number;
     } 
 
-    function setNFTInfo(string memory _collectionName, string memory _nftName, string memory _tier1uri, string memory _tier2uri, uint256 _timestart, uint256 _timeend, uint256 _order, bool _redeemable) public onlyAuthorized returns (uint256) {
+    function setNFTInfo(string memory _collectionName, string memory _nftName, string memory _tier1uri, string memory _tier2uri, uint256 _timestart, uint256 _order, bool _redeemable) public onlyAuthorized returns (uint256) {
 
         require(owner() == address(_msgSender()) || authorized[_msgSender()], "Sender is not authorized"); 
         require(bytes(_collectionName).length > 0, "Creator name string must not be empty");
         require(bytes(_nftName).length > 0, "NFT name string must not be empty");
         require(bytes(_tier1uri).length > 0, "tier 1 URI string must not be empty");
         require(bytes(_tier2uri).length > 0, "tier 2 URI string must not be empty");
-        require(_timestart > _timeend && _timestart != 0 && _timeend != 0, "Time start and end must be in the proper order");
+        require(_timestart != 0 && _timestart > block.timestamp, "Time start and end must be in the proper order");
         require(_order > 0, "Order must be greater than zero");
 
         _NFTIds.increment();
@@ -259,7 +264,7 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
             nft.tier1uri = _tier1uri;
             nft.tier2uri = _tier2uri;
             nft.timestart = _timestart;
-            nft.timeend = _timeend;
+            nft.timeend = _timestart.add(windowSpan);
             nft.order = _order;
             nft.redeemable = _redeemable;
             nft.exists = true;
@@ -322,6 +327,10 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
 
     function getIfMinted(address _recipient, uint256 _nftID) external view returns (bool) {
         return nftMinted[_nftID][_recipient];
+    }
+
+    function getIfSuperMinted(address _recipient, uint256 _nftID) external view returns (bool) {
+        return nftSuperMinted[_nftID][_recipient];
     }
 
     function getIfMintedTier(address _recipient, uint256 _nftID, uint256 minttier) external view returns (bool) {
