@@ -199,13 +199,18 @@ contract KojiOracle is Ownable {
       (,,uint256 kojiusd) = getKojiUSDPrice();
       uint256 tempTier1Amount = _amount.mul(10**9);
       return tempTier1Amount.div(kojiusd);
-
     }
 
     function getMinKOJITier2Amount(uint256 _amount) public view returns (uint256) {
       (,,uint256 kojiusd) = getKojiUSDPrice();
       uint256 tempTier2Amount = _amount.mul(10**9);
       return tempTier2Amount.div(kojiusd);
+    }
+
+    function getSuperMintKojiPrice(uint256 _amount) public view returns (uint256) {
+      (,,uint256 kojiusd) = getKojiUSDPrice();
+      uint256 supermintprice = _amount.mul(10**9);
+      return supermintprice.div(kojiusd);
     }
 
     function changePair(address _pair) external onlyOwner {
