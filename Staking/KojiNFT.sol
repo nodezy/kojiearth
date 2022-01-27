@@ -76,8 +76,11 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         string tier2uri; //address of NFT metadata
         uint256 timestart; //start time of release window
         uint256 timeend; //end time of release window
+        uint256 supermintend; //***end time of supermint window
         uint256 order; //order of the NFT
-        bool redeemable; //can be redeemed
+        bool redeemable; //can be redeemed via staking tier
+        bool fluxable; //***can be redeemed with flux
+        bool supermintable; //***can be redeemed with supermint
         bool exists;
     }
 
@@ -150,7 +153,7 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
 
     function mintNFT(address recipient, uint256 minttier, uint256 id, bool superMinted) public returns (uint256) {   
 
-        if(!authorized[address(recipient)]) { //remove for production
+        if(!authorized[address(recipient)]) { //***remove for production
 
             require(msg.sender == address(stakingContract), "Minting not allowed outside of the staking contract");
         }       
@@ -276,9 +279,30 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
 
     }
 
-    function getNFTInfo(uint256 _nftID) external view returns(string memory collectionname, string memory nftname, string memory tier1uri, string memory tier2uri, uint256 timestart, uint256 timeend, uint256 order, bool redeemable, bool exists) {
+    function getNFTInfo(uint256 _nftID) external view returns(string[] memory, uint256[] memory, bool[] memory) {
+        
         NFTInfo storage nft = nftInfo[_nftID];
-        return(nft.collectionName,nft.nftName,nft.tier1uri,nft.tier2uri,nft.timestart,nft.timeend,nft.order,nft.redeemable,nft.exists);
+
+        string[] memory strings = new string[](4);
+        uint256[] memory numbers = new uint256[](4);
+        bool[] memory bools = new bool[](4);
+
+        strings[0] = nft.collectionName;
+        strings[1] = nft.nftName;
+        strings[2] = nft.tier1uri;
+        strings[3] = nft.tier2uri;
+
+        numbers[0] = nft.timestart;
+        numbers[1] = nft.timeend;
+        numbers[2] = nft.supermintend;
+        numbers[3] = nft.order;
+
+        bools[0] = nft.redeemable;
+        bools[1] = nft.fluxable; 
+        bools[2] = nft.supermintable;
+        bools[3] = nft.exists;
+
+        return(strings,numbers,bools);
     }
 
     function setCollectionName(uint256 _nftID, string memory _name) external onlyAuthorized {
@@ -352,6 +376,26 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         }
 
         return nftID;
+    }
+
+    function getNFTwindow(uint256 _nftID) external view returns (uint256,uint256,uint256) {
+        NFTInfo storage nft = nftInfo[_nftID];  
+        return (nft.timestart,nft.timeend,nft.supermintend);
+    }
+
+    function getNFTredeemable(uint256 _nftID) external view returns (bool) {
+        NFTInfo storage nft = nftInfo[_nftID];  
+        return (nft.redeemable);
+    }
+
+    function getNFTfluxable(uint256 _nftID) external view returns (bool) {
+        NFTInfo storage nft = nftInfo[_nftID];  
+        return (nft.fluxable);
+    }
+
+    function getNFTsupermintable(uint256 _nftID) external view returns (bool) {
+        NFTInfo storage nft = nftInfo[_nftID];  
+        return (nft.supermintable);
     }
 
 }
