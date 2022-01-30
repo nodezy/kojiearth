@@ -31,6 +31,7 @@ interface IOracle {
     function getRewardConverted(uint256 amount) external view returns (uint256);
     function getKojiUSDPrice() external view returns (uint256, uint256, uint256);
     function getSuperMintKojiPrice(uint256 _amount) external view returns (uint256);
+    function getSuperMintFluxPrice(uint256 _amount) external view returns (uint256);
 }
 
 // Interface for the rewards pool
@@ -125,14 +126,16 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     uint256 public minKojiTier1Stake = 1000000000000; // Min stake amount (default $1000 USD of $KOJI).
     uint256 public minKojiTier2Stake = 250000000000; // Min stake amount (default $250 USD of $KOJI).
     uint256 public promoAmount = 200000000000; // Amount of KOJIFLUX to give to new stakers (default 200 KOJIFLUX).
-    uint256 public superMintFluxPrice = 10000000000000000; // KOJIFLUX Cost to purchase a superMint (10M FLUX default).
+    uint256 public superMintFluxPrice1 = 100000000000; // KOJIFLUX Cost to purchase a superMint ($100 FLUX default).
+    uint256 public superMintFluxPrice2 = 25000000000; // KOJIFLUX Cost to purchase a superMint ($100 FLUX default).
     uint256 public superMintKojiPrice = 500000000000; // KOJIFLUX Cost to purchase a superMint ($500 of KOJI default, peggd to USD).
     uint256 private taxableAmount = 1000;
     uint256 public unstakePenaltyStartingTax = 30;
     uint256 public unstakePenaltyDefaultTax = 10;
     uint256 public unstakePenaltyDenominator = 1000;
 
-    uint256 public supermintAccrualFrame = 3024000; // time in seconds to accrue 1 supermint just by staking (default 35 days).
+    uint256 public supermintAccrualFrame1 = 2419200; // time in seconds to accrue 1 supermint just by staking (default 35 days).
+    uint256 public supermintAccrualFrame2 = 4838400; // time in seconds to accrue 1 supermint just by staking (default 35 days).
 
     bool public promoActive = false; // Whether the promotional amount of KOJIFLUX is given out to new stakers (default is True).
     bool public enableKojiSuperMintBuying = false; // Whether users can purchase superMints with $KOJI (default is false).
@@ -173,7 +176,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
         authorized[_msgSender()] = true;
 
-        oracle = IOracle(0x66F2495e1f139c22Dd839250858bB8936a7845Bc); // Oracle
+        oracle = IOracle(0x7C5ecB7AB19D237F5d0B6e67FffC5efBD45a8AcC); // Oracle
         rewards = IKojiRewards(0xDE554cA0E3B9861d120A7415C0dE6Ac32AFb4cE4); // Rewards contract
 
     }
@@ -352,7 +355,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
             
             user.usdEquiv = getUSDequivalent(user.amount);
             user.tierAtStakeTime = getTierequivalent(user.amount);
-            user.supermintaccrualperiod = getOverStakeMultiplier(user.tierAtStakeTime,user.amount);
+            user.supermintaccrualperiod = getOverStakeTimeframe(user.tierAtStakeTime,user.amount);
             user.blacklisted = false;
         
             if (user.tierAtStakeTime == 1 || user.tierAtStakeTime == 2) {
@@ -381,8 +384,6 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
         updatePool(_pid);
 
-        
- 
         uint256 tokenSupply = pool.stakeToken.balanceOf(address(this)); // Get total amount of KOJI tokens
         uint256 totalRewards = tokenSupply.sub(pool.runningTotal); // Get difference between contract address amount and ledger amount
         
@@ -422,7 +423,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
             user.tierAtStakeTime = 0;
             user.blacklisted = true;
             user.supermintstaketimer = block.timestamp;
-            user.supermintaccrualperiod = supermintAccrualFrame;
+            user.supermintaccrualperiod = 9999999999;
             removeStakeholder(_msgSender());
         } else {
             if (getTierequivalent(user.amount) == 1) {
@@ -430,20 +431,20 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
                 user.unstakeTime = block.timestamp;
                 user.tierAtStakeTime = 1;
                 user.blacklisted = false;
-                user.supermintaccrualperiod = getOverStakeMultiplier(user.tierAtStakeTime,user.amount);
+                user.supermintaccrualperiod = getOverStakeTimeframe(user.tierAtStakeTime,user.amount);
             } else {
                 if (getTierequivalent(user.amount) == 2) {
                 user.usdEquiv = getUSDequivalent(user.amount);
                 user.unstakeTime = block.timestamp;
                 user.tierAtStakeTime = 2;
                 user.blacklisted = false;
-                user.supermintaccrualperiod = getOverStakeMultiplier(user.tierAtStakeTime,user.amount);
+                user.supermintaccrualperiod = getOverStakeTimeframe(user.tierAtStakeTime,user.amount);
                 } else {
                     user.usdEquiv = getUSDequivalent(user.amount);
                     user.unstakeTime = block.timestamp;
                     user.tierAtStakeTime = 0;
                     user.blacklisted = true;
-                    user.supermintaccrualperiod = supermintAccrualFrame;
+                    user.supermintaccrualperiod = 9999999999;
                 }
             }
             
@@ -725,7 +726,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
             }
         } else {
             if (user0.tierAtStakeTime == 2) {
-                if(user0.amount >= tier2kojiPeg) { // user is staking above tier 2 amount but still tier 2, calc bonus based on tier1
+                if(user0.amount >= tier2kojiPeg && user0.amount < tier1kojiPeg) { // user is staking above tier 2 amount but still tier 2, calc bonus based on tier1
                     bonusRate = tier1kojiPeg.mul(100).div(user0.amount); // 1B div 500M = 2x bonus rate
                 }
                 if(user0.amount < tier2kojiPeg) { // user is staking below peg amount, calc bonus
@@ -801,6 +802,12 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         return (tier1min, tier2min);
     }
 
+    function getOracleMaxStaking() public view returns (uint256, uint256) {
+        uint256 tier1min = oracle.getMinKOJITier1Amount(minKojiTier1Stake);
+        uint256 tier2min = oracle.getMinKOJITier2Amount(minKojiTier2Stake);
+        return (tier1min.mul(200).div(100), tier2min.mul(400).div(100));
+    }
+
 
     // Gets Tier equivalent of input amount of KOJI tokens
     function getTierequivalent(uint256 _amount) public view returns (uint256) {
@@ -818,21 +825,57 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         }
     }
 
-    // Gets multiplier for supermint accrual period
-    function getOverStakeMultiplier(uint _usertier, uint256 _amount) internal view returns (uint256) {
+    // Gets multiplier for supermint accrual period reduction
+    function getOverStakeTimeframe(uint _usertier, uint256 _amount) internal view returns (uint256) {
 
         uint256 multiplier = 100;
 
+        (uint256 tier1min, uint256 tier2min) = getOracleMinMax();
+
         if (_usertier == 1) {
-            if(_amount >= tier1kojiPeg) { multiplier = _amount.mul(100).div(tier1kojiPeg);}
+            if(_amount >= tier1min) { multiplier = _amount.mul(100).div(tier1min);}
+
+            if (multiplier > 150) {multiplier = 150;}
+
+            return supermintAccrualFrame1.mul(100).div(multiplier);
+
         } else {
-            if(_amount >= tier2kojiPeg) { multiplier = _amount.mul(100).div(tier2kojiPeg);}
+            if(_amount >= tier2min) { multiplier = _amount.mul(100).div(tier2min);}
+
+            if (multiplier > 200) {multiplier = 200;}
+
+            return supermintAccrualFrame2.mul(100).div(multiplier);
         }
         
-        if (multiplier >200) {multiplier = 200;}
+    }
 
-        return supermintAccrualFrame.mul(100).div(multiplier);
+    // Gets multiplier for flux supermint purchases
+    function getSuperMintFluxPrice(uint _usertier, uint256 _useramount) public view returns (uint256) {
 
+        uint256 multiplier = 100;
+        uint256 fluxprice;
+
+        (uint256 tier1min, uint256 tier2min) = getOracleMinMax();
+
+        if (_usertier == 1) {
+            if(_useramount >= tier1min) { multiplier = _useramount.mul(100).div(tier1min);}
+
+            if (multiplier > 500) {multiplier = 500;}
+
+            fluxprice = oracle.getSuperMintFluxPrice(superMintFluxPrice1);
+
+            return fluxprice.mul(multiplier).div(100);
+
+        } else {
+            if(_useramount >= tier2min) { multiplier = _useramount.mul(100).div(tier2min);}
+
+            if (multiplier > 2000) {multiplier = 2000;}
+
+            fluxprice = oracle.getSuperMintFluxPrice(superMintFluxPrice2);
+
+            return fluxprice.mul(multiplier).div(100);
+        }
+        
     }
 
     // Gets USD equivalent of input amount of KOJI tokens
@@ -857,9 +900,11 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
         redeemTotalRewards(_msgSender());
 
-        require(userBalance[_msgSender()] >= superMintFluxPrice, "Insufficient KojiFlux to purchase superMint");
+        uint256 fluxprice = getSuperMintFluxPrice(user.tierAtStakeTime,user.amount);
 
-        userBalance[_msgSender()] = userBalance[_msgSender()].sub(superMintFluxPrice);
+        require(userBalance[_msgSender()] >= fluxprice, "Insufficient KojiFlux to purchase superMint");
+
+        userBalance[_msgSender()] = userBalance[_msgSender()].sub(fluxprice);
         superMint[_msgSender()] = true;
 
         user.supermintstaketimer = block.timestamp;
@@ -939,20 +984,19 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
     }
 
-    
-
     function setSuperMintBuying(bool _fluxbuying, bool _kojibuying) external onlyAuthorized {
         enableFluxSuperMintBuying = _fluxbuying;
         enableKojiSuperMintBuying = _kojibuying;
     }
 
-    function setSuperMintPrices(uint256 _fluxprice, uint256 _kojiprice) external onlyAuthorized  {
-        superMintFluxPrice = _fluxprice;
+    function setSuperMintPrices(uint256 _fluxprice1, uint256 _fluxprice2, uint256 _kojiprice) external onlyAuthorized  {
+        superMintFluxPrice1 = _fluxprice1;
+        superMintFluxPrice2 = _fluxprice2;
         superMintKojiPrice = _kojiprice;
     }
 
-    function getSuperMintPrices() external view returns (uint256 fluxprice, uint256 kojiprice) {
-        return (superMintFluxPrice,superMintKojiPrice);
+    function getSuperMintPrices() external view returns (uint256 fluxprice1, uint256 fluxprice2, uint256 kojiprice) {
+        return (superMintFluxPrice1,superMintFluxPrice2,superMintKojiPrice);
     }
 
     // Get the holder rewards of users staked $koji if they were to withdraw
