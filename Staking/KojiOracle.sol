@@ -213,6 +213,12 @@ contract KojiOracle is Ownable {
       return supermintprice.div(kojiusd);
     }
 
+    function getSuperMintFluxPrice(uint256 _amount) public view returns (uint256) {
+      (,,uint256 kojiusd) = getKojiUSDPrice();
+      uint256 supermintprice = _amount.mul(10**9);
+      return supermintprice.div(kojiusd);
+    }
+
     function changePair(address _pair) external onlyOwner {
       LP = IPancakePair(_pair);
     }
