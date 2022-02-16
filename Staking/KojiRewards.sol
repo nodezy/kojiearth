@@ -44,7 +44,7 @@ contract KojiRewards is Ownable, ReentrancyGuard {
     mapping (address => bool) public blacklisted;
     
     bool public rewardsEnabled = true;
-    bool public enableRewardWithdraw = false; // Whether KOJIF is withdrawable from this contract (default false).
+    bool public enableKojiWithdraw = false; // Whether KOJIF is withdrawable from this contract (default false).
     bool public enableFluxWithdraw = false; // Whether FLUX is withdrawable from this contract (default false).
 
     address private stakingContract; 
@@ -71,9 +71,18 @@ contract KojiRewards is Ownable, ReentrancyGuard {
         IBEP20(_tokenAddr).transfer(_to, _amount);
     }
 
+    function payWithdrawRewards(address _holder, uint256 _amount) external {
+        require(_msgSender() == address(stakingContract), "Rewards are not payable outside of the staking contract");
+
+        holderRealized[_holder] = holderRealized[_holder].add(_amount);
+        holderRewardLast[_holder] = block.timestamp;
+        safeTokenTransfer(_holder, _amount);
+
+    }
+
     function payPendingRewards(address _holder, uint256 _amount) external {
         require(_msgSender() == address(stakingContract), "Rewards are not payable outside of the staking contract");
-        require(enableRewardWithdraw, "KOJI withdrawals are not enabled");
+        require(enableKojiWithdraw, "KOJI withdrawals are not enabled");
 
         holderRealized[_holder] = holderRealized[_holder].add(_amount);
         holderRewardLast[_holder] = block.timestamp;
@@ -101,8 +110,8 @@ contract KojiRewards is Ownable, ReentrancyGuard {
     }
 
     // Whether to allow the KOJI token to actually be withdrawn, of just leave it virtual (default)
-    function enableRewardWithdrawals(bool _status) external onlyOwner {
-        enableRewardWithdraw = _status;
+    function enableKojiWithdrawals(bool _status) external onlyOwner {
+        enableKojiWithdraw = _status;
     }
 
     // Whether to allow the KOJI token to actually be withdrawn, of just leave it virtual (default)
@@ -111,20 +120,20 @@ contract KojiRewards is Ownable, ReentrancyGuard {
     }
 
     // View state of reward withdrawals (true/false)
-    function rewardWithdrawalStatus() external view returns (bool) {
-        return enableRewardWithdraw;
+    function rewardWithdrawalStatus() external view returns (bool,bool) {
+        return (enableKojiWithdraw,enableFluxWithdraw);
     }
 
     // Withdraw KOJIFLUX
-    function withdrawRewardsOnly() public nonReentrant {
+    function withdrawFluxOnly() public nonReentrant {
 
-        require(enableFluxWithdraw, "KOJIFLUX withdrawals are not enabled");
+        require(enableFluxWithdraw, "FLUX withdrawals are not enabled");
 
         staking.redeemTotalRewards(_msgSender());
 
         uint256 pending = staking.getKojiFluxBalance(_msgSender());
         if (pending > 0) {
-            require(rewardtoken.balanceOf(address(this)) > pending, "KOJIFLUX token balance of this contract is insufficient");
+            require(rewardtoken.balanceOf(address(this)) > pending, "FLUX token balance of this contract is insufficient");
             staking.setKojiFluxBalance(_msgSender(),0);
             safeFluxTransfer(_msgSender(), pending);
         }
