@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 // koji.earth Staking Contract Version 1.0
 // Stake your $KOJI for the Koji Comic NFT
@@ -138,10 +138,10 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     uint256 public supermintAccrualFrame1 = 2419200; // time in seconds to accrue 1 supermint just by staking (default 28 days).
     uint256 public supermintAccrualFrame2 = 4838400; // time in seconds to accrue 1 supermint just by staking (default 56 days).
 
-    bool public enableKojiSuperMintBuying = false; // Whether users can purchase superMints with $KOJI (default is false).
-    bool public enableFluxSuperMintBuying = false; // Whether users can purchase superMints with $KOJI (default is false).
+    bool public enableKojiSuperMintBuying = true; // Whether users can purchase superMints with $KOJI (default is false).
+    bool public enableFluxSuperMintBuying = true; // Whether users can purchase superMints with $KOJI (default is false).
     bool public enableTaxlessWithdrawals = false; // Switch to use in case of farming contract migration.
-    bool public convertRewardsEnabled = false; // Switch to enable/disable kojiflux -> koji oracle conversion.
+    bool public convertRewardsEnabled = true; // Switch to enable/disable kojiflux -> koji oracle conversion.
 
     mapping(address => bool) public addedstakeTokens; // Used for preventing staked tokens from being added twice in add().
     mapping(address => uint256) private userBalance; // Balance of KOJIFLUX for each user that survives staking/unstaking/redeeming.
@@ -690,8 +690,11 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
         UserInfo storage user0 = userInfo[0][_address]; //now add bonus in for smaller stakers based on peg tier1/tier2 amount
         if (user0.tierAtStakeTime == 1) {
-            if(user0.amount < tier1kojiPeg) { // user is staking below peg amount, calc bonus
-                bonusRate = tier1kojiPeg.mul(100).div(user0.amount); // 2B div 1.5B = 1.3x bonus rate
+            if(user0.amount > tier1kojiPeg) {
+                bonusRate = 200;
+            }
+            if(user0.amount <= tier1kojiPeg) { // user is staking below peg amount, calc bonus
+                bonusRate = tier1kojiPeg.mul(150).div(user0.amount); // 2B div 1.5B = 1.3x bonus rate
             }
         } else {
             if (user0.tierAtStakeTime == 2) {
@@ -927,12 +930,20 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         
         totaldays = totaldays.div(penaltyPeriod);
 
-        uint256 totalunstakefee  = unstakePenaltyStartingTax.sub(totaldays);
+        if (totaldays >= unstakePenaltyStartingTax) {
 
-        if (totalunstakefee <= unstakePenaltyDefaultTax) {
             return unstakePenaltyDefaultTax;
+
         } else {
-            return totalunstakefee;
+
+            uint256 totalunstakefee  = unstakePenaltyStartingTax.sub(totaldays);
+
+            if (totalunstakefee <= unstakePenaltyDefaultTax) {
+                return unstakePenaltyDefaultTax;
+            } else {
+                return totalunstakefee;
+            }
+
         }
 
 
