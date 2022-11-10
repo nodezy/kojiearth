@@ -2,6 +2,7 @@
 
 // koji.earth Staking Contract Version 1.0
 // Stake your $KOJI for the Koji Comic NFT
+// We are still here
 
 pragma solidity ^0.8.9;
 
