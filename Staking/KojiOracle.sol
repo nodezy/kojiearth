@@ -3,47 +3,7 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-
-/**
- * Standard SafeMath, stripped down to just add/sub/mul/div
- */
-library SafeMath {
-    function add(uint256 a, uint256 b) internal pure returns (uint256) {
-        uint256 c = a + b;
-        require(c >= a, "SafeMath: addition overflow");
-
-        return c;
-    }
-    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-        return sub(a, b, "SafeMath: subtraction overflow");
-    }
-    function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
-        require(b <= a, errorMessage);
-        uint256 c = a - b;
-
-        return c;
-    }
-    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
-        if (a == 0) {
-            return 0;
-        }
-
-        uint256 c = a * b;
-        require(c / a == b, "SafeMath: multiplication overflow");
-
-        return c;
-    }
-    function div(uint256 a, uint256 b) internal pure returns (uint256) {
-        return div(a, b, "SafeMath: division by zero");
-    }
-    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
-        // Solidity only automatically asserts when dividing by 0
-        require(b > 0, errorMessage);
-        uint256 c = a / b;
-
-        return c;
-    }
-}
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 interface IBEP20 {
     function totalSupply() external view returns (uint256);
@@ -152,6 +112,10 @@ contract KojiOracle is Ownable {
     IPancakePair public LP;
 
     uint256 setPrice = 1000;
+    uint256 tier1USDmintprice = 20000000000000000000;
+    uint256 tier2USDmintprice = 5000000000000000000;
+    uint256 tier1increase = 100000000000000000;
+    uint256 tier2increase = 100000000000000000;
 
     constructor() {
         priceFeed = AggregatorV3Interface(0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526);  //bscmainet bnb/usd 0x0567f2323251f0aab15c8dfb1967e4e8a7d42aee
@@ -249,4 +213,26 @@ contract KojiOracle is Ownable {
     function changeSetPrice(uint256 _amount) external onlyOwner {
       setPrice = _amount;
     }
+
+    function gettier1USDprice() external view returns (uint,uint) {
+      (uint bnbprice,,) = getKojiUSDPrice();
+      uint usdequiv = tier1USDmintprice.div(bnbprice);
+      usdequiv++; //normalize so price is accurate
+      return (usdequiv,tier1increase);
+    }
+
+    function gettier2USDprice() external view returns (uint,uint) {
+      (uint bnbprice,,) = getKojiUSDPrice();
+      uint usdequiv = tier2USDmintprice.div(bnbprice);
+      usdequiv++; //normalize so price is accurate
+      return (usdequiv,tier2increase);
+    }
+
+    function changeBNBPurchaseAmounts (uint _tier1USDmintprice, uint _tier2USDmintprice, uint _tier1increase, uint _tier2increase) external onlyOwner {
+      tier1USDmintprice = _tier1USDmintprice;
+      tier2USDmintprice = _tier2USDmintprice;
+      tier1increase = _tier1increase;
+      tier2increase = _tier2increase;
+    }
+
 }
