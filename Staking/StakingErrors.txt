@@ -1,0 +1,42 @@
+E01 - Sender is not authorized
+E02 - Address is the zero address
+E03 - Sender cannot remove themself
+E04 - KOJIFLUX address is invalid
+E05 - token is invalid
+E06 - token is already added
+E07 - _allocPoint is outside of range 1-100
+E08 - Withdrawal amount must be greater than zero
+E09 - Withdraw amount is greater than user amount
+E10 - Value is zero
+E11 - Value is outside of range 1-14000
+E12 - Value is outside of range 1-100
+E13 - User has nothing staked
+E14 - User does not have any pending rewards
+E15 - This NFT is not redeemable
+E16 - You have already minted one tier of this NFT
+E17 - Your stake value is not sufficient to mint this tier
+E18 - The minting window for this NFT hasn't opened
+E19 - The minting window for this NFT has closed
+E20 - You still need the minimum stake requirment to use superMint
+E21 - You do not possess a superMint
+E22 - This NFT is not redeemable
+E23 - You have already superMinted one tier of this NFT
+E24 - You do not possess a superMint
+E25 - Oracle price is zero, aborting...
+E26 - This address already purchased this NFT tier with BNB
+E27 - The minimum amount cannot be zero
+E28 - The min staking amount for tier 1 must be higher than tier 2
+E29 - You must be staking at least the minimum tier in order to buy a superMint
+E30 - superMint cannot be purchased with FLUX at this time
+E31 - This address already has an unused superMint
+E32 - You haven't unlocked the superMint purchaseable by FLUX yet
+E33 - Insufficient FLUX to purchase superMint
+E34 - superMint cannot be purchased with KOJI at this time
+E35 - You do not have the required tokens for purchase
+E36 - Upper limiter needs to be greater than 100
+E37 - Penalty period must be greater than zero
+E38 - superMint tier 1 cooldown period must be greater than zero
+E39 - superMint tier 2 cooldown period must be greater than zero
+E40 - Please send the minimum amount of BNB for purchase
+E41 - This amount combined with your current stake exceeds the maxmimum allowed stake
+E42 - Please input the correct amount of KOJI tokens to stake
