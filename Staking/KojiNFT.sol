@@ -79,7 +79,6 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         uint256 supermintend; //***end time of supermint window
         uint256 order; //order of the NFT
         bool redeemable; //can be redeemed via staking tier
-        bool fluxable; //***can be redeemed with flux
         bool supermintable; //***can be redeemed with supermint
         bool bnbable; //***can be redeemed with bnb
         bool exists;
@@ -97,8 +96,8 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
     mapping (string => bool) private uriExists;
 
     uint royaltyNumerator = 1;
-    uint256 windowSpan = 7776000; //90 days from time added to system to mint, regardless of method
-
+    uint256 windowSpan = 5184000; //60 days from timestart, regardless of mint method
+    uint256 supermintSpan = 2678400; //90 days from timestart
     address public receiver = 0xb629Fb3426877640C6fB6734360D81D719062bF6; //KOJI charity address
     address public stakingContract;
 
@@ -184,9 +183,11 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
              mintTotalsURI[nft.tier2uri] = minted.add(1);
         }
         
+        if (!superMinted && !bnbMinted) {
         //record this NFT & tier as being minted by the recipient
         nftTierMinted[id][recipient][minttier] = true;
         nftMinted[id][recipient] = true;
+        }
 
         if(superMinted) {nftSuperMinted[id][recipient] = true;}
         
@@ -259,7 +260,7 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         royaltyNumerator = _number;
     } 
 
-    function setNFTInfo(string memory _collectionName, string memory _nftName, string memory _tier1uri, string memory _tier2uri, uint256 _timestart, uint256 _order, bool _redeemable, bool _fluxable, bool _supermintable, bool _bnbable) public onlyAuthorized returns (uint256) {
+    function setNFTInfo(string memory _collectionName, string memory _nftName, string memory _tier1uri, string memory _tier2uri, uint256 _timestart, uint256 _order, bool _redeemable, bool _supermintable, bool _bnbable) public onlyAuthorized returns (uint256) {
 
         require(owner() == address(_msgSender()) || authorized[_msgSender()], "Sender is not authorized"); 
         require(bytes(_collectionName).length > 0, "Creator name string must not be empty");
@@ -283,13 +284,14 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
             nft.timeend = _timestart.add(windowSpan);
             nft.order = _order;
             nft.redeemable = _redeemable;
-            nft.fluxable = _fluxable;
             nft.supermintable = _supermintable;
             nft.bnbable = _bnbable;
             nft.exists = true;
 
             uriExists[_tier1uri] = true;
             uriExists[_tier2uri] = true;
+
+            if(_supermintable) {nft.supermintend=nft.timeend.add(supermintSpan);}
 
         return  _nftid; 
 
@@ -314,10 +316,9 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         numbers[3] = nft.order;
 
         bools[0] = nft.redeemable;
-        bools[1] = nft.fluxable; 
-        bools[2] = nft.supermintable;
-        bools[3] = nft.bnbable;
-        bools[4] = nft.exists;
+        bools[1] = nft.supermintable;
+        bools[2] = nft.bnbable;
+        bools[3] = nft.exists;
 
         return(strings,numbers,bools);
     }
@@ -358,6 +359,26 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         NFTInfo storage nft = nftInfo[_nftID];
 
         nft.redeemable = _redeemable;
+    }
+
+    function setNFTsupermintable(uint256 _nftID, bool _supermintable) external onlyAuthorized {
+        NFTInfo storage nft = nftInfo[_nftID];
+
+        nft.supermintable = _supermintable;
+
+        if(!nft.supermintable) {nft.supermintend=0;}
+    }
+
+    function setNFTsuperminEnd(uint256 _nftID, uint _supermintend) external onlyAuthorized {
+        NFTInfo storage nft = nftInfo[_nftID];
+
+        nft.supermintend = _supermintend;
+    }
+
+    function setNFTbnbable(uint256 _nftID, bool _bnbable) external onlyAuthorized {
+        NFTInfo storage nft = nftInfo[_nftID];
+
+        nft.bnbable = _bnbable;
     }
 
     function setNFTexists(uint256 _nftID, bool _exists) external onlyAuthorized {
@@ -405,11 +426,6 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         return (nft.redeemable);
     }
 
-    function getNFTfluxable(uint256 _nftID) external view returns (bool) {
-        NFTInfo storage nft = nftInfo[_nftID];  
-        return (nft.fluxable);
-    }
-
     function getNFTsupermintable(uint256 _nftID) external view returns (bool) {
         NFTInfo storage nft = nftInfo[_nftID];  
         return (nft.supermintable);
@@ -418,7 +434,7 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
     function getNFTbnbable(uint256 _nftID) external view returns (bool) {
         NFTInfo storage nft = nftInfo[_nftID];  
         return (nft.bnbable);
-    }
+    } 
 
     function getBNBtier1minted(address _recipient, uint _nftID) external view returns (bool) {
         return nftBNBtier1Minted[_nftID][_recipient];
@@ -431,6 +447,8 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
     function getMintTotalsAfterWindow(uint _nftID, uint _tier) external view returns (uint) {
         return mintTotalsAfterWindow[_nftID][_tier];
     }
+
+    
 
 }
 
