@@ -13,10 +13,6 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./KojiFlux.sol";
 
-interface IKojiToken {
-    function pair() external view returns (address);
-}
-
 interface IKojiNFT {
   function mintNFT(address recipient, uint256 minttier, uint256 id, bool superMinted, bool bnbMinted) external returns (uint256);
   function getIfMinted(address _recipient, uint256 _nftID) external view returns (bool);
@@ -51,60 +47,8 @@ interface IKojiRewards {
     function payWithdrawRewards(address _holder, uint256 _amount) external;
 }
 
-interface IDEXRouter {
-    function factory() external pure returns (address);
-    function WETH() external pure returns (address);
-
-    function addLiquidity(
-        address tokenA,
-        address tokenB,
-        uint amountADesired,
-        uint amountBDesired,
-        uint amountAMin,
-        uint amountBMin,
-        address to,
-        uint deadline
-    ) external returns (uint amountA, uint amountB, uint liquidity);
-
-    function addLiquidityETH(
-        address token,
-        uint amountTokenDesired,
-        uint amountTokenMin,
-        uint amountETHMin,
-        address to,
-        uint deadline
-    ) external payable returns (uint amountToken, uint amountETH, uint liquidity);
-
-    function swapExactTokensForTokensSupportingFeeOnTransferTokens(
-        uint amountIn,
-        uint amountOutMin,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external;
-
-    function swapExactETHForTokensSupportingFeeOnTransferTokens(
-        uint amountOutMin,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external payable;
-
-    function swapExactTokensForETHSupportingFeeOnTransferTokens(
-        uint amountIn,
-        uint amountOutMin,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external;
-}
-
-interface IWETH {
-    function deposit() external payable;
-    function transfer(address to, uint value) external returns (bool);
-    function approve(address spender, uint value) external returns (bool);
-    function balanceOf(address owner) external view returns (uint);
-    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+interface IMarketOrder {
+    function marketBuy(address _token, address _recipient) external payable returns (uint);
 }
 
 // Allows another user(s) to change contract settings
@@ -219,16 +163,13 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     address public NFTAddress; //NFT contract address
     address public KojiFluxAddress; //KOJIFLUX contract address
     address public DEAD = 0x000000000000000000000000000000000000dEaD;
-    uint24 marketBuyGas = 230000;  
+    address marketorder;
 
     IOracle public oracle;
     IKojiRewards public rewards;
 
     address kojiaddress = 0x30256814b1380Ea3b49C5AEA5C7Fa46eCecb8Bc0;
     IERC20 kojitoken = IERC20(kojiaddress); //$KOJI token
-
-    IDEXRouter public router;
-    address public WETH;
 
     uint kojipurchased;
 
@@ -240,7 +181,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     constructor(
         KojiFlux _kojiflux,
         uint256 _startBlock,
-        address _router
+        address _marketorder
     ) {
         require(address(_kojiflux) != address(0), "E04");
         // require(_startBlock >= block.number, "startBlock is before current block");
@@ -253,11 +194,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
 
         oracle = IOracle(0x7C5ecB7AB19D237F5d0B6e67FffC5efBD45a8AcC); // Oracle
         rewards = IKojiRewards(0xFcc133824F9569059B5B8643F5B4f63F5546bed5); // Rewards contract
-
-        router = _router != address(0)
-            ? IDEXRouter(_router)
-            : IDEXRouter(0x10ED43C718714eb63d5aA57B78B54704E256024E); //0xCc7aDc94F3D80127849D2b41b6439b7CF1eB4Ae0 pcs test router
-        WETH = router.WETH();
+        marketorder = address(_marketorder);
 
     }
 
@@ -726,11 +663,13 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         if(mintsAfterWindow > 0) {price = price.add(mintsAfterWindow.mul(increase));}
 
         require(msg.value >= price, "E40");
-        payable(this).transfer(msg.value);
+        //payable(marketorder).transfer(msg.value);
 
-        marketBuy(price);
+        uint amountpurchased = IMarketOrder(marketorder).marketBuy{value : msg.value}(kojiaddress, DEAD);
 
         IKojiNFT(NFTAddress).mintNFT(_msgSender(), 1, _nftID, false, true);
+
+        emit KojiBuy(msg.value, amountpurchased);
     }
 
     // Purchase the NFT via BNB (tier 2)
@@ -744,11 +683,13 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         if(mintsAfterWindow > 0) {price = price.add(mintsAfterWindow.mul(increase));}
 
         require(msg.value >= price, "E40");
-        payable(this).transfer(msg.value);
+        //payable(marketorder).transfer(msg.value);
 
-        marketBuy(price);
+        uint amountpurchased = IMarketOrder(marketorder).marketBuy{value : msg.value}(kojiaddress, DEAD);
         
         IKojiNFT(NFTAddress).mintNFT(_msgSender(), 2, _nftID, false, true);
+
+        emit KojiBuy(msg.value, amountpurchased);
     }
 
     // We can give the artists/influencers a KojiFlux balance so they can redeem their own NFTs
@@ -1161,34 +1102,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         tier2kojiPeg = _tier2peg;
     }
 
-    function changeMarketBuyGas(uint24 _gas) external onlyAuthorized {
-        marketBuyGas = _gas;
-    }
+   
 
-    function marketBuy(uint _amount) internal {
-
-        uint balanceBefore = IERC20(kojitoken).balanceOf(DEAD);
-
-        IWETH(WETH).deposit{value : _amount}();
-        IWETH(WETH).transfer(IKojiToken(kojiaddress).pair(), _amount);
-
-        address[] memory path = new address[](2);
-
-        path[0] = WETH;
-        path[1] = kojiaddress;
-
-        router.swapExactETHForTokensSupportingFeeOnTransferTokens{value:_amount, gas:marketBuyGas}(
-            0,
-            path,
-            address(DEAD),
-            block.timestamp
-        );
-
-        uint balanceNow = IERC20(kojitoken).balanceOf(DEAD);
-
-        kojipurchased += balanceNow.sub(balanceBefore);
-
-        emit KojiBuy(_amount, balanceNow.sub(balanceBefore));
-
-    }
+    
 }
