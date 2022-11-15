@@ -18,7 +18,7 @@ let provider;
 
 let refreshinterval;
 let bnbusd;
-
+// Front end updates on private testnet tonight. Stay strong friends...
 // Address of the selected account
 let selectedAccount;
 let kojitoken = "0x30256814b1380Ea3b49C5AEA5C7Fa46eCecb8Bc0"; //bsc test KOJI
