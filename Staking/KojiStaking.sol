@@ -165,14 +165,12 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     address public NFTAddress; //NFT contract address
     address public KojiFluxAddress; //KOJIFLUX contract address
     address public DEAD = 0x000000000000000000000000000000000000dEaD;
-    address marketorder;
+    address public kojiaddress;
+    address public marketorder;
 
     IOracle public oracle;
+    IERC20 kojitoken;
     IKojiRewards public rewards;
-
-    address kojiaddress = 0x30256814b1380Ea3b49C5AEA5C7Fa46eCecb8Bc0;
-    IERC20 kojitoken = IERC20(kojiaddress); //$KOJI token
-
     uint kojipurchased;
 
     event Unstake(address indexed user, uint256 indexed pid);
@@ -181,21 +179,27 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     event KojiBuy(uint indexed bnbamount, uint indexed kojiamount);
 
     constructor(
-        KojiFlux _kojiflux,
         uint256 _startBlock,
+        KojiFlux _kojiflux,
+        address _oracle,
+        address _rewards,
+        address _token,
         address _marketorder
     ) {
         require(address(_kojiflux) != address(0), "E04");
-        // require(_startBlock >= block.number, "startBlock is before current block");
 
         kojiflux = _kojiflux;
         KojiFluxAddress = address(_kojiflux);
+
+        kojiaddress = _token;
+        kojitoken = IERC20(_token); //$KOJI token
+        
         startBlock = _startBlock;
 
         authorized[_msgSender()] = true;
 
-        oracle = IOracle(0x7C5ecB7AB19D237F5d0B6e67FffC5efBD45a8AcC); // Oracle
-        rewards = IKojiRewards(0xFcc133824F9569059B5B8643F5B4f63F5546bed5); // Rewards contract
+        oracle = IOracle(_oracle); // Oracle
+        rewards = IKojiRewards(_rewards); // Rewards contract
         marketorder = address(_marketorder);
 
     }
