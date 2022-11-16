@@ -97,7 +97,7 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
 
     uint royaltyNumerator = 1;
     uint256 windowSpan = 5184000; //60 days from timestart, regardless of mint method
-    uint256 supermintSpan = 2678400; //90 days from timestart
+    uint256 supermintSpan = 2678400; //31 days 
     address public receiver = 0xb629Fb3426877640C6fB6734360D81D719062bF6; //KOJI charity address
     address public stakingContract;
 
@@ -193,11 +193,11 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         
         if(bnbMinted && minttier == 1) {
             nftBNBtier1Minted[id][recipient] = true;
-            if(block.timestamp > nft.timeend) {mintTotalsAfterWindow[id][minttier]++;}
+            if(block.timestamp > nft.timestart) {mintTotalsAfterWindow[id][minttier]++;}
         }
         if(bnbMinted && minttier == 2) {
             nftBNBtier2Minted[id][recipient] = true;
-            if(block.timestamp > nft.timeend) {mintTotalsAfterWindow[id][minttier]++;}
+            if(block.timestamp > nft.timestart) {mintTotalsAfterWindow[id][minttier]++;}
         }
 
         //increment total # of NFT minted for this ID/Tier
@@ -207,7 +207,6 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         return newItemId;
 
     }
-
 
     //returns the gloabal total number of minted NFT per tier
     function totalMinted() public view returns (uint256) {
@@ -345,6 +344,12 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
 
     function setNFTwindow(uint256 _nftID, uint256 _timestart, uint256 _timeend) external onlyAuthorized {
         NFTInfo storage nft = nftInfo[_nftID];  
+
+        if (nft.timeend < _timeend) {
+            mintTotalsAfterWindow[_nftID][1]=0;
+            mintTotalsAfterWindow[_nftID][2]=0;
+            }
+
         nft.timestart = _timestart;
         nft.timeend = _timeend;
     }
@@ -447,8 +452,6 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
     function getMintTotalsAfterWindow(uint _nftID, uint _tier) external view returns (uint) {
         return mintTotalsAfterWindow[_nftID][_tier];
     }
-
-    
 
 }
 
