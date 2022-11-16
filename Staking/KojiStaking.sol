@@ -137,17 +137,18 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     
     uint256 public minKojiTier1Stake = 1000000000000; // Min stake amount (default $1000 USD of $KOJI).
     uint256 public minKojiTier2Stake = 250000000000; // Min stake amount (default $250 USD of $KOJI).
-    uint256 public superMintFluxPrice1 = 100000000000; // KOJIFLUX Cost to purchase a superMint ($100 FLUX default).
-    uint256 public superMintFluxPrice2 = 25000000000; // KOJIFLUX Cost to purchase a superMint ($25 FLUX default).
-    uint256 public superMintKojiPrice = 250000000000; // KOJIFLUX Cost to purchase a superMint ($500 of KOJI default, peggd to USD).
+    uint256 public superMintFluxPrice1 = 50000000000; // KOJIFLUX Cost to purchase a superMint ($50 FLUX default).
+    uint256 public superMintFluxPrice2 = 12500000000; // KOJIFLUX Cost to purchase a superMint ($12.50 FLUX default).
+    uint256 public superMintKojiPrice = 100000000000; // KOJIFLUX Cost to purchase a superMint ($100 of KOJI default, peggd to USD).
+    uint256 public superMintIncrease = 25000000000; // KOJIFLUX price increase each time a user buys a supermint with KOJI
     uint256 private taxableAmount = 1000;
     uint256 public unstakePenaltyStartingTax = 30;
     uint256 public unstakePenaltyDefaultTax = 10;
     uint256 public unstakePenaltyDenominator = 1000;
 
     uint256 public penaltyPeriod = 86400;  // time in seconds of unstake penalty period (24 hours).
-    uint256 public supermintAccrualFrame1 = 2419200; // time in seconds to accrue 1 supermint just by staking (default 28 days).
-    uint256 public supermintAccrualFrame2 = 4838400; // time in seconds to accrue 1 supermint just by staking (default 56 days).
+    uint256 public supermintAccrualFrame1 = 1814400; // time in seconds to accrue 1 supermint just by staking (default 21 days).
+    uint256 public supermintAccrualFrame2 = 4233600; // time in seconds to accrue 1 supermint just by staking (default 49 days).
 
     bool public enableKojiSuperMintBuying = true; // Whether users can purchase superMints with $KOJI (default is false).
     bool public enableFluxSuperMintBuying = true; // Whether users can purchase superMints with $KOJI (default is false).
@@ -158,6 +159,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     mapping(address => uint256) private userBalance; // Balance of KOJIFLUX for each user that survives staking/unstaking/redeeming.
     mapping(address => uint256) private userRealized; // Balance of KOJIFLUX for each user that survives staking/unstaking/redeeming.
     mapping(address => bool) public superMint; // Whether the wallet has a mint booster allowing require bypass.
+    mapping(address => uint) public superMintCounter; // Whether the wallet has a mint booster allowing require bypass.
     mapping(address => bool) public userStaked; // Denotes whether the user is currently staked or not, must be eligible for tiers 1/2 for true.
     
     address public NFTAddress; //NFT contract address
@@ -537,7 +539,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     }
 
     // Convert KojiFlux to $KOJI
-    function convertAndWithdraw() external nonReentrant {
+    function convertAndWithdraw(uint _percentage) external nonReentrant {
     
         UserInfo storage user = userInfo[0][_msgSender()];
 
@@ -547,13 +549,13 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         
         require(userBalance[_msgSender()] > 0, "E14");
 
-        uint256 fluxamount = userBalance[_msgSender()];
+        uint256 fluxamount = userBalance[_msgSender()].mul(_percentage).div(100);
         (uint256 newamount,) = getConversionAmount(fluxamount, _msgSender());
 
         rewards.payPendingRewards(_msgSender(), newamount);
 
-        userRealized[_msgSender()] = userRealized[_msgSender()].add(userBalance[_msgSender()]);
-        userBalance[_msgSender()] = 0;
+        userRealized[_msgSender()] = userRealized[_msgSender()].add(fluxamount);
+        userBalance[_msgSender()] = userBalance[_msgSender()].sub(fluxamount);
         
     }
 
@@ -574,40 +576,15 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         UserInfo storage user = userInfo[0][_msgSender()];
 
         bool minted = IKojiNFT(NFTAddress).getIfMinted(_msgSender(), _nftID);
-        (uint256 timestart, uint256 timeend,) = IKojiNFT(NFTAddress).getNFTwindow(_nftID);
+        (uint256 timestart,,) = IKojiNFT(NFTAddress).getNFTwindow(_nftID);
         bool redeemable = IKojiNFT(NFTAddress).getNFTredeemable(_nftID);
         require(redeemable, "E15");
         require(!minted, "E16");
         require(user.tierAtStakeTime == 1, "E17");
-        require(block.timestamp >= timestart, "E18");
-        require(block.timestamp <= timeend, "E19");
-
+        require(user.stakeTime <= timestart, "E18");
+        
         IKojiNFT(NFTAddress).mintNFT(_msgSender(), 1, _nftID, false, false);
            
-    }
-
-    // Redeem the NFT via supermint (tier 1)
-    function superminttier1(uint256 _nftID) external nonReentrant {
-
-        if (superMint[_msgSender()]) {
-
-            // Get user tier/info
-            UserInfo storage user = userInfo[0][_msgSender()];
-
-            (uint256 timestart,,uint256 supermintend) = IKojiNFT(NFTAddress).getNFTwindow(_nftID);
-            bool superminted = IKojiNFT(NFTAddress).getIfSuperMinted(_msgSender(), _nftID);
-
-            require(!superminted, "E16");
-            require(block.timestamp >= timestart, "E18");
-            require(block.timestamp <= supermintend, "E19");
-            require(user.tierAtStakeTime != 0, "E20");
-
-            superMint[_msgSender()] = false;
-            IKojiNFT(NFTAddress).mintNFT(_msgSender(), 1, _nftID, true, false);
-
-        } else {
-            require(superMint[_msgSender()], "E21");
-        }
     }
 
     // Redeem the NFT (tier 2)
@@ -617,38 +594,38 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         UserInfo storage user = userInfo[0][_msgSender()];
 
         bool minted = IKojiNFT(NFTAddress).getIfMinted(_msgSender(), _nftID);
-        (uint256 timestart, uint256 timeend,) = IKojiNFT(NFTAddress).getNFTwindow(_nftID);
+        (uint256 timestart,,) = IKojiNFT(NFTAddress).getNFTwindow(_nftID);
         bool redeemable = IKojiNFT(NFTAddress).getNFTredeemable(_nftID);
         require(redeemable, "E22");
         require(!minted, "E16");
         require(user.tierAtStakeTime == 2, "E17");
-        require(block.timestamp >= timestart, "E18");
-        require(block.timestamp <= timeend, "E19");
+        require(user.stakeTime <= timestart, "E18");
         
         IKojiNFT(NFTAddress).mintNFT(_msgSender(), 2, _nftID, false, false);
            
     }
 
-    // Redeem the NFT via supermint (tier 2)
-    function superminttier2(uint256 _nftID) external nonReentrant {
+    // Redeem the NFT via supermint
+    function supermint(uint256 _nftID) external nonReentrant {
 
         if (superMint[_msgSender()]) {
 
             // Get user tier/info
             UserInfo storage user = userInfo[0][_msgSender()];
 
-            (uint256 timestart,,uint256 supermintend) = IKojiNFT(NFTAddress).getNFTwindow(_nftID);
+            (uint256 timestart,,) = IKojiNFT(NFTAddress).getNFTwindow(_nftID);
             bool superminted = IKojiNFT(NFTAddress).getIfSuperMinted(_msgSender(), _nftID);
 
-            require(!superminted, "E23");
+            require(!superminted, "E16");
             require(block.timestamp >= timestart, "E18");
-            require(block.timestamp <= supermintend, "E19");
             require(user.tierAtStakeTime != 0, "E20");
 
             superMint[_msgSender()] = false;
+            IKojiNFT(NFTAddress).mintNFT(_msgSender(), 1, _nftID, true, false);
             IKojiNFT(NFTAddress).mintNFT(_msgSender(), 2, _nftID, true, false);
+
         } else {
-            require(superMint[_msgSender()], "E24");
+            require(superMint[_msgSender()], "E21");
         }
     }
 
@@ -885,7 +862,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     }
 
     function getSuperMintKojiPrice() external view returns(uint256) {
-        return oracle.getSuperMintKojiPrice(superMintKojiPrice);
+        return oracle.getSuperMintKojiPrice(superMintKojiPrice).add((oracle.getSuperMintKojiPrice(superMintIncrease)).mul(superMintCounter[_msgSender()]));
     }
 
     // Gets USD equivalent of input amount of KOJI tokens
@@ -924,11 +901,13 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     function buySuperMintKoji() external nonReentrant {
         require(enableKojiSuperMintBuying, "E34");
         uint256 kojisupermintprice = oracle.getSuperMintKojiPrice(superMintKojiPrice);
+        kojisupermintprice = kojisupermintprice.add((oracle.getSuperMintKojiPrice(superMintIncrease)).mul(superMintCounter[_msgSender()]));
         require(kojitoken.balanceOf(_msgSender()) >= kojisupermintprice, "E35"); 
         require(!superMint[_msgSender()], "E31");
 
         IERC20(kojitoken).transferFrom(_msgSender(), address(rewards), kojisupermintprice);
         superMint[_msgSender()] = true;
+        superMintCounter[_msgSender()]++;
     }
 
     function changeOracle(address _oracle) external onlyAuthorized {
@@ -1007,10 +986,11 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         enableKojiSuperMintBuying = _kojibuying;
     }
 
-    function setSuperMintPrices(uint256 _fluxprice1, uint256 _fluxprice2, uint256 _kojiprice) external onlyAuthorized  {
+    function setSuperMintPrices(uint256 _fluxprice1, uint256 _fluxprice2, uint256 _kojiprice, uint256 _increase) external onlyAuthorized  {
         superMintFluxPrice1 = _fluxprice1;
         superMintFluxPrice2 = _fluxprice2;
         superMintKojiPrice = _kojiprice;
+        superMintIncrease = _increase;
     }
 
     // Get the holder rewards of users staked $koji if they were to withdraw
