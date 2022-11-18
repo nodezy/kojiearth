@@ -414,6 +414,16 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         uint256 tempRewards = pendingRewards(_pid, _msgSender());
         userBalance[_msgSender()] = userBalance[_msgSender()].add(tempRewards);
 
+        if (userBalance[_msgSender()] > 0) {
+            
+            uint256 fluxamount = userBalance[_msgSender()];
+            (uint256 newamount,) = getConversionAmount(fluxamount, _msgSender());
+            rewards.payWithdrawRewards(_msgSender(), newamount);
+
+            userRealized[_msgSender()] = userRealized[_msgSender()].add(userBalance[_msgSender()]);
+            userBalance[_msgSender()] = 0;
+        }
+
         if(!enableTaxlessWithdrawals) { // Switch for tax free / reflection free withdrawals
 
             netamount = getWithdrawResult(_msgSender(), _amount);
@@ -573,8 +583,16 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         KojiFluxAddress = _address;
     }
 
-    // Redeem the NFT (tier 1)
-    function redeemtier1(uint256 _nftID) external nonReentrant {
+    // Redeem the NFT
+    function redeem(uint256 _nftID, uint256 _tier) external nonReentrant {
+
+        require(_tier > 0 && _tier < 3, "E43");
+
+        bool[] memory bools = new bool[](4);
+        
+        (,,bools) = IKojiNFT(NFTAddress).getNFTInfo(_nftID);
+
+        require(bools[3], "E44");
 
         // Get user tier/info
         UserInfo storage user = userInfo[0][_msgSender()];
@@ -584,33 +602,21 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         bool redeemable = IKojiNFT(NFTAddress).getNFTredeemable(_nftID);
         require(redeemable, "E15");
         require(!minted, "E16");
-        require(user.tierAtStakeTime == 1, "E17");
+        require(user.tierAtStakeTime == _tier, "E17");
         require(user.stakeTime <= timestart, "E18");
         
-        IKojiNFT(NFTAddress).mintNFT(_msgSender(), 1, _nftID, false, false);
-           
-    }
-
-    // Redeem the NFT (tier 2)
-    function redeemtier2(uint256 _nftID) external nonReentrant {
-
-        // Get user tier/info
-        UserInfo storage user = userInfo[0][_msgSender()];
-
-        bool minted = IKojiNFT(NFTAddress).getIfMinted(_msgSender(), _nftID);
-        (uint256 timestart,,) = IKojiNFT(NFTAddress).getNFTwindow(_nftID);
-        bool redeemable = IKojiNFT(NFTAddress).getNFTredeemable(_nftID);
-        require(redeemable, "E22");
-        require(!minted, "E16");
-        require(user.tierAtStakeTime == 2, "E17");
-        require(user.stakeTime <= timestart, "E18");
-        
-        IKojiNFT(NFTAddress).mintNFT(_msgSender(), 2, _nftID, false, false);
+        IKojiNFT(NFTAddress).mintNFT(_msgSender(), _tier, _nftID, false, false);
            
     }
 
     // Redeem the NFT via supermint
     function supermint(uint256 _nftID) external nonReentrant {
+
+        bool[] memory bools = new bool[](4);
+        
+        (,,bools) = IKojiNFT(NFTAddress).getNFTInfo(_nftID);
+
+        require(bools[3], "E44");
 
         if (superMint[_msgSender()]) {
 
@@ -633,15 +639,32 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         }
     }
 
-    // Purchase the NFT via BNB (tier 1)
-    function purchasetier1(uint256 _nftID) external payable nonReentrant {
+    // Purchase the NFT via BNB  
+    function purchasetier(uint256 _nftID, uint256 _tier) external payable nonReentrant {
+        require(_tier > 0 && _tier < 3, "E43");
+
+        bool[] memory bools = new bool[](4);
+        
+        (,,bools) = IKojiNFT(NFTAddress).getNFTInfo(_nftID);
+
+        require(bools[3], "E44");
+
         (uint256 timestart,,) = IKojiNFT(NFTAddress).getNFTwindow(_nftID);
         require(block.timestamp >= timestart, "E18");
-        (uint price, uint increase) = IKojiNFT(NFTAddress).gettier1USDprice();
-        require(price > 0, "E25");
-        require(!IKojiNFT(NFTAddress).getBNBtier1minted(_msgSender(), _nftID),"E26");
+        uint price;
+        uint increase;
 
-        uint mintsAfterWindow = IKojiNFT(NFTAddress).getMintTotalsAfterWindow(_nftID, 1);
+        if(_tier == 1) {
+            (price, increase) = IKojiNFT(NFTAddress).gettier1USDprice();
+            require(!IKojiNFT(NFTAddress).getBNBtier1minted(_msgSender(), _nftID),"E26");
+        } else {
+            (price, increase) = IKojiNFT(NFTAddress).gettier2USDprice();
+            require(!IKojiNFT(NFTAddress).getBNBtier2minted(_msgSender(), _nftID),"E26");
+        }
+        
+        require(price > 0, "E25");
+        
+        uint mintsAfterWindow = IKojiNFT(NFTAddress).getMintTotalsAfterWindow(_nftID, _tier);
 
         if(mintsAfterWindow > 0) {price = price.add(mintsAfterWindow.mul(increase));}
 
@@ -649,28 +672,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         
         uint amountpurchased = IMarketOrder(marketorder).marketBuy{value : msg.value}(kojiaddress, DEAD);
 
-        IKojiNFT(NFTAddress).mintNFT(_msgSender(), 1, _nftID, false, true);
-
-        emit KojiBuy(msg.value, amountpurchased);
-    }
-
-    // Purchase the NFT via BNB (tier 2)
-    function purchasetier2(uint256 _nftID) external payable nonReentrant {
-        (uint256 timestart,,) = IKojiNFT(NFTAddress).getNFTwindow(_nftID);
-        require(block.timestamp >= timestart, "E18");
-        (uint price, uint increase) = IKojiNFT(NFTAddress).gettier2USDprice();
-        require(price > 0, "E25");
-        require(!IKojiNFT(NFTAddress).getBNBtier2minted(_msgSender(), _nftID),"E26");
-
-        uint mintsAfterWindow = IKojiNFT(NFTAddress).getMintTotalsAfterWindow(_nftID, 2);
-
-        if(mintsAfterWindow > 0) {price = price.add(mintsAfterWindow.mul(increase));}
-
-        require(msg.value >= price, "E40");
-       
-        uint amountpurchased = IMarketOrder(marketorder).marketBuy{value : msg.value}(kojiaddress, DEAD);
-        
-        IKojiNFT(NFTAddress).mintNFT(_msgSender(), 2, _nftID, false, true);
+        IKojiNFT(NFTAddress).mintNFT(_msgSender(), _tier, _nftID, false, true);
 
         emit KojiBuy(msg.value, amountpurchased);
     }
