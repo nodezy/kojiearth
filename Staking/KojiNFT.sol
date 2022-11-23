@@ -67,7 +67,7 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
     Counters.Counter private _tokenIds;
     Counters.Counter private _tier1tokenIds;
     Counters.Counter private _tier2tokenIds;
-    Counters.Counter private _NFTIds; //so we can track which NFT's have been added to the system
+    Counters.Counter public _NFTIds; //so we can track which NFT's have been added to the system
 
     struct NFTInfo {
         string collectionName; // Name of nft creator/influencer/artist
@@ -84,7 +84,7 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         bool exists;
     }
 
-    mapping(uint256 => NFTInfo) public nftInfo; // Info of each NFT artist/infuencer wallet.
+    mapping(uint256 => NFTInfo) private nftInfo; // Info of each NFT artist/infuencer wallet.
     mapping(uint256 => mapping(address => mapping(uint256 => bool))) public nftTierMinted; //nftTierMinted[_nftID][recipient][tier#]
     mapping(uint256 => mapping(address => bool)) public nftMinted; //nftMinted[_nftID][recipient]
     mapping(uint256 => mapping(address => bool)) public nftSuperMinted; //nftMinted[_nftID][recipient]
@@ -267,9 +267,6 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         require(bytes(_tier1uri).length > 0, "tier 1 URI string must not be empty");
         require(bytes(_tier2uri).length > 0, "tier 2 URI string must not be empty");
         require(_timestart != 0 && _timestart > block.timestamp, "Time start and end must be in the proper order");
-        require(_order > 0, "Order must be greater than zero");
-
-        _NFTIds.increment();
 
         uint256 _nftid = _NFTIds.current();
 
@@ -291,6 +288,8 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
             uriExists[_tier2uri] = true;
 
             if(_supermintable) {nft.supermintend=nft.timeend.add(supermintSpan);}
+
+            _NFTIds.increment();
 
         return  _nftid; 
 
@@ -351,6 +350,17 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
             }
 
         nft.timestart = _timestart;
+        nft.timeend = _timeend;
+    }
+
+    function setNFTend(uint256 _nftID, uint256 _timeend) external onlyAuthorized {
+        NFTInfo storage nft = nftInfo[_nftID];  
+
+        if (nft.timeend < _timeend) {
+            mintTotalsAfterWindow[_nftID][1]=0;
+            mintTotalsAfterWindow[_nftID][2]=0;
+            }
+
         nft.timeend = _timeend;
     }
 
