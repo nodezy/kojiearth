@@ -22,8 +22,6 @@ interface IKojiNFT {
   function getNFTInfo(uint256 _nftID) external view returns(string[] memory, uint256[] memory, bool[] memory); 
   function getBNBtier1minted(address _recipient, uint _nftID) external view returns (bool);
   function getBNBtier2minted(address _recipient, uint _nftID) external view returns (bool);
-  function gettier1USDprice() external view returns (uint,uint);
-  function gettier2USDprice() external view returns (uint,uint);
   function getMintTotalsAfterWindow(uint _nftID, uint _tier) external view returns (uint);
 }
 
@@ -659,10 +657,10 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         uint increase;
 
         if(_tier == 1) {
-            (price, increase) = IKojiNFT(NFTAddress).gettier1USDprice();
+            (price, increase) = oracle.gettier1USDprice();
             require(!IKojiNFT(NFTAddress).getBNBtier1minted(_msgSender(), _nftID),"E26");
         } else {
-            (price, increase) = IKojiNFT(NFTAddress).gettier2USDprice();
+            (price, increase) = oracle.gettier2USDprice();
             require(!IKojiNFT(NFTAddress).getBNBtier2minted(_msgSender(), _nftID),"E26");
         }
         
