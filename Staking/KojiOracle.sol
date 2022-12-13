@@ -114,8 +114,8 @@ contract KojiOracle is Ownable {
     uint256 setPrice = 1000;
     uint256 tier1USDmintprice = 31250000000000000000;
     uint256 tier2USDmintprice = 7750000000000000000;
-    uint256 tier1increase = 50000000000000000;
-    uint256 tier2increase = 25000000000000000;
+    uint256 tier1increase = 20000000000000000;
+    uint256 tier2increase = 10000000000000000;
 
     constructor() {
         priceFeed = AggregatorV3Interface(0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526);  //bscmainet bnb/usd 0x0567f2323251f0aab15c8dfb1967e4e8a7d42aee
