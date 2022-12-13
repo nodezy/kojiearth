@@ -100,6 +100,10 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
     uint256 supermintSpan = 2678400; //31 days 
     address public receiver = 0xb629Fb3426877640C6fB6734360D81D719062bF6; //KOJI charity address
     address public stakingContract;
+    address public posterNFT = 0x1eF93EeE4E0223586E510BE208dd5e6C91Ce8DdA; // Old poster address
+    address public DEAD = 0x000000000000000000000000000000000000dEaD;
+    string poster1uri;
+    string poster2uri;
 
     /*
      *     bytes4(keccak256('balanceOf(address)')) == 0x70a08231
@@ -144,19 +148,64 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
 
     bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
 
-    constructor() ERC721("KojiNFT", "KOJINFT") {
+    constructor(string memory _poster1uri, string memory _poster2uri) ERC721("KojiNFT", "KOJINFT") {
         // register the supported interfaces to conform to ERC721 via ERC165
         _registerInterface(_INTERFACE_ID_ERC721);
         _registerInterface(_INTERFACE_ID_ERC721_METADATA);
         _registerInterface(_INTERFACE_ID_ERC721_ENUMERABLE);
         // Royalties interface
         _registerInterface(_INTERFACE_ID_ERC2981);
+        poster1uri = _poster1uri;
+        poster2uri = _poster2uri;
+    }
 
+    function upgradeNFT(uint tokenID) external returns (uint) {
+
+        require(IERC721(posterNFT).balanceOf(_msgSender())>0, "Sender has no balance");
+
+        string memory holderuri = ERC721(posterNFT).tokenURI(tokenID);
+
+        NFTInfo storage nft = nftInfo[0];
+
+        uint256 minted;
+        uint256 minttier;
+
+        _tokenIds.increment();
+        
+        uint256 newItemId = _tokenIds.current();
+        _mint(_msgSender(), newItemId);
+
+        //mint the appropriate tier based on variable passed in from staking
+        if (keccak256(bytes(poster1uri)) == keccak256(bytes(holderuri))) {
+            _setTokenURI(newItemId, nft.tier1uri);
+             _tier1tokenIds.increment();
+             minted = mintTotalsURI[nft.tier1uri];
+             mintTotalsURI[nft.tier1uri] = minted.add(1);
+             minttier = 1;
+        } else {
+            if (keccak256(bytes(poster2uri)) == keccak256(bytes(holderuri))) {
+                _setTokenURI(newItemId, nft.tier2uri);
+                _tier2tokenIds.increment();
+                minted = mintTotalsURI[nft.tier2uri];
+                mintTotalsURI[nft.tier2uri] = minted.add(1);
+                minttier = 2;
+            } else {
+                revert("Invalid uri");
+            }
+        }
+
+        //increment total # of NFT minted for this ID/Tier
+        minted = mintTotals[0][minttier];
+        mintTotals[0][minttier] = minted.add(1);
+
+        IERC721(posterNFT).safeTransferFrom(_msgSender(), DEAD, tokenID);
+
+        return newItemId;
     }
 
     function mintNFT(address recipient, uint256 minttier, uint256 id, bool superMinted, bool bnbMinted) public returns (uint256) {   
 
-        if(!authorized[address(recipient)]) { //***remove for production
+        if(!authorized[msg.sender]) { //***remove for production
 
             require(msg.sender == address(stakingContract), "Minting not allowed outside of the staking contract");
         }       
@@ -185,19 +234,19 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         
         if (!superMinted && !bnbMinted) {
         //record this NFT & tier as being minted by the recipient
-        nftTierMinted[id][recipient][minttier] = true;
-        nftMinted[id][recipient] = true;
+        //nftTierMinted[id][recipient][minttier] = true;
+        //nftMinted[id][recipient] = true;
         }
 
-        if(superMinted) {nftSuperMinted[id][recipient] = true;}
+        //if(superMinted) {nftSuperMinted[id][recipient] = true;}
         
         if(bnbMinted && minttier == 1) {
-            nftBNBtier1Minted[id][recipient] = true;
-            if(block.timestamp > nft.timestart) {mintTotalsAfterWindow[id][minttier]++;}
+            //nftBNBtier1Minted[id][recipient] = true;
+            if(block.timestamp > nft.timeend) {mintTotalsAfterWindow[id][minttier]++;}
         }
         if(bnbMinted && minttier == 2) {
-            nftBNBtier2Minted[id][recipient] = true;
-            if(block.timestamp > nft.timestart) {mintTotalsAfterWindow[id][minttier]++;}
+            //nftBNBtier2Minted[id][recipient] = true;
+            if(block.timestamp > nft.timeend) {mintTotalsAfterWindow[id][minttier]++;}
         }
 
         //increment total # of NFT minted for this ID/Tier
