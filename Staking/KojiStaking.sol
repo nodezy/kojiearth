@@ -149,6 +149,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     bool public enableFluxSuperMintBuying = true; // Whether users can purchase superMints with $KOJI (default is false).
     bool public enableTaxlessWithdrawals = false; // Switch to use in case of farming contract migration.
     bool public convertRewardsEnabled = true; // Switch to enable/disable kojiflux -> koji oracle conversion.
+    bool ordertoggle = true;
 
     mapping(address => bool) public addedstakeTokens; // Used for preventing staked tokens from being added twice in add().
     mapping(address => uint256) private userBalance; // Balance of KOJIFLUX for each user that survives staking/unstaking/redeeming.
@@ -162,6 +163,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     address public DEAD = 0x000000000000000000000000000000000000dEaD;
     address public kojiaddress;
     address public marketorder;
+    address public rewardsaddress;
 
     IOracle public oracle;
     IERC20 kojitoken;
@@ -171,7 +173,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
     event Unstake(address indexed user, uint256 indexed pid);
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
-    event KojiBuy(uint indexed bnbamount, uint indexed kojiamount);
+    event KojiBuy(uint indexed bnbamount, uint indexed kojiamount, address indexed toAddress);
 
     constructor(
         uint256 _startBlock,
@@ -194,6 +196,7 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         authorized[_msgSender()] = true;
 
         oracle = IOracle(_oracle); // Oracle
+        rewardsaddress = _rewards;
         rewards = IKojiRewards(_rewards); // Rewards contract
         marketorder = address(_marketorder);
 
@@ -671,12 +674,29 @@ contract KojiStaking is Ownable, Authorizable, ReentrancyGuard {
         if(mintsAfterWindow > 0) {price = price.add(mintsAfterWindow.mul(increase));}
 
         require(msg.value >= price, "E40");
-        
-        uint amountpurchased = IMarketOrder(marketorder).marketBuy{value : msg.value}(kojiaddress, DEAD);
 
+        uint amountpurchased;
+        address toAddress;
+
+        if(ordertoggle) {
+
+            toAddress = rewardsaddress;
+            ordertoggle = false;
+
+        } else {
+
+            toAddress = DEAD;
+            ordertoggle = true;
+  
+        }      
+
+        
+        amountpurchased = IMarketOrder(marketorder).marketBuy{value : msg.value}(kojiaddress, toAddress);
+    
         IKojiNFT(NFTAddress).mintNFT(_msgSender(), _tier, _nftID, false, true);
 
-        emit KojiBuy(msg.value, amountpurchased);
+        emit KojiBuy(msg.value, amountpurchased, toAddress);
+
     }
 
     function setKojiFluxBalance(address _address, uint256 _amount) public {
