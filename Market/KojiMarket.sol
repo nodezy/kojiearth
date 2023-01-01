@@ -129,7 +129,7 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
     /* allows someone to remove a token they have listed */
     function removeMarketItem(uint256 tokenId) external nonReentrant {
 
-      require(idToMarketItem[tokenId].owner == msg.sender, "Only item owner can perform this operation");
+      require(idToMarketItem[tokenId].seller == address(msg.sender), "Only item seller can perform this operation");
       
       idToMarketItem[tokenId].sold = false;
       idToMarketItem[tokenId].price = 0;
@@ -191,8 +191,7 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
         MarketItem[] memory items = new MarketItem[](unsoldItemCount);
         for (uint i = 0; i < itemCount; i++) {
             if (idToMarketItem[heldtokens[i]].owner == address(this)) {
-            MarketItem storage currentItem = idToMarketItem[heldtokens[i]];
-            items[currentIndex] = currentItem;
+            items[currentIndex] = idToMarketItem[heldtokens[i]];
             currentIndex++;
             }
         }
@@ -204,23 +203,22 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
     }
 
     /* Returns only items that a user has purchased */
-    function fetchMyNFTs() public view returns (MarketItem[] memory) {
+    function fetchMyNFTs(address _user) public view returns (MarketItem[] memory) {
 
       if(soldtokens.length > 0) {
         uint itemCount = 0;
         uint currentIndex = 0;
 
         for (uint i = 0; i < soldtokens.length; i++) {
-            if (idToMarketItem[soldtokens[i]].owner == msg.sender) {
+            if (idToMarketItem[soldtokens[i]].owner == _user) {
             itemCount++;
             }
         }
 
         MarketItem[] memory items = new MarketItem[](itemCount);
         for (uint i = 0; i < soldtokens.length; i++) {
-            if (idToMarketItem[soldtokens[i]].owner == msg.sender) {
-            MarketItem storage currentItem = idToMarketItem[soldtokens[i]];
-            items[currentIndex] = currentItem;
+            if (idToMarketItem[soldtokens[i]].owner == _user) {
+            items[currentIndex] = idToMarketItem[soldtokens[i]];
             currentIndex++;
             }
         }
@@ -232,7 +230,7 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
     }
 
     /* Returns only items a user has listed */
-    function fetchItemsListed() public view returns (MarketItem[] memory) {
+    function fetchItemsListed(address _seller) public view returns (MarketItem[] memory) {
       uint totalItemCount = _itemsHeld.current();
 
       if(totalItemCount > 0) {
@@ -240,16 +238,15 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
             uint currentIndex = 0;
 
         for (uint i = 0; i < totalItemCount; i++) {
-            if (idToMarketItem[heldtokens[i]].seller == msg.sender) {
+            if (idToMarketItem[heldtokens[i]].seller == _seller) {
             itemCount++;
             }
         }
 
         MarketItem[] memory items = new MarketItem[](itemCount);
         for (uint i = 0; i < totalItemCount; i++) {
-            if (idToMarketItem[heldtokens[i]].seller == msg.sender) {
-            MarketItem storage currentItem = idToMarketItem[heldtokens[i]];
-            items[currentIndex] = currentItem;
+            if (idToMarketItem[heldtokens[i]].seller == _seller) {
+            items[currentIndex] = idToMarketItem[heldtokens[i]];
             currentIndex++;
             }
         }
