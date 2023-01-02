@@ -44,7 +44,8 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
     event MarketItemCreated (
       uint256 indexed tokenId,
       uint256 price,
-      address seller
+      address seller,
+      uint256 time
     );
 
     event MarketItemSold (
@@ -52,7 +53,8 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
       uint256 price,
       address seller,
       address buyer,
-      bool sold
+      bool sold,
+      uint256 time
     );
 
     
@@ -126,7 +128,8 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
       emit MarketItemCreated(
         tokenId,
         price,
-        _msgSender()
+        _msgSender(),
+        block.timestamp
       );
     }
 
@@ -189,7 +192,8 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
         price,
         seller,
         _msgSender(),
-        true
+        true,
+        block.timestamp
       );
     }
 
