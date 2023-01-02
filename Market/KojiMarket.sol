@@ -44,8 +44,14 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
     event MarketItemCreated (
       uint256 indexed tokenId,
       uint256 price,
+      address seller
+    );
+
+    event MarketItemSold (
+      uint256 indexed tokenId,
+      uint256 price,
       address seller,
-      address owner,
+      address buyer,
       bool sold
     );
 
@@ -104,11 +110,11 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
       }
       
       idToMarketItem[tokenId].page = uint128(_nftid);
-      idToMarketItem[tokenId].seller = payable(msg.sender);
+      idToMarketItem[tokenId].seller = payable(_msgSender());
       idToMarketItem[tokenId].owner = payable(address(this));
       idToMarketItem[tokenId].sold = false;
 
-      IERC721(NFTcontract).safeTransferFrom(msg.sender, address(this), tokenId);
+      IERC721(NFTcontract).safeTransferFrom(_msgSender(), address(this), tokenId);
 
       payable(this).transfer(listingFee);
 
@@ -120,21 +126,22 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
       emit MarketItemCreated(
         tokenId,
         price,
-        msg.sender,
-        address(this),
-        false
+        _msgSender()
       );
     }
 
     /* allows someone to remove a token they have listed */
     function removeMarketItem(uint256 tokenId) external nonReentrant {
 
-      require(idToMarketItem[tokenId].seller == address(msg.sender), "Only item seller can perform this operation");
+      require(idToMarketItem[tokenId].seller == address(_msgSender()), "Only item seller can perform this operation");
       
       idToMarketItem[tokenId].sold = false;
       idToMarketItem[tokenId].price = 0;
       idToMarketItem[tokenId].seller = payable(address(0));
       idToMarketItem[tokenId].owner = payable(address(0));
+      idToMarketItem[tokenId].tier = 0;    
+      idToMarketItem[tokenId].page = 0;
+
       _itemsHeld.decrement();
 
       for(uint x=0; x<heldtokens.length; x++) {                                     
@@ -144,7 +151,7 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
         }
       }
 
-      IERC721(NFTcontract).safeTransferFrom(address(this), msg.sender, tokenId);
+      IERC721(NFTcontract).safeTransferFrom(address(this), _msgSender(), tokenId);
     }
 
     /* Creates the sale of a marketplace item */
@@ -156,14 +163,14 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
       address seller = idToMarketItem[tokenId].seller;
       require(msg.value == price.add(buyingFee), "Please submit the asking price + fee in order to complete the purchase");
 
-      idToMarketItem[tokenId].owner = payable(msg.sender);
+      idToMarketItem[tokenId].owner = payable(_msgSender());
       idToMarketItem[tokenId].sold = true;
-      idToMarketItem[tokenId].seller = payable(address(0));
+      idToMarketItem[tokenId].seller = payable(seller);
 
       _itemsHeld.decrement();
       _itemsSold.increment();
 
-      IERC721(NFTcontract).safeTransferFrom(address(this), msg.sender, tokenId);
+      IERC721(NFTcontract).safeTransferFrom(address(this), _msgSender(), tokenId);
       payable(this).transfer(buyingFee);
       feeTotals = feeTotals.add(buyingFee);
       payable(seller).transfer(msg.value.sub(buyingFee));
@@ -176,27 +183,64 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
       }
 
       soldtokens.push(tokenId);
+
+      emit MarketItemSold(
+        tokenId,
+        price,
+        seller,
+        _msgSender(),
+        true
+      );
     }
 
     /* Returns all unsold market items */
-    function fetchMarketItems() public view returns (MarketItem[] memory) {
+    function fetchMarketItems(uint _page, uint _tier) public view returns (MarketItem[] memory) {
 
       uint itemCount = _itemsHeld.current();
 
       if(itemCount > 0) {
 
-        uint unsoldItemCount = _itemsHeld.current();
         uint currentIndex = 0;
 
-        MarketItem[] memory items = new MarketItem[](unsoldItemCount);
-        for (uint i = 0; i < itemCount; i++) {
-            if (idToMarketItem[heldtokens[i]].owner == address(this)) {
-            items[currentIndex] = idToMarketItem[heldtokens[i]];
-            currentIndex++;
+        MarketItem[] memory items = new MarketItem[](itemCount);
+
+        if(_page == 99 && _tier == 0) { //get all
+
+            for (uint i = 0; i < itemCount; i++) {
+                if (idToMarketItem[heldtokens[i]].owner == address(this)) {
+                items[currentIndex] = idToMarketItem[heldtokens[i]];
+                currentIndex++;
+                }
+            }
+            return items;
+
+        } else {
+
+            if(_page != 99 && _tier != 1 && _tier != 2) { //get page + both tiers
+
+                for (uint i = 0; i < itemCount; i++) {
+                    if (idToMarketItem[heldtokens[i]].owner == address(this) 
+                    && idToMarketItem[heldtokens[i]].page == _page) {
+                    items[currentIndex] = idToMarketItem[heldtokens[i]];
+                    currentIndex++;
+                    }
+                }
+                return items;
+
+            } else {
+
+                for (uint i = 0; i < itemCount; i++) { //get page and single tier
+                    if (idToMarketItem[heldtokens[i]].owner == address(this) 
+                    && idToMarketItem[heldtokens[i]].page == _page
+                    && idToMarketItem[heldtokens[i]].tier == _tier) {
+                    items[currentIndex] = idToMarketItem[heldtokens[i]];
+                    currentIndex++;
+                    }
+                }
+                return items;
             }
         }
-        return items;
-
+        
       } else {
         return new MarketItem[](0);
       }       
