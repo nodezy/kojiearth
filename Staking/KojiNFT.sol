@@ -11,30 +11,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol"; 
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165Storage.sol"; 
-
-///
-/// @dev Interface for the NFT Royalty Standard
-///
-interface IERC2981 is IERC165 {
-    /// ERC165 bytes to add to interface array - set in parent contract
-    /// implementing this standard
-    ///
-    /// @notice Called with the sale price to determine how much royalty
-    //          is owed and to whom.
-    /// @param _tokenId - the NFT asset queried for royalty information
-    /// @param _salePrice - the sale price of the NFT asset specified by _tokenId
-    /// @return receiver - address of who should be sent the royalty payment
-    /// @return royaltyAmount - the royalty payment amount for _salePrice   
-
-    /// @notice Informs callers that this contract supports ERC2981
-    /// @dev If `_registerInterface(_INTERFACE_ID_ERC2981)` is called
-    ///      in the initializer, this should be automatic
-    /// @param interfaceID The interface identifier, as specified in ERC-165
-    /// @return `true` if the contract implements
-    ///         `_INTERFACE_ID_ERC2981` and `false` otherwise
-    function supportsInterface(bytes4 interfaceID) external override view returns (bool);
-}
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 // Allows another user(s) to change contract variables
 contract Authorizable is Ownable {
@@ -60,7 +37,7 @@ contract Authorizable is Ownable {
 }
 
 
-contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
+contract KojiNFT is ERC721Enumerable, ERC165, Ownable, Authorizable, ReentrancyGuard {
     using Counters for Counters.Counter;
     using SafeMath for uint256;
 
@@ -95,71 +72,21 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
     mapping (string => uint256) public mintTotalsURI; //mintTotalsURI[_nftID][URI]
     mapping (string => bool) private uriExists;
 
-    uint royaltyNumerator = 1;
-    uint256 windowSpan = 5184000; //60 days from timestart, regardless of mint method
-    uint256 supermintSpan = 2678400; //31 days 
-    address public receiver = 0xb629Fb3426877640C6fB6734360D81D719062bF6; //KOJI charity address
+    uint256 windowSpan = 2592000; //31 days from timestart, regardless of mint method
+    uint256 supermintSpan = 2592000; //31 days 
     address public stakingContract;
     address public posterNFT = 0x1eF93EeE4E0223586E510BE208dd5e6C91Ce8DdA; // Old poster address
     address public DEAD = 0x000000000000000000000000000000000000dEaD;
     string poster1uri;
     string poster2uri;
 
-    /*
-     *     bytes4(keccak256('balanceOf(address)')) == 0x70a08231
-     *     bytes4(keccak256('ownerOf(uint256)')) == 0x6352211e
-     *     bytes4(keccak256('approve(address,uint256)')) == 0x095ea7b3
-     *     bytes4(keccak256('getApproved(uint256)')) == 0x081812fc
-     *     bytes4(keccak256('setApprovalForAll(address,bool)')) == 0xa22cb465
-     *     bytes4(keccak256('isApprovedForAll(address,address)')) == 0xe985e9c5
-     *     bytes4(keccak256('transferFrom(address,address,uint256)')) == 0x23b872dd
-     *     bytes4(keccak256('safeTransferFrom(address,address,uint256)')) == 0x42842e0e
-     *     bytes4(keccak256('safeTransferFrom(address,address,uint256,bytes)')) == 0xb88d4fde
-     *
-     *     => 0x70a08231 ^ 0x6352211e ^ 0x095ea7b3 ^ 0x081812fc ^
-     *        0xa22cb465 ^ 0xe985e9c5 ^ 0x23b872dd ^ 0x42842e0e ^ 0xb88d4fde == 0x80ac58cd
-     */
-    bytes4 private constant _INTERFACE_ID_ERC721 = 0x80ac58cd;
-
-    /*
-     *     bytes4(keccak256('name()')) == 0x06fdde03
-     *     bytes4(keccak256('symbol()')) == 0x95d89b41
-     *     bytes4(keccak256('tokenURI(uint256)')) == 0xc87b56dd
-     *
-     *     => 0x06fdde03 ^ 0x95d89b41 ^ 0xc87b56dd == 0x5b5e139f
-     */
-    bytes4 private constant _INTERFACE_ID_ERC721_METADATA = 0x5b5e139f;
-
-    /*
-     *     bytes4(keccak256('totalSupply()')) == 0x18160ddd
-     *     bytes4(keccak256('tokenOfOwnerByIndex(address,uint256)')) == 0x2f745c59
-     *     bytes4(keccak256('tokenByIndex(uint256)')) == 0x4f6ccce7
-     *
-     *     => 0x18160ddd ^ 0x2f745c59 ^ 0x4f6ccce7 == 0x780e9d63
-     */
-    bytes4 private constant _INTERFACE_ID_ERC721_ENUMERABLE = 0x780e9d63;
-
-    /*
-    *      bytes4(keccak256("royaltyInfo(uint256,uint256)")) == 0x2a55205a
-    *      bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
-    *      _registerInterface(_INTERFACE_ID_ERC2981);
-    *
-    */
-
-    bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
-
+   
     constructor(string memory _poster1uri, string memory _poster2uri) ERC721("KojiNFT", "KOJINFT") {
-        // register the supported interfaces to conform to ERC721 via ERC165
-        _registerInterface(_INTERFACE_ID_ERC721);
-        _registerInterface(_INTERFACE_ID_ERC721_METADATA);
-        _registerInterface(_INTERFACE_ID_ERC721_ENUMERABLE);
-        // Royalties interface
-        _registerInterface(_INTERFACE_ID_ERC2981);
         poster1uri = _poster1uri;
         poster2uri = _poster2uri;
     }
 
-    function upgradeNFT(uint tokenID) external returns (uint) {
+    function upgradeNFT(uint tokenID) external nonReentrant returns (uint) {
 
         require(IERC721(posterNFT).balanceOf(_msgSender())>0, "Sender has no balance");
 
@@ -203,7 +130,7 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         return newItemId;
     }
 
-    function mintNFT(address recipient, uint256 minttier, uint256 id, bool superMinted, bool bnbMinted) public returns (uint256) {   
+    function mintNFT(address recipient, uint256 minttier, uint256 id, bool superMinted, bool bnbMinted) public nonReentrant returns (uint256) {   
 
         if(!authorized[msg.sender]) { //***remove for production
 
@@ -232,20 +159,20 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
              mintTotalsURI[nft.tier2uri] = minted.add(1);
         }
         
-        if (!superMinted && !bnbMinted) {
         //record this NFT & tier as being minted by the recipient
-        //nftTierMinted[id][recipient][minttier] = true;
-        //nftMinted[id][recipient] = true;
+        if (!superMinted && !bnbMinted) {
+            nftTierMinted[id][recipient][minttier] = true;
+            nftMinted[id][recipient] = true;
         }
 
-        //if(superMinted) {nftSuperMinted[id][recipient] = true;}
+        if(superMinted) {nftSuperMinted[id][recipient] = true;}
         
         if(bnbMinted && minttier == 1) {
-            //nftBNBtier1Minted[id][recipient] = true;
+            nftBNBtier1Minted[id][recipient] = true;
             if(block.timestamp > nft.timeend) {mintTotalsAfterWindow[id][minttier]++;}
         }
         if(bnbMinted && minttier == 2) {
-            //nftBNBtier2Minted[id][recipient] = true;
+            nftBNBtier2Minted[id][recipient] = true;
             if(block.timestamp > nft.timeend) {mintTotalsAfterWindow[id][minttier]++;}
         }
 
@@ -270,19 +197,7 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
         return mintTotalsURI[tokenURI];
     }
 
-    function royaltyInfo(uint256 _tokenId, uint256 _salePrice) external view returns(address,uint256){
-    
-    uint256 royaltyAmount = _salePrice.mul(royaltyNumerator).div(100);
-    _tokenId = _tokenId;
-
-    return (receiver, royaltyAmount);
-        
-    }
-
-    function changeReceiver(address _receiver) external onlyOwner {
-        receiver = _receiver;
-    }
-
+   
     function setstakingContract(address _address) external onlyOwner {
         stakingContract = _address;
     }
@@ -298,15 +213,6 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
        
         IERC20(_tokenAddr).transfer(_to, _amount);
     }
-
-    function getRoyaltyNumerator() external view returns(uint) {
-        return royaltyNumerator;
-    }
-
-    function setRoyaltyNumerator(uint _number) external onlyOwner {
-        require(_number >= 1 && _number <= 10, "Royalty fee must be no less than 1% and no greater than 10%");
-        royaltyNumerator = _number;
-    } 
 
     function setNFTInfo(string memory _collectionName, string memory _nftName, string memory _tier1uri, string memory _tier2uri, uint256 _timestart, uint256 _order, bool _redeemable, bool _supermintable, bool _bnbable, bool _override) public onlyAuthorized returns (uint256) {
 
@@ -356,8 +262,15 @@ contract KojiNFT is ERC721Enumerable, ERC165Storage, Ownable, Authorizable {
 
         strings[0] = nft.collectionName;
         strings[1] = nft.nftName;
-        strings[2] = nft.tier1uri;
-        strings[3] = nft.tier2uri;
+
+        if(block.timestamp >= nft.timestart) {
+            strings[2] = nft.tier1uri;
+            strings[3] = nft.tier2uri;
+        } else {
+            strings[2] = nft.nftName;
+            strings[3] = nft.nftName;
+        }
+        
 
         numbers[0] = nft.timestart;
         numbers[1] = nft.timeend;
