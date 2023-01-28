@@ -42,24 +42,25 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
     }
 
     event MarketItemCreated (
-      uint256 indexed tokenId,
+      address indexed seller,
+      uint256 tokenId,
       uint256 price,
-      address seller,
       uint256 time
     );
 
     event MarketItemSold (
-      uint256 indexed tokenId,
+      address indexed seller,
+      address indexed buyer,
+      uint256 tokenId,
       uint256 price,
-      address seller,
-      address buyer,
       bool sold,
       uint256 time
     );
 
-    
+    bool public production = false;
     uint256 public feeTotals;
-    address NFTcontract = 0xe565Db982C546B14fc93dD428b17678D0E44F9c6;
+    address public NFTcontract = 0x48De92A5069334088f9248aA1A9625450BE38e1f;
+    uint256 public timedelta = 2592000;
 
     constructor() {}   
 
@@ -91,8 +92,11 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
       require(price > 0, "Price must be at least 1 wei");
       require(msg.value == listingFee, "Please include listing fee in order to list the item");
       
-      (,uint timeend,) = IKojiNFT(NFTcontract).getNFTwindow(IKojiNFT(NFTcontract).getNFTIDbyURI(ERC721(NFTcontract).tokenURI(tokenId)));
-      require(block.timestamp > timeend, "Listing enabled once BNB Purchase window ends for this page");
+      (uint timestart,,) = IKojiNFT(NFTcontract).getNFTwindow(IKojiNFT(NFTcontract).getNFTIDbyURI(ERC721(NFTcontract).tokenURI(tokenId)));
+
+      if(production) {
+        require(block.timestamp > timestart.add(timedelta), "Listing enabled once BNB Purchase window ends for this page");
+      }
 
       heldtokens.push(tokenId);
 
@@ -126,9 +130,9 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
       _itemsTotal.increment();
       
       emit MarketItemCreated(
+        _msgSender(),
         tokenId,
         price,
-        _msgSender(),
         block.timestamp
       );
     }
@@ -136,7 +140,7 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
     /* allows someone to remove a token they have listed */
     function removeMarketItem(uint256 tokenId) external nonReentrant {
 
-      require(idToMarketItem[tokenId].seller == address(_msgSender()), "Only item seller can perform this operation");
+      require(idToMarketItem[tokenId].seller == address(_msgSender()) || owner() == address(_msgSender()), "Only item seller can perform this operation");
       
       idToMarketItem[tokenId].sold = false;
       idToMarketItem[tokenId].price = 0;
@@ -188,10 +192,10 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
       soldtokens.push(tokenId);
 
       emit MarketItemSold(
-        tokenId,
-        price,
         seller,
         _msgSender(),
+        tokenId,
+        price,
         true,
         block.timestamp
       );
@@ -326,8 +330,16 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
         NFTcontract = _nft;
     }
 
+    function changeDelta(uint _delta) external onlyOwner {
+      timedelta = _delta;
+    }
+
     function getNFTtimeend(uint tokenId) external view returns (uint256) {
         (,uint timeend,) = IKojiNFT(NFTcontract).getNFTwindow(IKojiNFT(NFTcontract).getNFTIDbyURI(ERC721(NFTcontract).tokenURI(tokenId)));
         return timeend;
+    }
+
+    function setProduction(bool _status) external onlyOwner {
+      production = _status;
     }
 }
