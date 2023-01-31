@@ -132,13 +132,20 @@ contract KojiNFT is ERC721Enumerable, ERC165, Ownable, Authorizable, ReentrancyG
 
     function mintNFT(address recipient, uint256 minttier, uint256 id, bool superMinted, bool bnbMinted) public nonReentrant returns (uint256) {   
 
-        if(!authorized[msg.sender]) { //***remove for production
-
-            require(msg.sender == address(stakingContract), "Minting not allowed outside of the staking contract");
-        }       
+         require(msg.sender == address(stakingContract) || authorized[msg.sender], "Minting not allowed outside of the staking contract");
 
         NFTInfo storage nft = nftInfo[id];
 
+        require(block.timestamp >= nft.timestart, "The minting window for this page has not opened yet");
+
+        if(bnbMinted) {
+            require(block.timestamp <= nft.timeend, "The purchase window for this page has closed");
+        }
+
+        if(superMinted) {
+            require(block.timestamp <= nft.supermintend, "The superMinting window for this page has closed");
+        }
+        
         uint256 minted;
 
         _tokenIds.increment();
