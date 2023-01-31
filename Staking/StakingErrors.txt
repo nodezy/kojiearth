@@ -21,7 +21,7 @@ E20 - You still need the minimum stake requirment to use superMint
 E21 - You do not possess a superMint
 E22 - This NFT is not redeemable
 E23 - You have already superMinted one tier of this NFT
-E24 - You do not possess a superMint
+E24 - You must be staked to purchase a superMint
 E25 - Oracle price is zero, aborting...
 E26 - This address already purchased this NFT tier with BNB
 E27 - The minimum amount cannot be zero
@@ -40,3 +40,5 @@ E39 - superMint tier 2 cooldown period must be greater than zero
 E40 - Please send the minimum amount of BNB for purchase
 E41 - This amount combined with your current stake exceeds the maxmimum allowed stake
 E42 - Please input the correct amount of KOJI tokens to stake
+E43 - Tier is invalid
+E44 - NFT is invalid
