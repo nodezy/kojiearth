@@ -3,8 +3,8 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -21,10 +21,10 @@ interface IAuth {
 
 // Interface for the Koji Oracle
 interface IOracle {
- function getbnbusdequivalent(uint256 amount) external view returns (uint256);
+ function getMintUSD(uint256 amount) external view returns (uint256);
 }
 
-contract KojiGamepass is ERC721URIStorage, ERC165, Ownable, ReentrancyGuard {
+contract KojiGamepass is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
     using SafeMath for uint256;
 
@@ -62,7 +62,7 @@ contract KojiGamepass is ERC721URIStorage, ERC165, Ownable, ReentrancyGuard {
 
     function mintGamepass(string memory _holder) external payable nonReentrant {
 
-        uint mintCost = oracle.getbnbusdequivalent(mintFee);
+        uint mintCost = oracle.getMintUSD(mintFee);
 
         require(compareHashes(_msgSender(), _holder), "Sender is not the same as requested recipient");
         require(IERC721(this).balanceOf(_msgSender()) == 0, "You already possess a Koji Gamepass NFT");
@@ -88,7 +88,7 @@ contract KojiGamepass is ERC721URIStorage, ERC165, Ownable, ReentrancyGuard {
         uint256 tokenId
     ) internal virtual override{
         require(ERC721.ownerOf(tokenId) == from, "ERC721: transfer of token that is not owned");
-        require(to == address(DEAD), "ERC721: transfer must be to the zero address");
+        require(to == address(DEAD), "ERC721: transfer must be to the dead address");
 
         _beforeTokenTransfer(from, to, tokenId);
 
@@ -116,7 +116,7 @@ contract KojiGamepass is ERC721URIStorage, ERC165, Ownable, ReentrancyGuard {
     }
 
     function getMintCost() external view returns(uint) {
-        return oracle.getbnbusdequivalent(mintFee);
+        return oracle.getMintUSD(mintFee);
     }
 
     function changeMintFee(uint _fee) external onlyAuthorized {
