@@ -1,0 +1,19 @@
+Hello KojiFam,
+
+Just a quick update from the development side of things. We know it's quiet in the chats sometimes and with the markets pumping (sideways now!), we all want to release the NFT comic ASAP. All of us on the dev team know that this has taken way too long, most of which was out of our hands for almost a year. 
+
+Since getting the "completed" artwork from AmCo, we have been hard at work rendering the animated versions of the NFT. These are completed in technical terms, but we are going back through and trying to tweak a few things. We want everything to be perfect.
+
+The NFT marketplace was also a nice upgrade, obviously which came at increased development time. But we wanted a place where users could go and buy/sell/trade their KOJI NFT comic pages easily for a very small fee, right now at .0025 BNB per listing/purchase (less than $1 dollar).
+
+We are also implementing the ability to upgrade your poster NFT (for those of you who were lucky enough to get it) to the NFT Comic contract. This way your Poster NFT will match the Comic NFT address, and you will be able to list your upgraded Poster NFT on the marketplace straight away. Minting is closed for the Poster so consider yourselves in good company!
+
+We recently put the dApp through some rigorous testing and found a few issues with one of the contracts. After trying to fix these minor issues, we realized that we had to revamp the code for several of the contracts due to being up against the size limit for the BSC blockchain. So currently we are doing a reorganization on the contracts so they work together better and are easier to test on. This shouldn't take more than a few days and we will be back to testing the dApp once more.
+
+We also have a very special surprise for our holders that has not been mentioned. We think it's great and just adds more utility to our ecosystem!
+
+Anyways that's it for now, please be patient and hang in there. Progress is happening every single day in the background and we ARE getting there. It may take a bit more time but it will be worth it. Stay tuned!
+
+~The Koji Dev Team
+
+p.s. this was supposed to be an 'official' update thru our website/announcement channel, but everyone on the team is so busy I've decided to just get it out to you all. We'll just keep this between us! =)
