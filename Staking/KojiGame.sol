@@ -122,7 +122,7 @@ contract KojiGame is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
 
         uint packageCost = getPackageCost(usdamount);
 
-        require(msg.value >= packageCost, "Please include mint fee in order to mint Koji Gamepass NFT");
+        require(msg.value >= packageCost, "Please include proper BNB amount to purchase FLUX package");
 
         return true;
 
