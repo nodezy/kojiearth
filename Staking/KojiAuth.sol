@@ -23,7 +23,7 @@ contract KojiAuth is Ownable {
     address public getMarketOrder;
     address public getMarketplace;
     address public getGameContract;
-    address public getLotto;
+    address public getGamePass;
     address public getInserter;
     address public getAdmin;
     address public getCharity;
@@ -85,7 +85,7 @@ contract KojiAuth is Ownable {
         getMarketOrder = a9;
         getMarketplace = a10;
         getGameContract = a11;
-        getLotto = a12;
+        getGamePass = a12;
         getInserter = a13;
         getAdmin = a14;
         getCharity = a15;
