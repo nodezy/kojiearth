@@ -17,11 +17,16 @@ interface IAuth {
     function isAuthorized(address _address) external view returns (bool);
     function DEAD() external view returns (address);
     function getKojiOracle() external view returns (address);
+    function getGameContract() external view returns (address);
 }
 
 // Interface for the Koji Oracle
 interface IOracle {
- function getMintUSD(uint256 amount) external view returns (uint256);
+    function getMintUSD(uint256 amount) external view returns (uint256);
+}
+
+interface IGame {
+    function setNFTAuth(address _holder) external; 
 }
 
 contract KojiGamepass is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
@@ -45,8 +50,9 @@ contract KojiGamepass is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
     address  AUTH;
     address  DEAD;
     address  ORACLE; 
+    address  GAME;
 
-    constructor(address _auth, string memory _uri) ERC721("KojiGamepass", "SPACEWARSv1") { 
+    constructor(address _auth, string memory _uri) ERC721("KojiGamepass", "SPACEWARS.v1") { 
 
         AUTH = _auth;
         auth = IAuth(AUTH);
@@ -54,6 +60,7 @@ contract KojiGamepass is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
         DEAD = auth.DEAD();
         ORACLE = auth.getKojiOracle(); 
         oracle = IOracle(ORACLE);
+        GAME = auth.getGameContract();
 
         URI = _uri;
     }
@@ -79,6 +86,8 @@ contract KojiGamepass is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
         string memory result = string.concat(metadata, json);
 
         _setTokenURI(newItemId, string.concat(URI, result));
+
+        IGame(GAME).setNFTAuth(_msgSender());
 
     }
 
