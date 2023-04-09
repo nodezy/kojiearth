@@ -3,17 +3,14 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165.sol"; 
-import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-interface IAuth {
+interface IAuthPass {
     function isAuthorized(address _address) external view returns (bool);
     function DEAD() external view returns (address);
     function getKojiOracle() external view returns (address);
@@ -25,16 +22,12 @@ interface IOracle {
     function getMintUSD(uint256 amount) external view returns (uint256);
 }
 
-interface IGame {
-    function setNFTAuth(address _holder) external; 
-}
-
-contract KojiGamepass is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
+contract KojiGamepass is ERC721, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
     using SafeMath for uint256;
 
     modifier onlyAuthorized() {
-        require(IAuth(AUTH).isAuthorized(_msgSender()) || owner() == address(_msgSender()), "User not Authorized to NFT Contract");
+        require(IAuthPass(AUTH).isAuthorized(_msgSender()) || owner() == address(_msgSender()), "User not Authorized to NFT Contract");
         _;
     }
 
@@ -44,7 +37,7 @@ contract KojiGamepass is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
 
     string URI;
 
-    IAuth private auth;
+    IAuthPass private auth;
     IOracle private oracle;
 
     address  AUTH;
@@ -52,15 +45,19 @@ contract KojiGamepass is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
     address  ORACLE; 
     address  GAME;
 
+    // Optional mapping for token URIs
+    mapping(uint256 => string) private _tokenURIs;
+
+    mapping(address => bool) public nftAuth; //nftAuth[recipient]
+
     constructor(address _auth, string memory _uri) ERC721("KojiGamepass", "SPACEWARS.v1") { 
 
         AUTH = _auth;
-        auth = IAuth(AUTH);
+        auth = IAuthPass(AUTH);
 
         DEAD = auth.DEAD();
         ORACLE = auth.getKojiOracle(); 
         oracle = IOracle(ORACLE);
-        GAME = auth.getGameContract();
 
         URI = _uri;
     }
@@ -87,30 +84,9 @@ contract KojiGamepass is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
 
         _setTokenURI(newItemId, string.concat(URI, result));
 
-        IGame(GAME).setNFTAuth(_msgSender());
+        nftAuth[_msgSender()] = true;
 
     }
-
-    function _transfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual override{
-        require(ERC721.ownerOf(tokenId) == from, "ERC721: transfer of token that is not owned");
-        require(to == address(DEAD), "ERC721: transfer must be to the dead address");
-
-        _beforeTokenTransfer(from, to, tokenId);
-
-        // Clear approvals from the previous owner
-        _approve(address(0), tokenId);
-
-        _balances[from] -= 1;
-        _balances[to] += 1;
-        _owners[tokenId] = to;
-
-        emit Transfer(from, to, tokenId);
-    }
-
 
     // This will allow to rescue ETH sent by mistake directly to the contract
     function rescueETHFromContract() external onlyOwner {
@@ -130,6 +106,10 @@ contract KojiGamepass is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
 
     function changeMintFee(uint _fee) external onlyAuthorized {
         mintFee = _fee;
+    }
+
+    function getNFTAuth(address _holder) external view returns (bool) {
+        return nftAuth[_holder];
     }
 
     function compareHashes(address _address, string memory _holder) internal pure returns (bool) {
@@ -154,6 +134,39 @@ contract KojiGamepass is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
             }
         }
         return string(bLower);
+    }
+
+    /**
+     * @dev See {IERC721Metadata-tokenURI}.
+     */
+    function tokenURI(uint256 tokenId) public view virtual override(ERC721) returns (string memory) {
+        _requireMinted(tokenId);
+
+        string memory _tokenURI = _tokenURIs[tokenId];
+        string memory base = _baseURI();
+
+        // If there is no base URI, return the token URI.
+        if (bytes(base).length == 0) {
+            return _tokenURI;
+        }
+        // If both are set, concatenate the baseURI and tokenURI (via abi.encodePacked).
+        if (bytes(_tokenURI).length > 0) {
+            return string(abi.encodePacked(base, _tokenURI));
+        }
+
+        return super.tokenURI(tokenId);
+    }
+
+        /**
+     * @dev Sets `_tokenURI` as the tokenURI of `tokenId`.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     */
+    function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal virtual {
+        require(_exists(tokenId), "ERC721URIStorage: URI set of nonexistent token");
+        _tokenURIs[tokenId] = _tokenURI;
     }
     
 }
