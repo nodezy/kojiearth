@@ -33,7 +33,7 @@ project a reality
 @AviatorNerd - Charity Coordinator & Outreach<br>
 @MounirDirk  - Assistant Outreach<br>
 @KojiAndreas - Web development<br>
-@nodezy - Solidity
+@nodezy - Solidity ;)
 
 All contracts can be found in the main branch
 
