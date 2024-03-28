@@ -1,6 +1,6 @@
 //Contract based on https://docs.openzeppelin.com/contracts/3.x/erc721
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -11,7 +11,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 interface IAuth {
     function isAuthorized(address _address) external view returns (bool);
-    function DEAD() external view returns (address);
     function getKojiOracle() external view returns (address);
     function getGamePass() external view returns (address);
 }
