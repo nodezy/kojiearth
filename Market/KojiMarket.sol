@@ -10,6 +10,11 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
+interface IAuth {
+    function isAuthorized(address _address) external view returns (bool);
+    function getKojiNFT() external view returns (address);
+  }
+
 interface IKojiNFT {
   function getNFTwindow(uint256 _nftID) external view returns (uint256, uint256, uint256);
   function getNFTInfo(uint256 _nftID) external view returns(string[] memory, uint256[] memory, bool[] memory); 
@@ -19,6 +24,11 @@ interface IKojiNFT {
 contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
     using Counters for Counters.Counter;
     using SafeMath for uint256;
+
+    modifier onlyAuthorized() {
+        require(auth.isAuthorized(_msgSender()) || owner() == address(_msgSender()), "User not Authorized to Marketplace Contract");
+        _;
+    }
 
     Counters.Counter public _itemsHeld;
     Counters.Counter public _itemsSold;
@@ -59,10 +69,15 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
 
     bool public production = false;
     uint256 public feeTotals;
-    address public NFTcontract = 0x48De92A5069334088f9248aA1A9625450BE38e1f;
     uint256 public timedelta = 2592000;
 
-    constructor() {}   
+    IAuth private auth;
+
+    constructor(address _auth) {
+
+      auth = IAuth(_auth);
+
+    }   
 
     receive() external payable {}
 
@@ -91,6 +106,8 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
     ) external payable nonReentrant {
       require(price > 0, "Price must be at least 1 wei");
       require(msg.value == listingFee, "Please include listing fee in order to list the item");
+
+      address NFTcontract = auth.getKojiNFT();
       
       (uint timestart,,) = IKojiNFT(NFTcontract).getNFTwindow(IKojiNFT(NFTcontract).getNFTIDbyURI(ERC721(NFTcontract).tokenURI(tokenId)));
 
@@ -158,7 +175,7 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
         }
       }
 
-      IERC721(NFTcontract).safeTransferFrom(address(this), _msgSender(), tokenId);
+      IERC721(auth.getKojiNFT()).safeTransferFrom(address(this), _msgSender(), tokenId);
     }
 
     /* Creates the sale of a marketplace item */
@@ -177,7 +194,7 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
       _itemsHeld.decrement();
       _itemsSold.increment();
 
-      IERC721(NFTcontract).safeTransferFrom(address(this), _msgSender(), tokenId);
+      IERC721(auth.getKojiNFT()).safeTransferFrom(address(this), _msgSender(), tokenId);
       payable(this).transfer(buyingFee);
       feeTotals = feeTotals.add(buyingFee);
       payable(seller).transfer(msg.value.sub(buyingFee));
@@ -326,20 +343,18 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
         IERC20(_tokenAddr).transfer(_to, _amount);
     }
 
-    function changeNFT(address _nft) external onlyOwner {
-        NFTcontract = _nft;
-    }
 
-    function changeDelta(uint _delta) external onlyOwner {
+    function changeDelta(uint _delta) external onlyAuthorized() {
       timedelta = _delta;
     }
 
     function getNFTtimeend(uint tokenId) external view returns (uint256) {
+        address NFTcontract = auth.getKojiNFT();
         (,uint timeend,) = IKojiNFT(NFTcontract).getNFTwindow(IKojiNFT(NFTcontract).getNFTIDbyURI(ERC721(NFTcontract).tokenURI(tokenId)));
         return timeend;
     }
 
-    function setProduction(bool _status) external onlyOwner {
+    function setProduction(bool _status) external onlyAuthorized() {
       production = _status;
     }
 }
