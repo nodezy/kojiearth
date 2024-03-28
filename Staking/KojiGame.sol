@@ -5,7 +5,6 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -31,7 +30,7 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
     using SafeMath for uint256;
 
     modifier onlyAuthorized() {
-        require(IAuth(AUTH).isAuthorized(_msgSender()) || owner() == address(_msgSender()), "User not Authorized to NFT Contract");
+        require(auth.isAuthorized(_msgSender()) || owner() == address(_msgSender()), "User not Authorized to Game Contract");
         _;
     }
 
@@ -43,13 +42,6 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
     string URI;
 
     IAuth private auth;
-    IOracle private oracle;
-    IGamePass private gamepass;
-
-    address  AUTH;
-    address  DEAD;
-    address  ORACLE; 
-    address GAMEPASS;
     
     struct Achievements {
         string name; // Name of the achievement
@@ -76,14 +68,7 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
 
     constructor(address _auth, string memory _uri, string[] memory _strings) ERC721("SPACEWARS", "v1.Achievement") { 
 
-        AUTH = _auth;
-        auth = IAuth(AUTH);
-
-        DEAD = auth.DEAD();
-        ORACLE = auth.getKojiOracle(); 
-        oracle = IOracle(ORACLE);
-        GAMEPASS = auth.getGamePass();
-        gamepass = IGamePass(GAMEPASS); 
+        auth = IAuth(_auth);
 
         URI = _uri;     
 
@@ -106,7 +91,7 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
         bool gooddata = false;
 
         require(compareHashes(_msgSender(), _holder), "Sender is not the same as requested recipient");
-        require(gamepass.getNFTAuth(_msgSender()), "You must mint a gamepass before minting an achievement");
+        require(IGamePass(auth.getGamePass()).getNFTAuth(_msgSender()), "You must mint a gamepass before minting an achievement");
 
         for(uint x = 0; x < _NFTIds.current(); x++) {
 
@@ -114,7 +99,7 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
 
             if (compare(nft.name, _holder, Strings.toString(x+1), data)) {    
 
-                require(!nftMinted[x][_msgSender()], "You already minted this achievement");
+              //  require(!nftMinted[x][_msgSender()], "You already minted this achievement");
 
                 gooddata = true;
 
@@ -127,8 +112,9 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
                 string memory metadata = nft.uri;
                 string memory json = ".json";        
                 string memory result = string.concat(metadata, json);
+                string memory _uri = string.concat(URI, _holder, "/");
 
-                _setTokenURI(newItemId, string.concat(URI, result));
+                _setTokenURI(newItemId, string.concat(_uri, result));
 
                 nftMinted[x][_msgSender()] = true;
 
@@ -165,7 +151,7 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
     }
 
     function getPackageCost(uint usdvalue) public view returns(uint) {
-        return oracle.getMintUSD(usdvalue);
+        return IOracle(auth.getKojiOracle()).getMintUSD(usdvalue);
     }
 
 
@@ -368,6 +354,10 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
         if (bytes(_tokenURIs[tokenId]).length != 0) {
             delete _tokenURIs[tokenId];
         }
+    }
+
+    function setNFTmint(uint _numAch, address _holder, bool _status) external onlyAuthorized {
+        nftMinted[_numAch][_holder] = _status;
     }
         
 }
