@@ -5,7 +5,6 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-//import "@openzeppelin/contracts/utils/Context.sol";
 
 interface IBEP20 {
     function totalSupply() external view returns (uint256);
@@ -71,23 +70,14 @@ contract KojiRewards is Ownable, ReentrancyGuard {
     receive() external payable {}
 
     // This will allow to rescue ETH sent to the contract
-    function rescueETHFromContract() external onlyOwner {
+    function rescueETHFromContract() external onlyAuthorized {
         address payable _owner = payable(_msgSender());
         _owner.transfer(address(this).balance);
     }
 
     // Function to allow admin to claim *other* ERC20 tokens sent to this contract
-    function transferERC20Tokens(address _tokenAddr, address _to, uint _amount) public onlyOwner {
+    function transferERC20Tokens(address _tokenAddr, address _to, uint _amount) public onlyAuthorized {
         IBEP20(_tokenAddr).transfer(_to, _amount);
-    }
-
-    function payWithdrawRewards(address _holder, uint256 _amount) external {
-        require(_msgSender() == address(auth.getKojiStaking()), "Rewards are not payable outside of the staking contract");
-
-        holderRealized[_holder] = holderRealized[_holder].add(_amount);
-        holderRewardLast[_holder] = block.timestamp;
-        safeTokenTransfer(_holder, _amount);
-
     }
 
     function payPendingRewards(address _holder, uint256 _amount) external {
@@ -117,12 +107,12 @@ contract KojiRewards is Ownable, ReentrancyGuard {
     }
 
     // Whether to allow the KOJI token to actually be withdrawn, of just leave it virtual (default)
-    function enableKojiWithdrawals(bool _status) external onlyOwner {
+    function enableKojiWithdrawals(bool _status) external onlyAuthorized {
         enableKojiWithdraw = _status;
     }
 
-    // Whether to allow the KOJI token to actually be withdrawn, of just leave it virtual (default)
-    function enableFluxWithdrawals(bool _status) external onlyOwner {
+    // Whether to allow the FLUX token to actually be withdrawn, of just leave it virtual (default)
+    function enableFluxWithdrawals(bool _status) external onlyAuthorized {
         enableFluxWithdraw = _status;
     }
 
