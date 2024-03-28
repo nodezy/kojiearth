@@ -31,7 +31,6 @@ interface IKojiNFT {
 interface IOracle {
     function getMinKOJITier1Amount(uint256 amount) external view returns (uint256); 
     function getMinKOJITier2Amount(uint256 amount) external view returns (uint256); 
-    //function getConversionRate() external view returns (uint256);
     function getKojiUSDPrice() external view returns (uint256, uint256, uint256);
     function getSuperMintKojiPrice(uint256 _amount) external view returns (uint256);
     function getSuperMintFluxPrice(uint256 _amount) external view returns (uint256);
@@ -143,7 +142,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     
     IAuth private auth;
     
-    IOracle private oracle = IOracle(auth.getKojiOracle());
+    //IOracle private oracle = IOracle(auth.getKojiOracle());
     uint kojipurchased;
 
     event Unstake(address indexed user, uint256 indexed pid);
@@ -601,7 +600,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     }
 
     function getOracleConversionRate() public view returns (uint256) {
-        (,,uint256 kojiusd) = oracle.getKojiUSDPrice();
+        (,,uint256 kojiusd) = IOracle(auth.getKojiOracle()).getKojiUSDPrice();
         if(kojiusd < kojiUsdPeg || !convertRewardsEnabled) {
             return conversionRate;
         } else {
@@ -652,7 +651,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     // Get dollar amount of Koji for KojiFlux
     function getConversionPrice(uint256 _amount) public view returns (uint256) {
         uint256 netamount = _amount.mul(getOracleConversionRate()).div(100);
-        (,,uint256 kojiusd) = oracle.getKojiUSDPrice();
+        (,,uint256 kojiusd) = IOracle(auth.getKojiOracle()).getKojiUSDPrice();
         uint256 netusdamount = kojiusd.mul(netamount);
 
         return netusdamount;
@@ -676,11 +675,15 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
     // Get the min and max staking amounts 
     function getOracleMinMax() public view returns (uint256, uint256) {
+
+        IOracle oracle = IOracle(auth.getKojiOracle());
         
         return (oracle.getMinKOJITier1Amount(minKojiTier1Stake), oracle.getMinKOJITier2Amount(minKojiTier2Stake)); //tier1 min, tier2 min
     }
 
     function getOracleMaxStaking() public view returns (uint256, uint256) {
+
+        IOracle oracle = IOracle(auth.getKojiOracle());
        
         return (oracle.getMinKOJITier1Amount(minKojiTier1Stake).mul(200).div(100), oracle.getMinKOJITier2Amount(minKojiTier2Stake).mul(400).div(100)); //tier 1 max, tier 2 max
     }
@@ -739,7 +742,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
             if (multiplier > 500) {multiplier = 500;}
 
-            fluxprice = oracle.getSuperMintFluxPrice(superMintFluxPrice1);
+            fluxprice = IOracle(auth.getKojiOracle()).getSuperMintFluxPrice(superMintFluxPrice1);
 
             return fluxprice.mul(multiplier).div(100);
 
@@ -748,7 +751,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
             if (multiplier > 2000) {multiplier = 2000;}
 
-            fluxprice = oracle.getSuperMintFluxPrice(superMintFluxPrice2);
+            fluxprice = IOracle(auth.getKojiOracle()).getSuperMintFluxPrice(superMintFluxPrice2);
 
             return fluxprice.mul(multiplier).div(100);
         }
@@ -756,12 +759,13 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     }
 
     function getSuperMintKojiPrice(address _holder) external view returns(uint256) {
+        IOracle oracle = IOracle(auth.getKojiOracle());
         return oracle.getSuperMintKojiPrice(superMintKojiPrice).add((oracle.getSuperMintKojiPrice(superMintIncrease)).mul(superMintCounter[_holder]));
     }
 
     // Gets USD equivalent of input amount of KOJI tokens
     function getUSDequivalent(uint256 _amount) public view returns (uint256) {
-        (,,uint256 kojiusdvalue) = oracle.getKojiUSDPrice();
+        (,,uint256 kojiusdvalue) = IOracle(auth.getKojiOracle()).getKojiUSDPrice();
 
         return kojiusdvalue.mul(_amount).div(10**9);
     }
@@ -793,6 +797,8 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     // Function to buy superMint with $KOJI
     function buySuperMintKoji(address _holder) external nonReentrant {
         require(enableKojiSuperMintBuying, "E34");
+
+        IOracle oracle = IOracle(auth.getKojiOracle());
         
         uint256 price = oracle.getSuperMintKojiPrice(superMintKojiPrice);
         price = price.add((oracle.getSuperMintKojiPrice(superMintIncrease)).mul(superMintCounter[_holder]));
