@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
+//import "@openzeppelin/contracts/utils/Context.sol";
 
 interface IBEP20 {
     function totalSupply() external view returns (uint256);
@@ -23,6 +23,13 @@ interface IBEP20 {
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
+interface IAuth {
+    function isAuthorized(address _address) external view returns (bool);
+    function getKojiFlux() external view returns (address);
+    function getKojiStaking() external view returns (address);
+    function getKojiEarth() external view returns (address);
+}
+
 interface IKojiStaking {
     function redeemTotalRewards(address _user) external;
     function setKojiFluxBalance(address _address, uint256 _amount) external;
@@ -33,11 +40,17 @@ contract KojiRewards is Ownable, ReentrancyGuard {
 
     using SafeMath for uint256;
 
+    modifier onlyAuthorized() {
+        require(auth.isAuthorized(_msgSender()) || owner() == address(_msgSender()), "User not Authorized to Rewards Contract");
+        _;
+    }
+
     IBEP20 internal kojifluxInterface;
     IBEP20 internal tokencontractv2Interface;
     IBEP20 internal rewardtoken;
 
-    IKojiStaking public staking;
+    //IKojiStaking public staking;
+    //address private stakingContract; 
 
     mapping (address => uint256) public holderRealized;
     mapping (address => uint256) public holderRewardLast;
@@ -47,18 +60,15 @@ contract KojiRewards is Ownable, ReentrancyGuard {
     bool public enableKojiWithdraw = false; // Whether KOJIF is withdrawable from this contract (default false).
     bool public enableFluxWithdraw = false; // Whether FLUX is withdrawable from this contract (default false).
 
-    address private stakingContract; 
-    address public kojiflux = 0x047c256d8A082d6FdB9dfA81963E0Ec854575294;
-    address public tokencontractv2 = 0x30256814b1380Ea3b49C5AEA5C7Fa46eCecb8Bc0;
-    address public KojiFluxAddress = 0x047c256d8A082d6FdB9dfA81963E0Ec854575294; //KOJIFLUX contract address
+    IAuth private auth;
 
     event Withdraw(address indexed user, uint256 amount);
     
-    constructor() {
-        kojifluxInterface = IBEP20(kojiflux);
-        tokencontractv2Interface = IBEP20(tokencontractv2);
-        rewardtoken = IBEP20(KojiFluxAddress); //KOJIFLUX
+    constructor(address _auth) {
+        auth = IAuth(_auth);
     }
+
+    receive() external payable {}
 
     // This will allow to rescue ETH sent to the contract
     function rescueETHFromContract() external onlyOwner {
@@ -72,7 +82,7 @@ contract KojiRewards is Ownable, ReentrancyGuard {
     }
 
     function payWithdrawRewards(address _holder, uint256 _amount) external {
-        require(_msgSender() == address(stakingContract), "Rewards are not payable outside of the staking contract");
+        require(_msgSender() == address(auth.getKojiStaking()), "Rewards are not payable outside of the staking contract");
 
         holderRealized[_holder] = holderRealized[_holder].add(_amount);
         holderRewardLast[_holder] = block.timestamp;
@@ -81,7 +91,7 @@ contract KojiRewards is Ownable, ReentrancyGuard {
     }
 
     function payPendingRewards(address _holder, uint256 _amount) external {
-        require(_msgSender() == address(stakingContract), "Rewards are not payable outside of the staking contract");
+        require(_msgSender() == address(auth.getKojiStaking()), "Rewards are not payable outside of the staking contract");
         require(enableKojiWithdraw, "KOJI withdrawals are not enabled");
 
         holderRealized[_holder] = holderRealized[_holder].add(_amount);
@@ -90,13 +100,9 @@ contract KojiRewards is Ownable, ReentrancyGuard {
 
     }
 
-    function setstakingContract(address _address) external onlyOwner {
-        stakingContract = _address;
-        staking = IKojiStaking(stakingContract);
-    }
-
     // Send KOJI v2 tokens 
     function safeTokenTransfer(address _to, uint256 _amount) internal {
+        tokencontractv2Interface = IBEP20(auth.getKojiEarth());
         uint256 balance = tokencontractv2Interface.balanceOf(address(this));
         uint256 amount = _amount > balance ? balance : _amount;
         tokencontractv2Interface.transfer(_to, amount);
@@ -104,6 +110,7 @@ contract KojiRewards is Ownable, ReentrancyGuard {
 
      // Safe KOJIFLUX token transfer function
     function safeFluxTransfer(address _to, uint256 _amount) internal {
+        rewardtoken = IBEP20(auth.getKojiFlux()); //KOJIFLUX
         uint256 balance = rewardtoken.balanceOf(address(this));
         uint256 amount = _amount > balance ? balance : _amount;
         rewardtoken.transfer(_to, amount);
@@ -128,6 +135,8 @@ contract KojiRewards is Ownable, ReentrancyGuard {
     function withdrawFluxOnly() public nonReentrant {
 
         require(enableFluxWithdraw, "FLUX withdrawals are not enabled");
+
+        IKojiStaking staking = IKojiStaking(auth.getKojiStaking());
 
         staking.redeemTotalRewards(_msgSender());
 
