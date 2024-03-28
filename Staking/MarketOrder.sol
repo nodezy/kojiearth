@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -63,15 +63,27 @@ interface IWETH {
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
 }
 
+interface IAuthorized {
+    function isAuthorized(address _address) external view returns (bool);
+}
+
 contract MarketOrder is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
+    modifier onlyAuthorized() {
+        require(auth.isAuthorized(_msgSender()) || owner() == address(_msgSender()), "Staking not Authorized to MarketOrder");
+        _;
+    }
+
     IDEXRouter public router;
     address public WETH;
-    uint24 marketBuyGas = 230000;  
+    uint24 marketBuyGas = 450000;  
+    IAuthorized public auth;
 
-     constructor(address _router) {
+     constructor(address _router, address _auth) {
+
+        auth = IAuthorized(_auth);
 
         router = _router != address(0)
             ? IDEXRouter(_router)
@@ -82,7 +94,7 @@ contract MarketOrder is Ownable, ReentrancyGuard {
 
     receive() external payable {}
 
-    function marketBuy(address _token, address _recipient) external payable nonReentrant returns (uint) {
+    function marketBuy(address _token, address _recipient) external payable onlyAuthorized nonReentrant returns (uint) {
 
         payable(this).transfer(msg.value);
 
@@ -110,18 +122,18 @@ contract MarketOrder is Ownable, ReentrancyGuard {
         return (amountpurchased);
     }
 
-     function changeMarketBuyGas(uint24 _gas) external onlyOwner {
+     function changeMarketBuyGas(uint24 _gas) external onlyAuthorized {
         marketBuyGas = _gas;
     }
 
         // This will allow to rescue ETH sent to the contract
-    function rescueETHFromContract() external onlyOwner {
+    function rescueETHFromContract() external onlyAuthorized {
         address payable _owner = payable(_msgSender());
         _owner.transfer(address(this).balance);
     }
 
     // Function to allow admin to claim *other* ERC20 tokens sent to this contract (by mistake)
-    function transferERC20Tokens(address _tokenAddr, address _to, uint _amount) public onlyOwner {
+    function transferERC20Tokens(address _tokenAddr, address _to, uint _amount) public onlyAuthorized {
         IERC20(_tokenAddr).transfer(_to, _amount);
     }
 
