@@ -1,18 +1,16 @@
 //Contract based on https://docs.openzeppelin.com/contracts/3.x/erc721
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 interface IAuthPass {
     function isAuthorized(address _address) external view returns (bool);
-    function DEAD() external view returns (address);
     function getKojiOracle() external view returns (address);
     function getGameContract() external view returns (address);
 }
@@ -27,7 +25,7 @@ contract KojiGamepass is ERC721, Ownable, ReentrancyGuard {
     using SafeMath for uint256;
 
     modifier onlyAuthorized() {
-        require(IAuthPass(AUTH).isAuthorized(_msgSender()) || owner() == address(_msgSender()), "User not Authorized to NFT Contract");
+        require(auth.isAuthorized(_msgSender()) || owner() == address(_msgSender()), "User not Authorized to NFT Contract");
         _;
     }
 
@@ -38,12 +36,8 @@ contract KojiGamepass is ERC721, Ownable, ReentrancyGuard {
     string URI;
 
     IAuthPass private auth;
-    IOracle private oracle;
 
     address  AUTH;
-    address  DEAD;
-    address  ORACLE; 
-    address  GAME;
 
     // Optional mapping for token URIs
     mapping(uint256 => string) private _tokenURIs;
@@ -52,12 +46,7 @@ contract KojiGamepass is ERC721, Ownable, ReentrancyGuard {
 
     constructor(address _auth, string memory _uri) ERC721("KojiGamepass", "SPACEWARS.v1") { 
 
-        AUTH = _auth;
-        auth = IAuthPass(AUTH);
-
-        DEAD = auth.DEAD();
-        ORACLE = auth.getKojiOracle(); 
-        oracle = IOracle(ORACLE);
+        auth = IAuthPass(_auth);
 
         URI = _uri;
     }
@@ -66,7 +55,7 @@ contract KojiGamepass is ERC721, Ownable, ReentrancyGuard {
 
     function mintGamepass(string memory _holder) external payable nonReentrant {
 
-        uint mintCost = oracle.getMintUSD(mintFee);
+        uint mintCost = IOracle(auth.getKojiOracle()).getMintUSD(mintFee);
 
         require(compareHashes(_msgSender(), _holder), "Sender is not the same as requested recipient");
         require(IERC721(this).balanceOf(_msgSender()) == 0, "You already possess a Koji Gamepass NFT");
@@ -101,7 +90,7 @@ contract KojiGamepass is ERC721, Ownable, ReentrancyGuard {
     }
 
     function getMintCost() external view returns(uint) {
-        return oracle.getMintUSD(mintFee);
+        return IOracle(auth.getKojiOracle()).getMintUSD(mintFee);
     }
 
     function changeMintFee(uint _fee) external onlyAuthorized {
