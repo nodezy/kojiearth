@@ -141,7 +141,6 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     mapping(address => uint) public superMintCounter; // Whether the wallet has a mint booster allowing require bypass.
     mapping(address => bool) public userStaked; // Denotes whether the user is currently staked or not, must be eligible for tiers 1/2 for true.
     
-    address public AUTH;
     IAuth private auth;
     
     IOracle private oracle = IOracle(auth.getKojiOracle());
@@ -157,9 +156,8 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         address _auth
     ) {
         startBlock = _startBlock;
-        AUTH = _auth;
 
-        auth = IAuth(AUTH);
+        auth = IAuth(_auth);
     }
 
     modifier updateKojiPerBlock() {
