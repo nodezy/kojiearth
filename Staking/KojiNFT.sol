@@ -1,16 +1,15 @@
 //Contract based on https://docs.openzeppelin.com/contracts/3.x/erc721
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.19;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165.sol"; 
-import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 
@@ -29,12 +28,12 @@ interface IOracle {
 }
 
 
-contract KojiNFT is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
+contract KojiNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
     using SafeMath for uint256;
 
     modifier onlyAuthorized() {
-        require(IAuth(AUTH).isAuthorized(_msgSender()) || owner() == address(_msgSender()), "User not Authorized to NFT Contract");
+        require(IAuth(auth).isAuthorized(_msgSender()) || owner() == address(_msgSender()), "User not Authorized to NFT Contract");
         _;
     }
 
@@ -58,7 +57,7 @@ contract KojiNFT is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
         bool exists;
     }
 
-    mapping(uint256 => NFTInfo) private nftInfo; // Info of each NFT artist/infuencer wallet.
+    mapping(uint256 => NFTInfo) private nftInfo; // Info of each NFT 
     mapping(uint256 => mapping(address => mapping(uint256 => bool))) public nftTierMinted; //nftTierMinted[_nftID][recipient][tier#]
     mapping(uint256 => mapping(address => bool)) public nftMinted; //nftMinted[_nftID][recipient]
     mapping(uint256 => mapping(address => bool)) public nftSuperMinted; //nftMinted[_nftID][recipient]
@@ -68,6 +67,7 @@ contract KojiNFT is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
     mapping (uint256 => mapping(uint => uint256)) public mintTotalsAfterWindow; //mintTotalsAfterWindow[_nftID][tier#]
     mapping (string => uint256) public mintTotalsURI; //mintTotalsURI[_nftID][URI]
     mapping (string => bool) private uriExists;
+    mapping(address => mapping(uint256 => uint256)) private _ownedTokens;
 
     uint256 windowSpan = 2592000; //31 days from timestart, regardless of mint method
     uint256 supermintSpan = 2592000; //31 days 
@@ -75,27 +75,20 @@ contract KojiNFT is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
     string poster1uri;
     string poster2uri;
 
-    address public AUTH;
     IAuth private auth;
     
     address public DEAD = auth.DEAD();
-    address public STAKING = auth.getKojiStaking();
-    address public POSTER = auth.getKojiNFTPoster();
-    address public ORACLE = auth.getKojiOracle(); 
-
-    IOracle private oracle = IOracle(ORACLE);
-
-   
+       
     constructor(string memory _poster1uri, string memory _poster2uri, address _auth) ERC721("KojiNFT", "KOJINFT") {
         poster1uri = _poster1uri;
         poster2uri = _poster2uri;
 
-        AUTH = _auth;
-
-        auth = IAuth(AUTH);
+        auth = IAuth(_auth);
     }
 
     function upgradeNFT(uint tokenID) external nonReentrant returns (uint) {
+
+        address POSTER = auth.getKojiNFTPoster();
 
         require(IERC721(POSTER).balanceOf(_msgSender())>0, "Sender has no balance");
 
@@ -145,9 +138,9 @@ contract KojiNFT is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
         uint increase;
 
         if(_tier == 1) {
-            (price, increase) = oracle.gettier1USDprice();
+            (price, increase) = IOracle(auth.getKojiOracle()).gettier1USDprice();
         } else {
-            (price, increase) = oracle.gettier2USDprice();
+            (price, increase) = IOracle(auth.getKojiOracle()).gettier2USDprice();
         }
         
         uint mintsAfterWindow = mintTotalsAfterWindow[_id][_tier];
@@ -170,9 +163,9 @@ contract KojiNFT is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
 
          if((redeemed && superMinted) || (redeemed && bnbMinted) || (superMinted && bnbMinted)) {validated = false; revertstring = "E45";}
 
-         if (!IAuth(AUTH).isAuthorized(_msgSender())) {
+         if (!auth.isAuthorized(_msgSender())) {
 
-            if(msg.sender != address(STAKING)) {validated = false; revertstring = "E46";}
+            if(msg.sender != address(auth.getKojiStaking())) {validated = false; revertstring = "E46";}
         
             if(redeemed) {
 
@@ -292,7 +285,7 @@ contract KojiNFT is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
 
     function setNFTInfo(string memory _collectionName, string memory _nftName, string memory _tier1uri, string memory _tier2uri, uint256 _timestart, uint256 _order, bool _redeemable, bool _supermintable, bool _bnbable, bool _override) public onlyAuthorized returns (uint256) {
 
-        require(owner() == address(_msgSender()) || IAuth(AUTH).isAuthorized(_msgSender()), "Sender is not authorized"); 
+        require(owner() == address(_msgSender()) || auth.isAuthorized(_msgSender()), "Sender is not authorized"); 
         require(bytes(_collectionName).length > 0, "Creator name string must not be empty");
         require(bytes(_nftName).length > 0, "NFT name string must not be empty");
         require(bytes(_tier1uri).length > 0, "tier 1 URI string must not be empty");
@@ -518,6 +511,11 @@ contract KojiNFT is ERC721Enumerable, ERC165, Ownable, ReentrancyGuard {
 
     function setMintTotalsAfterWindow(uint _id, uint _tier, uint _amount) external onlyAuthorized {
         mintTotalsAfterWindow[_id][_tier] = _amount;
+    }
+
+    function tokenOfOwnerByIndex(address owner, uint256 index) public view virtual returns (uint256) {
+        require(index < ERC721.balanceOf(owner), "ERC721Enumerable: owner index out of bounds");
+        return _ownedTokens[owner][index];
     }
 
 }
