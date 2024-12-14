@@ -10,8 +10,8 @@ const TOKEN_ADDRESS = '0x30256814b1380Ea3b49C5AEA5C7Fa46eCecb8Bc0'
 const LP_TOKEN_ADDRESS = '0x697666d38d339958eD416E0119bDc73ABef58996'
 const ROUTER_ADDRESS = '0xCc7aDc94F3D80127849D2b41b6439b7CF1eB4Ae0'
 const LIQUIDITY_AMOUNT = '14259' // 1 LP token
-const AMOUNT_TOKEN_MIN = '17900000000000000000' // Minimum token amount
-const AMOUNT_ETH_MIN = '50000000000000000000' // Minimum ETH amount
+const AMOUNT_TOKEN_MIN = '1610000000000000000' // Minimum token amount
+const AMOUNT_ETH_MIN = '47000000000000000000' // Minimum ETH amount
 const DEADLINE = Math.floor(Date.now() / 1000) + 60 * 20 // 20 minutes from now
 const EXISTING_PERMIT_TYPEHASH = '0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9';
 const EIP712_DOMAIN_TYPEHASH = 'EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)';
@@ -25,6 +25,7 @@ const web3 = new Web3(RPC_ENDPOINT)
 
 // Derive account from private key
 const account = web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY).address;
+web3.eth.accounts.wallet.add(PRIVATE_KEY);
 
 // ABI Definitions (minimal required)
 const ERC20_ABI = [
@@ -181,7 +182,7 @@ const ERC20_ABI = [
                 console.log('Recovered Address: ', recoveredAddress);
 
                 try {
-                  const tx = router.methods.       removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
+                  const tx = router.methods.removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
                       TOKEN_ADDRESS,
                       LIQUIDITY_AMOUNT,
                       AMOUNT_TOKEN_MIN,
@@ -195,12 +196,12 @@ const ERC20_ABI = [
                   );
       
                       // Estimate gas
-                      const gas = await tx.estimateGas({ from: account });
+                      var gas = await tx.estimateGas({ from: account });
+                      gas = gas + 100000;
                       console.log('Estimated gas:', gas);
-          
                       // Send the transaction
-                    // const receipt = await tx.send({ from: account, gas });
-                    // console.log('Transaction receipt:', receipt);
+                        const receipt = await tx.send({ from: account, gas });
+                        console.log('Transaction receipt:', receipt);
                 } catch (error) {
                       console.error('Error sending transaction:', error);
                   }
