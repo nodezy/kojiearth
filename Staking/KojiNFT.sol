@@ -33,7 +33,7 @@ contract KojiNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
     using SafeMath for uint256;
 
     modifier onlyAuthorized() {
-        require(IAuth(auth).isAuthorized(_msgSender()) || owner() == address(_msgSender()), "E01");
+        require(auth.isAuthorized(_msgSender()) || owner() == address(_msgSender()), "E01");
         _;
     }
 
