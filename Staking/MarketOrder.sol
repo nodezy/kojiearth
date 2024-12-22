@@ -63,8 +63,10 @@ interface IWETH {
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
 }
 
-interface IAuthorized {
+interface IAuth {
     function isAuthorized(address _address) external view returns (bool);
+    function getKojiStaking() external view returns (address);
+    function DEAD() external view returns (address);
 }
 
 contract MarketOrder is Ownable, ReentrancyGuard {
@@ -72,22 +74,22 @@ contract MarketOrder is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     modifier onlyAuthorized() {
-        require(auth.isAuthorized(_msgSender()) || owner() == address(_msgSender()), "Staking not Authorized to MarketOrder");
+        require(auth.getKojiStaking() == address(_msgSender()) || owner() == address(_msgSender()), "Staking not Authorized to MarketOrder");
         _;
     }
 
     IDEXRouter public router;
     address public WETH;
     uint24 marketBuyGas = 450000;  
-    IAuthorized public auth;
+    IAuth public auth;
 
      constructor(address _router, address _auth) {
 
-        auth = IAuthorized(_auth);
+        auth = IAuth(_auth);
 
         router = _router != address(0)
             ? IDEXRouter(_router)
-            : IDEXRouter(0x10ED43C718714eb63d5aA57B78B54704E256024E); //0xCc7aDc94F3D80127849D2b41b6439b7CF1eB4Ae0 pcs test router
+            : IDEXRouter(0xD99D1c33F9fC3444f8101754aBC46c52416550D1); //0xD99D1c33F9fC3444f8101754aBC46c52416550D1 pcs test router
         WETH = router.WETH();
 
     }
