@@ -33,7 +33,7 @@ contract KojiNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
     using SafeMath for uint256;
 
     modifier onlyAuthorized() {
-        require(IAuth(auth).isAuthorized(_msgSender()) || owner() == address(_msgSender()), "User not Authorized to NFT Contract");
+        require(IAuth(auth).isAuthorized(_msgSender()) || owner() == address(_msgSender()), "E01");
         _;
     }
 
@@ -77,13 +77,17 @@ contract KojiNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
 
     IAuth private auth;
     
-    address public DEAD = auth.DEAD();
+    address public DEAD; 
        
     constructor(string memory _poster1uri, string memory _poster2uri, address _auth) ERC721("KojiNFT", "KOJINFT") {
+        require(_auth != address(0), "E02");
+        require(bytes(_poster1uri).length > 0, "E50");
+        require(bytes(_poster2uri).length > 0, "E50");
+        
         poster1uri = _poster1uri;
         poster2uri = _poster2uri;
-
         auth = IAuth(_auth);
+        DEAD = auth.DEAD();
     }
 
     function upgradeNFT(uint tokenID) external nonReentrant returns (uint) {
@@ -147,63 +151,51 @@ contract KojiNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
 
         price = price.add(mintsAfterWindow.mul(increase));
 
+        require(price > 0, "E51");
+
         return (price, increase);
     }
 
     function checkValidation(address recipient, uint256 minttier, uint256 id, uint256 userstaketime, bool redeemed, bool superMinted, bool bnbMinted) internal view returns (bool valid, string memory rstring) {
-         
-         bool validated = true;
-         string memory revertstring = "OK";
+        bool validated = true;
+        string memory revertstring = "OK";
 
-         NFTInfo storage nft = nftInfo[id];
+        NFTInfo storage nft = nftInfo[id];
 
-         if(!nft.exists) {validated = false; revertstring = "E44";}
+        if(!nft.exists) {validated = false; revertstring = "E44";}
 
-         if(block.timestamp >= nft.timestart) {validated = false; revertstring = "E18";}
+        if(block.timestamp < nft.timestart) {validated = false; revertstring = "E18";}
 
-         if((redeemed && superMinted) || (redeemed && bnbMinted) || (superMinted && bnbMinted)) {validated = false; revertstring = "E45";}
+        if((redeemed && superMinted) || (redeemed && bnbMinted) || (superMinted && bnbMinted)) {validated = false; revertstring = "E45";}
 
-         if (!auth.isAuthorized(_msgSender())) {
-
+        if (!auth.isAuthorized(_msgSender())) {
             if(msg.sender != address(auth.getKojiStaking())) {validated = false; revertstring = "E46";}
         
             if(redeemed) {
-
+                // Regular redemption requires staking
                 if(!nft.redeemable) {validated = false; revertstring = "E15";}
                 if(nftMinted[id][recipient]) {validated = false; revertstring = "E16";}
                 if(userstaketime > nft.timestart) {validated = false; revertstring = "E47";}
-
-            } else {
-
-                if(bnbMinted) {
-                    if(block.timestamp > nft.timeend) {validated = false; revertstring = "E48";}
-
-                    if(minttier == 1) {
-                        if(nftBNBtier1Minted[id][recipient]) {validated = false; revertstring = "E26";}
-                    } else {
-                        if(nftBNBtier2Minted[id][recipient]) {validated = false; revertstring = "E26";}
-                    }
-
+            } else if(bnbMinted) {
+                if(block.timestamp > nft.timeend) {validated = false; revertstring = "E48";}
+                if(minttier == 1) {
+                    if(nftBNBtier1Minted[id][recipient]) {validated = false; revertstring = "E26";}
                 } else {
-
-                    if(superMinted) {
-                        if(block.timestamp > nft.supermintend) {validated = false; revertstring = "E49";} 
-                        if(nftSuperMinted[id][recipient]) {validated = false; revertstring = "E23";}
-
-                    }
-
+                    if(nftBNBtier2Minted[id][recipient]) {validated = false; revertstring = "E26";}
                 }
-
+            } else if(superMinted) {
+                // Supermint checks - no staking requirement
+                if(block.timestamp > nft.supermintend) {validated = false; revertstring = "E49";} 
+                if(nftSuperMinted[id][recipient]) {validated = false; revertstring = "E23";}
+                if(!nft.supermintable) {validated = false; revertstring = "E22";}
             }
 
             if(!redeemed && !superMinted && !bnbMinted) {validated = false; revertstring = "E45"; }
-            
-         }
+        }
 
-         return (validated, revertstring);
-
+        return (validated, revertstring);
     }
-
+    
     function mintNFT(address recipient, uint256 minttier, uint256 id, uint256 userstaketime, bool redeemed, bool superMinted, bool bnbMinted) public nonReentrant returns (uint256) {   
 
         (bool valid, string memory revertstring)  = checkValidation(recipient, minttier, id, userstaketime, redeemed, superMinted, bnbMinted);
@@ -285,18 +277,23 @@ contract KojiNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
 
     function setNFTInfo(string memory _collectionName, string memory _nftName, string memory _tier1uri, string memory _tier2uri, uint256 _timestart, uint256 _order, bool _redeemable, bool _supermintable, bool _bnbable, bool _override) public onlyAuthorized returns (uint256) {
 
-        require(owner() == address(_msgSender()) || auth.isAuthorized(_msgSender()), "Sender is not authorized"); 
-        require(bytes(_collectionName).length > 0, "Creator name string must not be empty");
-        require(bytes(_nftName).length > 0, "NFT name string must not be empty");
-        require(bytes(_tier1uri).length > 0, "tier 1 URI string must not be empty");
-        require(bytes(_tier2uri).length > 0, "tier 2 URI string must not be empty");
+        require(owner() == address(_msgSender()) || auth.isAuthorized(_msgSender()), "E01"); 
+        require(bytes(_collectionName).length > 0, "E50");
+        require(bytes(_nftName).length > 0, "E50");
+        require(bytes(_tier1uri).length > 0, "E50");
+        require(bytes(_tier2uri).length > 0, "E50");
         if(!_override) {
             require(_timestart != 0 && _timestart > block.timestamp, "Time start and end must be in the proper order");
         }
         
+        require(!uriExists[_tier1uri], "E53");
+        require(!uriExists[_tier2uri], "E53");
+        
         uint256 _nftid = _NFTIds.current();
-
+        require(_nftid < type(uint256).max, "E52");
+        
         NFTInfo storage nft = nftInfo[_nftid];
+        require(!nft.exists, "E54");
 
             nft.collectionName = _collectionName;
             nft.nftName = _nftName;
@@ -514,8 +511,25 @@ contract KojiNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
     }
 
     function tokenOfOwnerByIndex(address owner, uint256 index) public view virtual returns (uint256) {
-        require(index < ERC721.balanceOf(owner), "ERC721Enumerable: owner index out of bounds");
+        require(index < ERC721.balanceOf(owner), "E55");
         return _ownedTokens[owner][index];
+    }
+
+    function getNFTTier(uint256 tokenId) public view returns (uint256) {
+        if(_exists(tokenId)) {
+            string memory nftUri = tokenURI(tokenId);
+            uint256 nftID = getNFTIDbyURI(nftUri);  // Pass the already retrieved URI
+            
+            NFTInfo storage nft = nftInfo[nftID];
+            if (keccak256(bytes(nft.tier1uri)) == keccak256(bytes(nftUri))) {
+                return 1;
+            }
+            if (keccak256(bytes(nft.tier2uri)) == keccak256(bytes(nftUri))) {
+                return 2;
+            }
+            revert("E43");
+        }
+        revert("E44");
     }
 
 }
