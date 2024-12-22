@@ -497,7 +497,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     }
 
     // Moves all pending rewards into the accrued array
-    function redeemTotalRewards(address _user) public nonReentrant { 
+    function redeemTotalRewards(address _user) public { 
 
         require(_msgSender() == _user || _msgSender() == address(this) || _msgSender() == address(auth.getKojiRewards()), "E01");
 
@@ -511,6 +511,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         user.rewardDebt = user.amount.mul(pool.accKojiPerShare).div(1e12); 
 
     }
+    
 
     // Convert KojiFlux to $KOJI
     function convertAndWithdraw(uint _percentage) external nonReentrant {
