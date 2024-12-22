@@ -13,14 +13,14 @@ E12 - Value is outside of range 1-100
 E13 - User has nothing staked
 E14 - User does not have any pending rewards
 E15 - This NFT is not redeemable
-E16 - You have already minted one tier of this NFT
+E16 - You have already minted one NFT in this tier
 E17 - Your stake value is not sufficient to mint this tier
 E18 - The minting window for this NFT hasn't opened
 E19 - The minting window for this NFT has closed
 E20 - You still need the minimum stake requirment to use superMint
 E21 - You do not possess a superMint
 E22 - This NFT is not redeemable
-E23 - You have already superMinted one tier of this NFT
+E23 - You have already superMinted this page
 E24 - You must be staked to purchase a superMint
 E25 - Oracle price is zero, aborting...
 E26 - This address already purchased this NFT tier with BNB
@@ -42,3 +42,17 @@ E41 - This amount combined with your current stake exceeds the maxmimum allowed 
 E42 - Please input the correct amount of KOJI tokens to stake
 E43 - Tier is invalid
 E44 - NFT is invalid
+E45 - Invalid minting method
+E46 - Minting not allowed outside of the staking contract
+E47 - User did not stake in time to redeem this NFT
+E48 - The purchase window for this page has closed
+E49 - The superMinting window for this page has closed
+E50 - NFT URI is invalid
+E51 - Invalid price
+E52 - Max NFT limit reached
+E53 - URI already exists
+E54 - NFT ID already exists
+E55 - Invalid token index
+E56 - Contract is paused
+E57 - Reward withdrawals are currently disabled
+E58 - User not Authorized to Staking Contract
