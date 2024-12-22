@@ -536,7 +536,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         require(_tier > 0 && _tier < 3, "E43");
         UserInfo storage user = userInfo[0][_msgSender()];
 
-        // Changed logic: Tier 1 stakers can mint either tier, Tier 2 can only mint Tier 2
+        // Tier 1 stakers can mint either tier, Tier 2 can only mint Tier 2
         if (_tier == 1) {
             require(user.tierAtStakeTime == 1, "E17");  // Only tier 1 stakers can mint tier 1
         } else {
@@ -812,11 +812,6 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     function supermint(uint256 _nftID) external nonReentrant {
 
         if (superMint[_msgSender()]) {
-
-            // Get user tier/info
-            UserInfo storage user = userInfo[0][_msgSender()];
-
-            require(user.tierAtStakeTime != 0, "E20");
 
             superMint[_msgSender()] = false;
             IKojiNFT(auth.getKojiNFT()).mintNFT(_msgSender(), 1, _nftID, 0, false, true, false);
