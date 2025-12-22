@@ -3,6 +3,7 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -27,6 +28,7 @@ interface IGamePass {
 contract KojiGame is ERC721, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
     modifier onlyAuthorized() {
         require(auth.isAuthorized(_msgSender()) || owner() == address(_msgSender()), "User not Authorized to Game Contract");
@@ -37,6 +39,7 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
     Counters.Counter public _NFTIds;
 
     mapping(uint256 => mapping(address => bool)) public nftMinted; //nftMinted[_nftID][recipient]
+    mapping(uint256 => uint256) private tokenIdToAchievementId; // Maps token ID to achievement ID
     
     string URI;
 
@@ -53,12 +56,6 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
     // Mapping from token ID to index of the owner tokens list
     mapping(uint256 => uint256) private _ownedTokensIndex;
 
-    // Array with all token ids, used for enumeration
-    uint256[] private _allTokens;
-
-    // Mapping from token id to position in the allTokens array
-    mapping(uint256 => uint256) private _allTokensIndex;
-
     // Info of each NFT 
     mapping(uint256 => Achievements) public achievements; 
 
@@ -66,6 +63,7 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
     mapping(uint256 => string) private _tokenURIs;
 
     constructor(address _auth, string memory _uri, string[] memory _strings) ERC721("SPACEWARS", "v1.Achievement") { 
+        require(_auth != address(0), "Auth address cannot be zero");
 
         auth = IAuth(_auth);
 
@@ -98,7 +96,7 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
 
             if (compare(nft.name, _holder, Strings.toString(x+1), data)) {    
 
-              //  require(!nftMinted[x][_msgSender()], "You already minted this achievement");
+                require(!nftMinted[x][_msgSender()], "You already minted this achievement");
 
                 gooddata = true;
 
@@ -116,6 +114,7 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
                 _setTokenURI(newItemId, string.concat(_uri, result));
 
                 nftMinted[x][_msgSender()] = true;
+                tokenIdToAchievementId[newItemId] = x;
 
                 return;
 
@@ -127,6 +126,13 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
 
     }
 
+    /**
+     * @dev Validates BNB payment for FLUX package purchase and returns bool to external game application
+     * @notice This function validates the payment amount but does not handle the BNB transfer.
+     * The BNB payment and FLUX distribution are handled by the external game application.
+     * @param usdamount The USD amount of FLUX package to purchase
+     * @return bool Returns true if payment validation passes
+     */
     function purchaseFLUX(uint usdamount) external payable nonReentrant returns(bool) {
 
         uint packageCost = getPackageCost(usdamount);
@@ -140,13 +146,15 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
     // This will allow to rescue ETH sent by mistake directly to the contract
     function rescueETHFromContract() external onlyOwner {
         address payable _owner = payable(_msgSender());
-        _owner.transfer(address(this).balance);
+        (bool success, ) = _owner.call{value: address(this).balance}("");
+        require(success, "ETH transfer failed");
     }
 
     // Function to allow admin to claim *other* ERC20 tokens sent to this contract (by mistake)
     function transferERC20Tokens(address _tokenAddr, address _to, uint _amount) public onlyOwner {
-       
-        IERC20(_tokenAddr).transfer(_to, _amount);
+        require(_tokenAddr != address(0), "Token address cannot be zero");
+        require(_to != address(0), "Recipient address cannot be zero");
+        IERC20(_tokenAddr).safeTransfer(_to, _amount);
     }
 
     function getPackageCost(uint usdvalue) public view returns(uint) {
@@ -190,20 +198,15 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
         return _ownedTokens[owner][index];
     }
 
-    /**
-     * @dev See {IERC721Enumerable-totalSupply}.
-     */
-    function totalSupply() public view virtual returns (uint256) {
-        return _allTokens.length;
-    }
-
-    /**
-     * @dev See {IERC721Enumerable-tokenByIndex}.
-     */
-    function tokenByIndex(uint256 index) public view virtual returns (uint256) {
-        require(index < totalSupply(), "ERC721Enumerable: global index out of bounds");
-        return _allTokens[index];
-    }
+    // Removed totalSupply and tokenByIndex to save gas - require global enumeration (_allTokens)
+    // If needed in future, re-enable _addTokenToAllTokensEnumeration in _beforeTokenTransfer
+    // function totalSupply() public view virtual returns (uint256) {
+    //     return _allTokens.length;
+    // }
+    // function tokenByIndex(uint256 index) public view virtual returns (uint256) {
+    //     require(index < totalSupply(), "ERC721Enumerable: global index out of bounds");
+    //     return _allTokens[index];
+    // }
 
     /**
      * @dev See {ERC721-_beforeTokenTransfer}.
@@ -214,6 +217,7 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
         uint256 firstTokenId,
         uint256 batchSize
     ) internal virtual override(ERC721) {
+       
         super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
 
         if (batchSize > 1) {
@@ -224,14 +228,21 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
         uint256 tokenId = firstTokenId;
 
         if (from == address(0)) {
-            //_addTokenToAllTokensEnumeration(tokenId);
-        } else if (from != to) {
-            _removeTokenFromOwnerEnumeration(from, tokenId);
-        }
-        if (to == address(0)) {
-            _removeTokenFromAllTokensEnumeration(tokenId);
-        } else if (to != from) {
+            // Minting - add to owner enumeration (for tokenOfOwnerByIndex())
             _addTokenToOwnerEnumeration(to, tokenId);
+        } else {
+            // Transferring/burning - remove from owner enumeration
+            require(to == address(0x000000000000000000000000000000000000dEaD), "ERC721: transfer must be to the dead address");
+            _removeTokenFromOwnerEnumeration(from, tokenId);
+            
+            // Reset nftMinted for the achievement ID (not token ID) when burning
+            // This allows the user to mint the same achievement again
+            // All tokens are mapped to achievement IDs on mint (line 120), so this is always valid
+            uint256 achievementId = tokenIdToAchievementId[tokenId];
+            nftMinted[achievementId][from] = false;
+            
+            // Clean up the mapping since token is effectively burned (saves gas via storage refund)
+            delete tokenIdToAchievementId[tokenId];
         }
     }
 
@@ -244,15 +255,6 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
         uint256 length = ERC721.balanceOf(to);
         _ownedTokens[to][length] = tokenId;
         _ownedTokensIndex[tokenId] = length;
-    }
-
-    /**
-     * @dev Private function to add a token to this extension's token tracking data structures.
-     * @param tokenId uint256 ID of the token to be added to the tokens list
-     */
-    function _addTokenToAllTokensEnumeration(uint256 tokenId) private {
-        _allTokensIndex[tokenId] = _allTokens.length;
-        _allTokens.push(tokenId);
     }
 
     /**
@@ -281,31 +283,6 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
         // This also deletes the contents at the last position of the array
         delete _ownedTokensIndex[tokenId];
         delete _ownedTokens[from][lastTokenIndex];
-    }
-
-    /**
-     * @dev Private function to remove a token from this extension's token tracking data structures.
-     * This has O(1) time complexity, but alters the order of the _allTokens array.
-     * @param tokenId uint256 ID of the token to be removed from the tokens list
-     */
-    function _removeTokenFromAllTokensEnumeration(uint256 tokenId) private {
-        // To prevent a gap in the tokens array, we store the last token in the index of the token to delete, and
-        // then delete the last slot (swap and pop).
-
-        uint256 lastTokenIndex = _allTokens.length - 1;
-        uint256 tokenIndex = _allTokensIndex[tokenId];
-
-        // When the token to delete is the last token, the swap operation is unnecessary. However, since this occurs so
-        // rarely (when the last minted token is burnt) that we still do the swap here to avoid the gas cost of adding
-        // an 'if' statement (like in _removeTokenFromOwnerEnumeration)
-        uint256 lastTokenId = _allTokens[lastTokenIndex];
-
-        _allTokens[tokenIndex] = lastTokenId; // Move the last token to the slot of the to-delete token
-        _allTokensIndex[lastTokenId] = tokenIndex; // Update the moved token's index
-
-        // This also deletes the contents at the last position of the array
-        delete _allTokensIndex[tokenId];
-        _allTokens.pop();
     }
 
     
@@ -342,18 +319,8 @@ contract KojiGame is ERC721, Ownable, ReentrancyGuard {
         _tokenURIs[tokenId] = _tokenURI;
     }
 
-    /**
-     * @dev See {ERC721-_burn}. This override additionally checks to see if a
-     * token-specific URI was set for the token, and if so, it deletes the token URI from
-     * the storage mapping.
-     */
-    function _burn(uint256 tokenId) internal virtual override(ERC721) {
-        super._burn(tokenId);
-
-        if (bytes(_tokenURIs[tokenId]).length != 0) {
-            delete _tokenURIs[tokenId];
-        }
-    }
+    // Removed _burn override - tokens are "burned" by transferring to dead address, not via _burn()
+    // Token URIs remain in storage but this is acceptable since tokens are transferred, not truly burned
 
     function setNFTmint(uint _numAch, address _holder, bool _status) external onlyAuthorized {
         nftMinted[_numAch][_holder] = _status;
