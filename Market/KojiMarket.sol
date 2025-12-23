@@ -3,10 +3,10 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
@@ -23,7 +23,7 @@ interface IKojiNFT {
 
 contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
     using Counters for Counters.Counter;
-    using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
     modifier onlyAuthorized() {
         require(auth.isAuthorized(_msgSender()) || owner() == address(_msgSender()), "User not Authorized to Marketplace Contract");
@@ -74,9 +74,8 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
     IAuth private auth;
 
     constructor(address _auth) {
-
+      require(_auth != address(0), "Auth address cannot be zero");
       auth = IAuth(_auth);
-
     }   
 
     receive() external payable {}
@@ -108,11 +107,18 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
       require(msg.value == listingFee, "Please include listing fee in order to list the item");
 
       address NFTcontract = auth.getKojiNFT();
+      require(NFTcontract != address(0), "NFT contract address is zero");
+      
+      // Check if token is already listed
+      require(idToMarketItem[tokenId].owner != address(this), "Token is already listed");
+      
+      // Verify sender owns the token
+      require(IERC721(NFTcontract).ownerOf(tokenId) == _msgSender(), "You do not own this token");
       
       (uint timestart,,) = IKojiNFT(NFTcontract).getNFTwindow(IKojiNFT(NFTcontract).getNFTIDbyURI(ERC721(NFTcontract).tokenURI(tokenId)));
 
       if(production) {
-        require(block.timestamp > timestart.add(timedelta), "Listing enabled once BNB Purchase window ends for this page");
+        require(block.timestamp > timestart + timedelta, "Listing enabled once BNB Purchase window ends for this page");
       }
 
       heldtokens.push(tokenId);
@@ -139,9 +145,8 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
 
       IERC721(NFTcontract).safeTransferFrom(_msgSender(), address(this), tokenId);
 
-      payable(this).transfer(listingFee);
-
-      feeTotals = feeTotals.add(listingFee);
+      // Listing fee is already received via msg.value, no need to transfer again
+      feeTotals = feeTotals + listingFee;
 
       _itemsHeld.increment();
       _itemsTotal.increment();
@@ -156,8 +161,9 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
 
     /* allows someone to remove a token they have listed */
     function removeMarketItem(uint256 tokenId) external nonReentrant {
-
       require(idToMarketItem[tokenId].seller == address(_msgSender()) || owner() == address(_msgSender()), "Only item seller can perform this operation");
+      require(idToMarketItem[tokenId].owner == address(this), "Item is not currently listed");
+      require(!idToMarketItem[tokenId].sold, "Item has already been sold");
       
       idToMarketItem[tokenId].sold = false;
       idToMarketItem[tokenId].price = 0;
@@ -183,9 +189,15 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
     function createMarketSale(
       uint256 tokenId
       ) external payable nonReentrant {
+      require(idToMarketItem[tokenId].owner == address(this), "Item is not for sale");
+      require(!idToMarketItem[tokenId].sold, "Item has already been sold");
+      require(idToMarketItem[tokenId].seller != address(0), "Invalid market item");
+      require(_msgSender() != idToMarketItem[tokenId].seller, "Seller cannot buy their own item");
+      
       uint price = idToMarketItem[tokenId].price;
       address seller = idToMarketItem[tokenId].seller;
-      require(msg.value == price.add(buyingFee), "Please submit the asking price + fee in order to complete the purchase");
+      require(price > 0, "Item price must be greater than zero");
+      require(msg.value == price + buyingFee, "Please submit the asking price + fee in order to complete the purchase");
 
       idToMarketItem[tokenId].owner = payable(_msgSender());
       idToMarketItem[tokenId].sold = true;
@@ -195,9 +207,14 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
       _itemsSold.increment();
 
       IERC721(auth.getKojiNFT()).safeTransferFrom(address(this), _msgSender(), tokenId);
-      payable(this).transfer(buyingFee);
-      feeTotals = feeTotals.add(buyingFee);
-      payable(seller).transfer(msg.value.sub(buyingFee));
+      
+      // Transfer buying fee (already received via msg.value)
+      feeTotals = feeTotals + buyingFee;
+      
+      // Transfer payment to seller
+      uint256 sellerAmount = msg.value - buyingFee;
+      (bool success, ) = payable(seller).call{value: sellerAmount}("");
+      require(success, "Failed to transfer payment to seller");
 
       for(uint x=0; x<heldtokens.length; x++) {                                     
         if(heldtokens[x] == tokenId) {
@@ -226,45 +243,62 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
       if(itemCount > 0) {
 
         uint currentIndex = 0;
+        uint tempCount = 0;
 
-        MarketItem[] memory items = new MarketItem[](itemCount);
-
+        // First pass: count matching items
         if(_page == 99 && _tier == 0) { //get all
-
             for (uint i = 0; i < itemCount; i++) {
                 if (idToMarketItem[heldtokens[i]].owner == address(this)) {
-                items[currentIndex] = idToMarketItem[heldtokens[i]];
-                currentIndex++;
+                    tempCount++;
                 }
             }
-            return items;
+        } else if(_page != 99 && _tier != 1 && _tier != 2) { //get page + both tiers
+            for (uint i = 0; i < itemCount; i++) {
+                if (idToMarketItem[heldtokens[i]].owner == address(this) 
+                    && idToMarketItem[heldtokens[i]].page == _page) {
+                    tempCount++;
+                }
+            }
+        } else { //get page and single tier
+            for (uint i = 0; i < itemCount; i++) {
+                if (idToMarketItem[heldtokens[i]].owner == address(this) 
+                    && idToMarketItem[heldtokens[i]].page == _page
+                    && idToMarketItem[heldtokens[i]].tier == _tier) {
+                    tempCount++;
+                }
+            }
+        }
 
-        } else {
+        // Second pass: populate array with exact size
+        MarketItem[] memory items = new MarketItem[](tempCount);
 
-            if(_page != 99 && _tier != 1 && _tier != 2) { //get page + both tiers
-
-                for (uint i = 0; i < itemCount; i++) {
-                    if (idToMarketItem[heldtokens[i]].owner == address(this) 
+        if(_page == 99 && _tier == 0) { //get all
+            for (uint i = 0; i < itemCount; i++) {
+                if (idToMarketItem[heldtokens[i]].owner == address(this)) {
+                    items[currentIndex] = idToMarketItem[heldtokens[i]];
+                    currentIndex++;
+                }
+            }
+        } else if(_page != 99 && _tier != 1 && _tier != 2) { //get page + both tiers
+            for (uint i = 0; i < itemCount; i++) {
+                if (idToMarketItem[heldtokens[i]].owner == address(this) 
                     && idToMarketItem[heldtokens[i]].page == _page) {
                     items[currentIndex] = idToMarketItem[heldtokens[i]];
                     currentIndex++;
-                    }
                 }
-                return items;
-
-            } else {
-
-                for (uint i = 0; i < itemCount; i++) { //get page and single tier
-                    if (idToMarketItem[heldtokens[i]].owner == address(this) 
+            }
+        } else { //get page and single tier
+            for (uint i = 0; i < itemCount; i++) {
+                if (idToMarketItem[heldtokens[i]].owner == address(this) 
                     && idToMarketItem[heldtokens[i]].page == _page
                     && idToMarketItem[heldtokens[i]].tier == _tier) {
                     items[currentIndex] = idToMarketItem[heldtokens[i]];
                     currentIndex++;
-                    }
                 }
-                return items;
             }
         }
+        
+        return items;
         
       } else {
         return new MarketItem[](0);
@@ -334,13 +368,15 @@ contract KojiMarket is Ownable, IERC721Receiver, ReentrancyGuard {
     // This will allow to rescue ETH sent by mistake directly to the contract
     function rescueETHFromContract() external onlyOwner {
         address payable _owner = payable(_msgSender());
-        _owner.transfer(address(this).balance);
+        (bool success, ) = _owner.call{value: address(this).balance}("");
+        require(success, "Failed to transfer ETH");
     }
 
     // Function to allow admin to claim *other* ERC20 tokens sent to this contract (by mistake)
     function transferERC20Tokens(address _tokenAddr, address _to, uint _amount) public onlyOwner {
-       
-        IERC20(_tokenAddr).transfer(_to, _amount);
+        require(_tokenAddr != address(0), "Token address cannot be zero");
+        require(_to != address(0), "Recipient address cannot be zero");
+        IERC20(_tokenAddr).safeTransfer(_to, _amount);
     }
 
 
