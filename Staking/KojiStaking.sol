@@ -6,7 +6,6 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
@@ -61,7 +60,6 @@ interface IORDER {
 }
 
 contract KojiStaking is Ownable, ReentrancyGuard {
-    using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     modifier onlyAuthorized() {
@@ -182,7 +180,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         }
 
         if (block.timestamp >= getKojiPerBlockUpdateTime() || kojiPerBlock == 0) {
-            return (poolReward.mul(blockRewardPercentage).div(100).div(blocksPerDay), true);
+            return (poolReward * blockRewardPercentage / 100 / blocksPerDay, true);
         }
 
         return (kojiPerBlock, false);
@@ -216,7 +214,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
             massUpdatePools();
         }
         uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
-        totalAllocPoint = totalAllocPoint.add(_allocPoint);
+        totalAllocPoint = totalAllocPoint + _allocPoint;
         poolInfo.push(PoolInfo({
             stakeToken : _stakeToken,
             allocPoint : _allocPoint,
@@ -239,7 +237,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         if (_withUpdate) {
             massUpdatePools();
         }
-        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
+        totalAllocPoint = totalAllocPoint - poolInfo[_pid].allocPoint + _allocPoint;
         poolInfo[_pid].allocPoint = _allocPoint;
     }
 
@@ -254,7 +252,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         if (_withUpdate) {
             updatePool(_pid);
         }
-        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
+        totalAllocPoint = totalAllocPoint - poolInfo[_pid].allocPoint + _allocPoint;
         poolInfo[_pid].allocPoint = _allocPoint;
     }
 
@@ -267,14 +265,14 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
         uint256 tokenSupply = IBEP20(kojiflux).balanceOf(address(this));
         if (block.number > pool.lastRewardBlock && tokenSupply != 0) {
-            uint256 multiplier = block.number.sub(pool.lastRewardBlock);
+            uint256 multiplier = block.number - pool.lastRewardBlock;
             (uint256 blockReward, ) = getKojiPerBlock();
-            uint256 kojiReward = multiplier.mul(blockReward).mul(pool.allocPoint).div(totalAllocPoint);
-            accKojiPerShare = accKojiPerShare.add(kojiReward.mul(1e12).div(tokenSupply));
+            uint256 kojiReward = multiplier * blockReward * pool.allocPoint / totalAllocPoint;
+            accKojiPerShare = accKojiPerShare + (kojiReward * 1e12 / tokenSupply);
         }
-        uint256 newamount = user.amount.mul(accKojiPerShare).div(1e12).sub(user.rewardDebt);
+        uint256 newamount = user.amount * accKojiPerShare / 1e12 - user.rewardDebt;
         
-        return newamount.mul(bonusRate).div(100);
+        return newamount * bonusRate / 100;
         
     }
 
@@ -301,12 +299,12 @@ contract KojiStaking is Ownable, ReentrancyGuard {
             return;
         }
 
-        uint256 multiplier = block.number.sub(pool.lastRewardBlock);
-        uint256 kojiReward = multiplier.mul(kojiPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
+        uint256 multiplier = block.number - pool.lastRewardBlock;
+        uint256 kojiReward = multiplier * kojiPerBlock * pool.allocPoint / totalAllocPoint;
 
         // No minting is required, the contract should have KOJIFLUX token balance pre-allocated
         // Accumulated KOJIFLUX per share is stored multiplied by 10^12 to allow small 'fractional' values
-        pool.accKojiPerShare = pool.accKojiPerShare.add(kojiReward.mul(1e12).div(tokenSupply));
+        pool.accKojiPerShare = pool.accKojiPerShare + (kojiReward * 1e12 / tokenSupply);
         pool.lastRewardBlock = block.number;
     }
 
@@ -326,15 +324,15 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
           
             if(user.amount == 0) { // We only want the minimum to apply on first deposit, not subsequent ones
-                require(_amount >= minstake2 && _amount <= minstake1.mul(upperLimiter).div(100)  , "E42");
+                require(_amount >= minstake2 && _amount <= minstake1 * upperLimiter / 100  , "E42");
                 user.stakeTime = block.timestamp;
                 user.unstakeTime = block.timestamp;
                 user.supermintstaketimer = block.timestamp;
 
             } else { // If user has already deposited, secure rewards before reconfiguring rewardDebt
             
-                require(user.amount.add(_amount) <= minstake1.mul(upperLimiter).div(100), "E41");
-                userBalance[_msgSender()] = userBalance[_msgSender()].add(pendingRewards(_pid, _msgSender()));
+                require(user.amount + _amount <= minstake1 * upperLimiter / 100, "E41");
+                userBalance[_msgSender()] = userBalance[_msgSender()] + pendingRewards(_pid, _msgSender());
                 user.unstakeTime = block.timestamp;
 
                  if (userBalance[_msgSender()] > 0) {
@@ -343,8 +341,8 @@ contract KojiStaking is Ownable, ReentrancyGuard {
                 }
             }
 
-            pool.runningTotal = pool.runningTotal.add(_amount);
-            user.amount = user.amount.add(_amount);
+            pool.runningTotal = pool.runningTotal + _amount;
+            user.amount = user.amount + _amount;
             
             user.usdEquiv = getUSDequivalent(user.amount);
             user.tierAtStakeTime = getTierequivalent(user.amount);
@@ -356,13 +354,13 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
                 if(userBalance[_msgSender()] > 0) {
                     (,uint bonusrate) = getConversionAmount(userBalance[_msgSender()], _msgSender());
-                    userBalance[_msgSender()] = userBalance[_msgSender()].mul(100).div(bonusrate);
+                    userBalance[_msgSender()] = userBalance[_msgSender()] * 100 / bonusrate;
                 }
             } else {
                 userStaked[_msgSender()] = false;
             }
 
-            user.rewardDebt = user.amount.mul(pool.accKojiPerShare).div(1e12);
+            user.rewardDebt = user.amount * pool.accKojiPerShare / 1e12;
 
             if (_amount > 0) {
                 pool.stakeToken.safeTransferFrom(address(_msgSender()), address(this), _amount);
@@ -385,7 +383,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         uint256 netamount = _amount; //stack too deep
         uint bonusrate;
 
-        userBalance[_msgSender()] = userBalance[_msgSender()].add(pendingRewards(_pid, _msgSender()));
+        userBalance[_msgSender()] = userBalance[_msgSender()] + pendingRewards(_pid, _msgSender());
 
         if (userBalance[_msgSender()] > 0) {
             
@@ -398,8 +396,8 @@ contract KojiStaking is Ownable, ReentrancyGuard {
             netamount = getWithdrawResult(_msgSender(), _amount);
         }
 
-        pool.runningTotal = pool.runningTotal.sub(_amount);
-        user.amount = user.amount.sub(_amount);
+        pool.runningTotal = pool.runningTotal - _amount;
+        user.amount = user.amount - _amount;
 
         pool.stakeToken.safeTransfer(address(_msgSender()), netamount);
         emit Withdraw(_msgSender(), _pid, netamount);         
@@ -419,7 +417,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
                 user.tierAtStakeTime = 1;
                 user.supermintaccrualperiod = getOverStakeTimeframe(user.tierAtStakeTime,user.amount);
                 (,bonusrate) = getConversionAmount(userBalance[_msgSender()], _msgSender());
-                userBalance[_msgSender()] = userBalance[_msgSender()].mul(100).div(bonusrate);
+                userBalance[_msgSender()] = userBalance[_msgSender()] * 100 / bonusrate;
                 userStaked[_msgSender()] = true;
             } else {
                 if (getTierequivalent(user.amount) == 2) {
@@ -428,7 +426,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
                 user.tierAtStakeTime = 2;
                 user.supermintaccrualperiod = getOverStakeTimeframe(user.tierAtStakeTime,user.amount);
                 (,bonusrate) = getConversionAmount(userBalance[_msgSender()], _msgSender());
-                userBalance[_msgSender()] = userBalance[_msgSender()].mul(100).div(bonusrate);
+                userBalance[_msgSender()] = userBalance[_msgSender()] * 100 / bonusrate;
                 userStaked[_msgSender()] = true;
                 } else {
                     user.usdEquiv = getUSDequivalent(user.amount);
@@ -439,7 +437,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
                 }
             }
             
-            user.rewardDebt = user.amount.mul(pool.accKojiPerShare).div(1e12); 
+            user.rewardDebt = user.amount * pool.accKojiPerShare / 1e12; 
         }                      
     }
 
@@ -493,7 +491,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     // Gets the total of pending + secured rewards
     function getTotalRewards(address _user) public view returns (uint256) { 
        
-        return getTotalPendingRewards(_user).add(userBalance[_user]);
+        return getTotalPendingRewards(_user) + userBalance[_user];
     }
 
     // Moves all pending rewards into the accrued array
@@ -504,9 +502,9 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
         updatePool(0);
                 
-        userBalance[_user] = userBalance[_user].add(pendingRewards(0, _user));
+        userBalance[_user] = userBalance[_user] + pendingRewards(0, _user);
 
-        user.rewardDebt = user.amount.mul(pool.accKojiPerShare).div(1e12); 
+        user.rewardDebt = user.amount * pool.accKojiPerShare / 1e12; 
 
     }
 
@@ -527,13 +525,13 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         
         require(userBalance[_msgSender()] > 0, "E14");
 
-        uint256 fluxamount = userBalance[_msgSender()].mul(_percentage).div(100);
+        uint256 fluxamount = userBalance[_msgSender()] * _percentage / 100;
         (uint256 newamount,) = getConversionAmount(fluxamount, _msgSender());
 
         IKojiRewards(auth.getKojiRewards()).payPendingRewards(_msgSender(), newamount);
 
-        userRealized[_msgSender()] = userRealized[_msgSender()].add(fluxamount);
-        userBalance[_msgSender()] = userBalance[_msgSender()].sub(fluxamount);
+        userRealized[_msgSender()] = userRealized[_msgSender()] + fluxamount;
+        userBalance[_msgSender()] = userBalance[_msgSender()] - fluxamount;
         
     }
 
@@ -580,11 +578,11 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     }
 
     function reduceKojiFluxBalance(address _address, uint256 _amount) public onlyAuthorized {
-        userBalance[_address] = userBalance[_address].sub(_amount);
+        userBalance[_address] = userBalance[_address] - _amount;
     }
 
     function increaseKojiFluxBalance(address _address, uint256 _amount) public onlyAuthorized {
-        userBalance[_address] = userBalance[_address].add(_amount);
+        userBalance[_address] = userBalance[_address] + _amount;
     }
 
     function getKojiFluxBalance(address _address) public view returns (uint256) {
@@ -606,8 +604,8 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         if(kojiusd < kojiUsdPeg || !convertRewardsEnabled) {
             return conversionRate;
         } else {
-            uint256 newrate = kojiusd.mul(100).div(kojiUsdPeg); //result in 100s (div by 1000 to get decimal)
-            uint256 newconversionRate = conversionRate.sub(newrate); //1000 minus 125 = 875 (87.5%)
+            uint256 newrate = kojiusd * 100 / kojiUsdPeg; //result in 100s (div by 1000 to get decimal)
+            uint256 newconversionRate = conversionRate - newrate; //1000 minus 125 = 875 (87.5%)
             return newconversionRate;
         }
     }
@@ -618,7 +616,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         uint256 bonusRate = 100; 
         uint256 newconversionRate = getOracleConversionRate();
 
-        uint256 newamount = _amount.mul(newconversionRate).div(1000); //should reduce if KOJI price increases
+        uint256 newamount = _amount * newconversionRate / 1000; //should reduce if KOJI price increases
 
         UserInfo storage user0 = userInfo[0][_address]; //now add bonus in for smaller stakers based on peg tier1/tier2 amount
         if (user0.tierAtStakeTime == 1) {
@@ -626,35 +624,35 @@ contract KojiStaking is Ownable, ReentrancyGuard {
                 bonusRate = 200;
             }
             if(user0.amount <= tier1kojiPeg) { // user is staking below peg amount, calc bonus
-                bonusRate = tier1kojiPeg.mul(150).div(user0.amount); // 2B div 1.5B = 1.3x bonus rate
+                bonusRate = tier1kojiPeg * 150 / user0.amount; // 2B div 1.5B = 1.3x bonus rate
             }
         } else {
             if (user0.tierAtStakeTime == 2) {
-                uint256 halftier1kojiPeg = tier1kojiPeg.div(2);
+                uint256 halftier1kojiPeg = tier1kojiPeg / 2;
                 if(user0.amount >= halftier1kojiPeg) { 
-                    bonusRate = tier1kojiPeg.mul(100).div(user0.amount); // 2B div 1B = 2x bonus rate
+                    bonusRate = tier1kojiPeg * 100 / user0.amount; // 2B div 1B = 2x bonus rate
                 }
                 if(user0.amount >= tier2kojiPeg && user0.amount < halftier1kojiPeg) { // user is staking above tier 2 amount but still tier 2, calc bonus based on tier1
-                    bonusRate = halftier1kojiPeg.mul(100).div(user0.amount); // 1B div 500M = 2x bonus rate
+                    bonusRate = halftier1kojiPeg * 100 / user0.amount; // 1B div 500M = 2x bonus rate
                 }
                 if(user0.amount <= tier2kojiPeg) { // user is staking below peg amount, calc bonus
-                    bonusRate = tier2kojiPeg.mul(100).div(user0.amount); // 250M div 125M = 2x bonus rate
+                    bonusRate = tier2kojiPeg * 100 / user0.amount; // 250M div 125M = 2x bonus rate
                 }
             } else {
-                newamount = _amount.mul(conversionRate).div(1000); //keep rewards up for stakers less than tier 2 (tier 0)
+                newamount = _amount * conversionRate / 1000; //keep rewards up for stakers less than tier 2 (tier 0)
             }
         }
         
-        newamount = newamount.mul(bonusRate).div(100);
+        newamount = newamount * bonusRate / 100;
             
         return (newamount,bonusRate);
     }
 
     // Get dollar amount of Koji for KojiFlux
     function getConversionPrice(uint256 _amount) public view returns (uint256) {
-        uint256 netamount = _amount.mul(getOracleConversionRate()).div(100);
+        uint256 netamount = _amount * getOracleConversionRate() / 100;
         (,,uint256 kojiusd) = IOracle(auth.getKojiOracle()).getKojiUSDPrice();
-        uint256 netusdamount = kojiusd.mul(netamount);
+        uint256 netusdamount = kojiusd * netamount;
 
         return netusdamount;
     }
@@ -662,7 +660,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     // Get pending dollar amount of Koji for KojiFlux
     function getPendingUSDRewards(address _holder) public view returns (uint256) { 
 
-        return getConversionPrice(getTotalRewards(_holder)).div(10**9);
+        return getConversionPrice(getTotalRewards(_holder)) / 10**9;
     }
 
     // Sets min/max staking amounts for Koji token
@@ -687,7 +685,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
         IOracle oracle = IOracle(auth.getKojiOracle());
        
-        return (oracle.getMinKOJITier1Amount(minKojiTier1Stake).mul(200).div(100), oracle.getMinKOJITier2Amount(minKojiTier2Stake).mul(400).div(100)); //tier 1 max, tier 2 max
+        return (oracle.getMinKOJITier1Amount(minKojiTier1Stake) * 200 / 100, oracle.getMinKOJITier2Amount(minKojiTier2Stake) * 400 / 100); //tier 1 max, tier 2 max
     }
 
 
@@ -696,10 +694,10 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
         uint256 totalvalue = getUSDequivalent(_amount);
 
-        if (totalvalue >= minKojiTier1Stake.sub(1000000000)) {
+        if (totalvalue >= minKojiTier1Stake - 1000000000) {
             return 1;
         } else {
-            if (totalvalue >= minKojiTier2Stake.sub(1000000000) && totalvalue < minKojiTier1Stake.sub(1000000000)) {
+            if (totalvalue >= minKojiTier2Stake - 1000000000 && totalvalue < minKojiTier1Stake - 1000000000) {
                 return 2;
             } else {
                 return 0;
@@ -715,18 +713,18 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         (uint256 tier1min, uint256 tier2min) = getOracleMinMax();
 
         if (_usertier == 1) {
-            if(_amount >= tier1min) { multiplier = _amount.mul(100).div(tier1min);}
+            if(_amount >= tier1min) { multiplier = _amount * 100 / tier1min;}
 
             if (multiplier > 150) {multiplier = 150;}
 
-            return supermintAccrualFrame1.mul(100).div(multiplier);
+            return supermintAccrualFrame1 * 100 / multiplier;
 
         } else {
-            if(_amount >= tier2min) { multiplier = _amount.mul(100).div(tier2min);}
+            if(_amount >= tier2min) { multiplier = _amount * 100 / tier2min;}
 
             if (multiplier > 200) {multiplier = 200;}
 
-            return supermintAccrualFrame2.mul(100).div(multiplier);
+            return supermintAccrualFrame2 * 100 / multiplier;
         }
         
     }
@@ -740,36 +738,36 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         (uint256 tier1min, uint256 tier2min) = getOracleMinMax();
 
         if (_usertier == 1) {
-            if(_useramount >= tier1min) { multiplier = _useramount.mul(100).div(tier1min);}
+            if(_useramount >= tier1min) { multiplier = _useramount * 100 / tier1min;}
 
             if (multiplier > 500) {multiplier = 500;}
 
             fluxprice = IOracle(auth.getKojiOracle()).getSuperMintFluxPrice(superMintFluxPrice1);
 
-            return fluxprice.mul(multiplier).div(100);
+            return fluxprice * multiplier / 100;
 
         } else {
-            if(_useramount >= tier2min) { multiplier = _useramount.mul(100).div(tier2min);}
+            if(_useramount >= tier2min) { multiplier = _useramount * 100 / tier2min;}
 
             if (multiplier > 2000) {multiplier = 2000;}
 
             fluxprice = IOracle(auth.getKojiOracle()).getSuperMintFluxPrice(superMintFluxPrice2);
 
-            return fluxprice.mul(multiplier).div(100);
+            return fluxprice * multiplier / 100;
         }
         
     }
 
     function getSuperMintKojiPrice(address _holder) external view returns(uint256) {
         IOracle oracle = IOracle(auth.getKojiOracle());
-        return oracle.getSuperMintKojiPrice(superMintKojiPrice).add((oracle.getSuperMintKojiPrice(superMintIncrease)).mul(superMintCounter[_holder]));
+        return oracle.getSuperMintKojiPrice(superMintKojiPrice) + (oracle.getSuperMintKojiPrice(superMintIncrease) * superMintCounter[_holder]);
     }
 
     // Gets USD equivalent of input amount of KOJI tokens
     function getUSDequivalent(uint256 _amount) public view returns (uint256) {
         (,,uint256 kojiusdvalue) = IOracle(auth.getKojiOracle()).getKojiUSDPrice();
 
-        return kojiusdvalue.mul(_amount).div(10**9);
+        return kojiusdvalue * _amount / 10**9;
     }
 
     // Function to buy superMint internally with KojiFlux
@@ -790,7 +788,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
         require(userBalance[_msgSender()] >= fluxprice, "E33");
 
-        userBalance[_msgSender()] = userBalance[_msgSender()].sub(fluxprice);
+        userBalance[_msgSender()] = userBalance[_msgSender()] - fluxprice;
         superMint[_msgSender()] = true;
 
         user.supermintstaketimer = block.timestamp; 
@@ -805,7 +803,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         IOracle oracle = IOracle(auth.getKojiOracle());
         
         uint256 price = oracle.getSuperMintKojiPrice(superMintKojiPrice);
-        price = price.add((oracle.getSuperMintKojiPrice(superMintIncrease)).mul(superMintCounter[_msgSender()]));
+        price = price + (oracle.getSuperMintKojiPrice(superMintIncrease) * superMintCounter[_msgSender()]);
         require(IERC20(auth.getKojiEarth()).balanceOf(_msgSender()) >= price, "E35"); 
         require(!superMint[_msgSender()], "E31");
 
@@ -837,9 +835,9 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
     function getUnstakePenalty(uint256 _staketime) public view returns (uint256) {
 
-        uint256 totaldays = block.timestamp.sub(_staketime);
+        uint256 totaldays = block.timestamp - _staketime;
         
-        totaldays = totaldays.div(penaltyPeriod);
+        totaldays = totaldays / penaltyPeriod;
 
         if (totaldays >= unstakePenaltyStartingTax) {
 
@@ -847,7 +845,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
         } else {
 
-            uint256 totalunstakefee  = unstakePenaltyStartingTax.sub(totaldays);
+            uint256 totalunstakefee  = unstakePenaltyStartingTax - totaldays;
 
             if (totalunstakefee <= unstakePenaltyDefaultTax) {
                 return unstakePenaltyDefaultTax;
@@ -885,13 +883,13 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         uint256 netamount;
 
         uint256 tokenSupply = pool.stakeToken.balanceOf(address(this)); // Get total amount of KOJI tokens
-        uint256 totalRewards = tokenSupply.sub(pool.runningTotal); // Get difference between contract address amount and ledger amount
-        uint256 percentRewards = _amount.mul(100).div(pool.runningTotal); // Get % of share out of 100
-        uint256 reflectAmount = percentRewards.mul(totalRewards).div(100); // Get % of reflect amount           
+        uint256 totalRewards = tokenSupply - pool.runningTotal; // Get difference between contract address amount and ledger amount
+        uint256 percentRewards = _amount * 100 / pool.runningTotal; // Get % of share out of 100
+        uint256 reflectAmount = percentRewards * totalRewards / 100; // Get % of reflect amount           
         uint256 taxfeenumerator = getUnstakePenalty(user.unstakeTime);
-        uint256 taxfee = taxableAmount.sub(taxableAmount.mul(taxfeenumerator).div(unstakePenaltyDenominator));
-        netamount = _amount.mul(taxfee).div(unstakePenaltyDenominator);
-        netamount = netamount.add(reflectAmount);
+        uint256 taxfee = taxableAmount - (taxableAmount * taxfeenumerator / unstakePenaltyDenominator);
+        netamount = _amount * taxfee / unstakePenaltyDenominator;
+        netamount = netamount + reflectAmount;
 
         return netamount;
 
@@ -905,11 +903,11 @@ contract KojiStaking is Ownable, ReentrancyGuard {
             _amount = user.amount;
         } 
         uint256 tokenSupply = pool.stakeToken.balanceOf(address(this)); // Get total amount of tokens
-        uint256 totalRewards = tokenSupply.sub(pool.runningTotal); // Get difference between contract address amount and ledger amount
+        uint256 totalRewards = tokenSupply - pool.runningTotal; // Get difference between contract address amount and ledger amount
         
          if (totalRewards > 0) { // Include reflection
-            uint256 percentRewards = _amount.mul(100).div(pool.runningTotal); // Get % of share out of 100
-            uint256 reflectAmount = percentRewards.mul(totalRewards).div(100); // Get % of reflect amount
+            uint256 percentRewards = _amount * 100 / pool.runningTotal; // Get % of share out of 100
+            uint256 reflectAmount = percentRewards * totalRewards / 100; // Get % of reflect amount
 
             return reflectAmount; // return reflection amount
 
@@ -933,10 +931,10 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     function getAccrualTime(address _holder) public view returns (uint256,bool) {
         UserInfo storage user = userInfo[0][_holder]; 
 
-        uint256 timeleft = user.supermintstaketimer.add(user.supermintaccrualperiod);
+        uint256 timeleft = user.supermintstaketimer + user.supermintaccrualperiod;
 
         if (timeleft > block.timestamp) {
-            return (timeleft.sub(block.timestamp),false);
+            return (timeleft - block.timestamp,false);
         } else {
             return (0,true);
         }
