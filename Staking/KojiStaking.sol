@@ -101,18 +101,18 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         IERC20 stakeToken; // Address of token contract.
         uint256 allocPoint; // How many allocation points assigned to this pool. KOJIFLUX tokens to distribute per block.
         uint256 lastRewardBlock; // Last block number that KOJIFLUX tokens distribution occurs.
-        uint256 accKojiPerShare; // Accumulated KOJIFLUX tokens per share, times 1e12. See below.
+        uint256 accKojiPerShare; // Accumulated KOJIFLUX tokens per share, times rewardNumerator. See below.
         uint256 runningTotal; // Total accumulation of tokens (not including reflection, pertains to pool 1 ($Koji))
     }
 
     // Config structs split to avoid stack too deep errors
     struct BlockRewardConfig {
-        uint256 updateCycle; // The cycle in which the kojiPerBlock gets updated.
+        uint256 updateCycle; // The cycle in which the kojiPerBlock gets updated. (default 1 day)
         uint256 lastUpdateTime; // The timestamp when the block kojiPerBlock was last updated.
-        uint256 blocksPerDay; // The estimated number of mined blocks per day, lowered so rewards are halved to start.
-        uint256 rewardPercentage; // The percentage used for kojiPerBlock calculation.
-        uint256 poolReward; // Starting basis for poolReward (default 1B).
+        uint256 blocksPerDay; // The estimated number of mined blocks per day, lowered so rewards are halved to start. (default 28800)
+        uint256 poolReward; // KOJIFLUX tokens distributed per block (default 100M).
         uint256 rewardDivisor; // Divisor to scale down rewards (default 1 = no reduction, 10 = 90% reduction, 100 = 99% reduction).
+        uint256 rewardNumerator; // Precision numerator for accKojiPerShare (default 1e6). Used in reward calc: kojiReward * rewardNumerator / tokenSupply / rewardDivisor.
     }
 
     struct StakingLimitsConfig {
@@ -186,25 +186,31 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
     event KojiBuy(uint indexed bnbamount, uint indexed kojiamount, address indexed toAddress);
 
-    // Constructor initializes the staking contract with start block and auth contract address
+    // Constructor initializes the staking contract with auth contract address and stake token
     // Sets up all configuration structs with default values
+    // startBlock is automatically set to the current block number upon deployment
+    // Pool 0 is created with the stake token and allocPoint 100
     constructor(
-        uint256 _startBlock,
-        address _auth
+        address _auth,
+        IERC20 _stakeToken
     ) {
-        startBlock = _startBlock;
+        require(_auth != address(0), "E02");
+        require(address(_stakeToken) != address(0), "E05");
+
+        startBlock = block.number;
 
         auth = IAuth(_auth);
         kojiflux = auth.getKojiFlux();
 
         // Initialize config structs
+        // Need 1T FLUX in the contract to get the correct reward rate.
         blockRewardConfig = BlockRewardConfig({
             updateCycle: 1 days,
             lastUpdateTime: block.timestamp,
-            blocksPerDay: 28800,
-            rewardPercentage: 10,
-            poolReward: 1000000000000000000,
-            rewardDivisor: 1
+            blocksPerDay: 192000, //BSC now sporting .45 second blocktime 
+            poolReward: 1000000000000000000, // 1B
+            rewardDivisor: 4, //BSC blocktime is ~4-5x faster than 3 second blocks, so we need to divide by 4 to get the correct reward rate.
+            rewardNumerator: 1000000 // 1e6 for greater precision
         });
 
         stakingLimitsConfig = StakingLimitsConfig({
@@ -214,7 +220,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         });
 
         pegConfig = PegConfig({
-            kojiUsdPeg: 1000,
+            kojiUsdPeg: 500,
             tier1kojiPeg: 2000000000000000000,
             tier2kojiPeg: 250000000000000000
         });
@@ -246,6 +252,17 @@ contract KojiStaking is Ownable, ReentrancyGuard {
             convertRewardsEnabled: true,
             withdrawRewardsEnabled: true
         });
+
+        // Create the single pool with stake token and allocPoint 100
+        totalAllocPoint = 100;
+        poolInfo.push(PoolInfo({
+            stakeToken: _stakeToken,
+            allocPoint: 100,
+            lastRewardBlock: startBlock,
+            accKojiPerShare: 0,
+            runningTotal: 0
+        }));
+        addedstakeTokens[address(_stakeToken)] = true;
     }
 
     // Modifier to update the KOJIFLUX tokens per block reward rate before function execution
@@ -260,12 +277,8 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
     // Get the current KOJIFLUX tokens distributed per block and whether an update is needed
     function getKojiPerBlock() public view returns (uint256, bool) {
-        if (block.number < startBlock) {
-            return (0, false);
-        }
-
         if (block.timestamp >= getKojiPerBlockUpdateTime() || kojiPerBlock == 0) {
-            return (blockRewardConfig.poolReward * blockRewardConfig.rewardPercentage / 100 / blockRewardConfig.blocksPerDay, true);
+            return (blockRewardConfig.poolReward / blockRewardConfig.blocksPerDay, true);
         }
 
         return (kojiPerBlock, false);
@@ -285,49 +298,6 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         return poolInfo.length;
     }
 
-    // Add a new token to the pool. Can only be called by the owner.
-    // There are no functions in this contract for LP staking or adding secondary tokens to stake
-    function add(
-        uint256 _allocPoint,
-        IERC20 _stakeToken,
-        bool _withUpdate
-    ) public onlyOwner {
-        require(address(_stakeToken) != address(0), "E05");
-        require(!addedstakeTokens[address(_stakeToken)], "E06");
-
-        require(_allocPoint >= 1 && _allocPoint <= 100, "E07");
-
-        if (_withUpdate) {
-            massUpdatePools();
-        }
-        uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
-        totalAllocPoint = totalAllocPoint + _allocPoint;
-        poolInfo.push(PoolInfo({
-            stakeToken : _stakeToken,
-            allocPoint : _allocPoint,
-            lastRewardBlock : lastRewardBlock,
-            accKojiPerShare : 0,
-            runningTotal : 0 
-        }));
-
-        addedstakeTokens[address(_stakeToken)] = true;
-    }
-
-    // Update the given pool's KOJIFLUX token allocation point. Can only be called by the owner.
-    function set(
-        uint256 _pid,
-        uint256 _allocPoint,
-        bool _withUpdate
-    ) public onlyAuthorized {
-        require(_allocPoint >= 1 && _allocPoint <= 100, "E07");
-
-        if (_withUpdate) {
-            massUpdatePools();
-        }
-        totalAllocPoint = totalAllocPoint - poolInfo[_pid].allocPoint + _allocPoint;
-        poolInfo[_pid].allocPoint = _allocPoint;
-    }
-
     // View function to see pending KOJIFLUX tokens on frontend
     // Returns the pending reward amount for a user in a specific pool, including bonus rate calculations
     function pendingRewards(uint256 _pid, address _user) public view returns (uint256) { 
@@ -340,21 +310,13 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         if (block.number > pool.lastRewardBlock && tokenSupply != 0) {
             uint256 multiplier = block.number - pool.lastRewardBlock;
             (uint256 blockReward, ) = getKojiPerBlock();
-            uint256 kojiReward = multiplier * blockReward * pool.allocPoint / totalAllocPoint;
-            accKojiPerShare = accKojiPerShare + (kojiReward * 1e12 / tokenSupply / blockRewardConfig.rewardDivisor);
+            uint256 kojiReward = multiplier * blockReward;
+            accKojiPerShare = accKojiPerShare + (kojiReward * blockRewardConfig.rewardNumerator / tokenSupply / blockRewardConfig.rewardDivisor);
         }
-        uint256 newamount = user.amount * accKojiPerShare / 1e12 - user.rewardDebt;
+        uint256 newamount = user.amount * accKojiPerShare / blockRewardConfig.rewardNumerator - user.rewardDebt;
         
         return newamount * bonusRate / 100;
         
-    }
-
-    // Update reward variables for all pools. Be careful of gas spending!
-    function massUpdatePools() public onlyAuthorized {
-        uint256 length = poolInfo.length;
-        for (uint256 pid = 0; pid < length; ++pid) {
-            updatePool(pid);
-        }
     }
 
     // Update reward variables of the given pool to be up-to-date when tokenSupply changes
@@ -373,12 +335,12 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         }
 
         uint256 multiplier = block.number - pool.lastRewardBlock;
-        uint256 kojiReward = multiplier * kojiPerBlock * pool.allocPoint / totalAllocPoint;
+        uint256 kojiReward = multiplier * kojiPerBlock;
 
         // No minting is required, the contract should have KOJIFLUX token balance pre-allocated
-        // Accumulated KOJIFLUX per share is stored multiplied by 10^12 to allow small 'fractional' values
+        // Accumulated KOJIFLUX per share is stored multiplied by 10^9 to allow small 'fractional' values (matches 9-decimal tokens)
         // Apply reward divisor to scale down rewards if needed
-        pool.accKojiPerShare = pool.accKojiPerShare + (kojiReward * 1e12 / tokenSupply / blockRewardConfig.rewardDivisor);
+        pool.accKojiPerShare = pool.accKojiPerShare + (kojiReward * blockRewardConfig.rewardNumerator / tokenSupply / blockRewardConfig.rewardDivisor);
         pool.lastRewardBlock = block.number;
     }
 
@@ -389,6 +351,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
     // Deposit tokens/$KOJI to KojiFarming for KOJIFLUX token allocation.
     function deposit(uint256 _pid, uint256 _amount) public nonReentrant {
+        require(_pid < poolInfo.length, "E06");
 
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_msgSender()];
@@ -435,7 +398,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
                 userStaked[_msgSender()] = false;
             }
 
-            user.rewardDebt = user.amount * pool.accKojiPerShare / 1e12;
+            user.rewardDebt = user.amount * pool.accKojiPerShare / blockRewardConfig.rewardNumerator;
 
             if (_amount > 0) {
                 pool.stakeToken.safeTransferFrom(address(_msgSender()), address(this), _amount);
@@ -446,6 +409,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
     // Withdraw tokens from KojiFarming
     function withdraw(uint256 _pid, uint256 _amount) public nonReentrant {
+        require(_pid < poolInfo.length, "E06");
 
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_msgSender()];
@@ -512,7 +476,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
                 }
             }
             
-            user.rewardDebt = user.amount * pool.accKojiPerShare / 1e12; 
+            user.rewardDebt = user.amount * pool.accKojiPerShare / blockRewardConfig.rewardNumerator;
         }                      
     }
 
@@ -520,24 +484,30 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     function setBlockRewardConfig(
         uint256 _updateCycle,
         uint256 _blocksPerDay,
-        uint256 _rewardPercentage,
         uint256 _poolReward,
-        uint256 _rewardDivisor
+        uint256 _rewardDivisor,
+        uint256 _rewardNumerator
     ) external onlyAuthorized {
         require(_updateCycle > 0, "E10");
         require(_blocksPerDay >= 1 && _blocksPerDay <= 28800, "E11");
-        require(_rewardPercentage >= 1 && _rewardPercentage <= 100, "E12");
-        require(_rewardDivisor >= 1, "E65");
+        require(_rewardDivisor >= 1, "E06");
+        require(_rewardNumerator >= 1, "E65");
         blockRewardConfig.updateCycle = _updateCycle;
         blockRewardConfig.blocksPerDay = _blocksPerDay;
-        blockRewardConfig.rewardPercentage = _rewardPercentage;
         blockRewardConfig.poolReward = _poolReward;
+        blockRewardConfig.rewardDivisor = _rewardDivisor;
+        blockRewardConfig.rewardNumerator = _rewardNumerator;
+    }
+
+    // Set only the reward divisor (scale down rewards: 1 = no reduction, 10 = 90% reduction, etc.)
+    function setRewardDivisor(uint256 _rewardDivisor) external onlyAuthorized {
+        require(_rewardDivisor >= 1, "E07");
         blockRewardConfig.rewardDivisor = _rewardDivisor;
     }
 
     // Function to allow admin to claim *other* ERC20 tokens sent to this contract (by mistake)
     function transferERC20Tokens(address _tokenAddr, address _to, uint _amount) public onlyAuthorized {
-        IERC20(_tokenAddr).transfer(_to, _amount);
+        IERC20(_tokenAddr).safeTransfer(_to, _amount);
     }
 
     // Returns total stake amount ($KOJI token) and address of that token for a user in a specific pool
@@ -572,6 +542,18 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         return getTotalPendingRewards(_user) + userBalance[_user];
     }
 
+    // Estimated FLUX rewards over a 24h period for a given staked amount and reward params.
+    // Uses current pool FLUX balance as tokenSupply. Does not include tier bonus.
+     function getEstimatedRewards24h(
+        uint256 _stakedAmount,
+        uint256 _rewardDivisor
+    ) external view returns (uint256) {
+        uint256 tokenSupply = IBEP20(kojiflux).balanceOf(address(this));
+        if (tokenSupply == 0 || _rewardDivisor == 0) return 0;
+        uint256 poolReward = blockRewardConfig.poolReward;
+        return (_stakedAmount * poolReward) / tokenSupply / _rewardDivisor;
+    }
+
     // Internal function to move all pending rewards into the accrued balance for a user
     function redeemTotalRewards(address _user) internal { 
 
@@ -582,7 +564,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
                 
         userBalance[_user] = userBalance[_user] + pendingRewards(0, _user);
 
-        user.rewardDebt = user.amount * pool.accKojiPerShare / 1e12; 
+        user.rewardDebt = user.amount * pool.accKojiPerShare / blockRewardConfig.rewardNumerator;
 
     }
 
@@ -698,12 +680,15 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     // Returns the converted amount and the bonus rate percentage applied
     function getConversionAmount(uint256 _amount, address _address) public view returns (uint256,uint256) {
 
-        uint256 bonusRate = 100; 
+        uint256 bonusRate = 100;
         uint256 newconversionRate = getOracleConversionRate();
 
         uint256 newamount = _amount * newconversionRate / 1000; //should reduce if KOJI price increases
 
         UserInfo storage user0 = userInfo[0][_address]; //now add bonus in for smaller stakers based on peg tier1/tier2 amount
+        if (user0.amount == 0) {
+            return (newamount, 100); // no stake: base conversion only, no bonus
+        }
         if (user0.tierAtStakeTime == 1) {
             if(user0.amount > pegConfig.tier1kojiPeg) {
                 bonusRate = 200;
@@ -885,7 +870,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         require(IERC20(auth.getKojiEarth()).balanceOf(_msgSender()) >= price, "E35"); 
         require(!superMint[_msgSender()], "E31");
 
-        IERC20(auth.getKojiEarth()).transferFrom(_msgSender(), address(auth.getKojiRewards()), price);
+        IERC20(auth.getKojiEarth()).safeTransferFrom(_msgSender(), address(auth.getKojiRewards()), price);
         superMint[_msgSender()] = true;
         superMintCounter[_msgSender()]++;
     }
@@ -944,7 +929,10 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
         if (_amount == 0) { //pass 0 to use full user.amount, otherwise pass partial amount
             _amount = user.amount;
-        } 
+        }
+        if (pool.runningTotal == 0) {
+            return 0;
+        }
 
         uint256 netamount;
 
@@ -969,11 +957,14 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
         if (_amount == 0) { //pass 0 to use full user.amount, otherwise pass partial amount
             _amount = user.amount;
-        } 
+        }
+        if (pool.runningTotal == 0) {
+            return 0;
+        }
         uint256 tokenSupply = pool.stakeToken.balanceOf(address(this)); // Get total amount of tokens
         uint256 totalRewards = tokenSupply - pool.runningTotal; // Get difference between contract address amount and ledger amount
-        
-         if (totalRewards > 0) { // Include reflection
+
+        if (totalRewards > 0) { // Include reflection
             uint256 percentRewards = _amount * 100 / pool.runningTotal; // Get % of share out of 100
             uint256 reflectAmount = percentRewards * totalRewards / 100; // Get % of reflect amount
 
