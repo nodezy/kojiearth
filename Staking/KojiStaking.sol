@@ -3,7 +3,7 @@
 // koji.earth Staking Contract Version 1.0
 // Stake your $KOJI for the Koji Comic NFT
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.33;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -106,6 +106,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     }
 
     // Config structs split to avoid stack too deep errors
+    uint256 public constant MAX_BLOCKS_PER_DAY = 300000; // setter cap; 28800 = ~3s blocks, 192000 = BSC ~0.45s
     struct BlockRewardConfig {
         uint256 updateCycle; // The cycle in which the kojiPerBlock gets updated. (default 1 day)
         uint256 lastUpdateTime; // The timestamp when the block kojiPerBlock was last updated.
@@ -210,7 +211,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
             blocksPerDay: 192000, //BSC now sporting .45 second blocktime 
             poolReward: 1000000000000000000, // 1B
             rewardDivisor: 4, //BSC blocktime is ~4-5x faster than 3 second blocks, so we need to divide by 4 to get the correct reward rate.
-            rewardNumerator: 1000000 // 1e6 for greater precision
+            rewardNumerator: 1000000000 // 1e9 — required so per-update increment doesn't truncate to 0 with 1T FLUX (1e21)
         });
 
         stakingLimitsConfig = StakingLimitsConfig({
@@ -352,6 +353,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     // Deposit tokens/$KOJI to KojiFarming for KOJIFLUX token allocation.
     function deposit(uint256 _pid, uint256 _amount) public nonReentrant {
         require(_pid < poolInfo.length, "E06");
+        require(IBEP20(kojiflux).balanceOf(address(this)) > 0, "E66"); // FLUX must be in contract to distribute rewards
 
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_msgSender()];
@@ -489,7 +491,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         uint256 _rewardNumerator
     ) external onlyAuthorized {
         require(_updateCycle > 0, "E10");
-        require(_blocksPerDay >= 1 && _blocksPerDay <= 28800, "E11");
+        require(_blocksPerDay >= 1 && _blocksPerDay <= MAX_BLOCKS_PER_DAY, "E11");
         require(_rewardDivisor >= 1, "E06");
         require(_rewardNumerator >= 1, "E65");
         blockRewardConfig.updateCycle = _updateCycle;
@@ -503,6 +505,12 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     function setRewardDivisor(uint256 _rewardDivisor) external onlyAuthorized {
         require(_rewardDivisor >= 1, "E07");
         blockRewardConfig.rewardDivisor = _rewardDivisor;
+    }
+
+    // Set only the reward numerator (precision for accKojiPerShare; e.g. 1e9 so per-update increment doesn't truncate to 0)
+    function setRewardNumerator(uint256 _rewardNumerator) external onlyAuthorized {
+        require(_rewardNumerator >= 1, "E65");
+        blockRewardConfig.rewardNumerator = _rewardNumerator;
     }
 
     // Function to allow admin to claim *other* ERC20 tokens sent to this contract (by mistake)
