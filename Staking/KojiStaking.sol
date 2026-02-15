@@ -113,8 +113,8 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
     struct PegConfig {
         uint256 kojiUsdPeg; // Default peg price of KOJI/USD to base conversion/bonus numbers on (default 500).
-        uint256 tier1kojiPeg; // tier1 stake peg @ 1000 Gwei to calc bonus (default 2B).
-        uint256 tier2kojiPeg; // tier2 stake peg @ 1000 Gwei to calc bonus (default 250M).
+        uint256 tier1kojiPeg; // tier1 stake peg @ 1000 Gwei to calc bonus (default 2.2B).
+        uint256 tier2kojiPeg; // tier2 stake peg @ 1000 Gwei to calc bonus (default 500M).
     }
 
     struct SuperMintConfig {
@@ -128,11 +128,6 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         uint256 defaultTax; // Default unstake penalty tax percentage after penalty period.
         uint256 denominator; // Denominator for penalty calculations (1000 = basis points).
         uint256 period; // time in seconds of unstake penalty period (24 hours).
-    }
-
-    struct AccrualConfig {
-        uint256 frame1; // time in seconds to accrue 1 supermint just by staking (default 21 days).
-        uint256 frame2; // time in seconds to accrue 1 supermint just by staking (default 49 days).
     }
 
     struct FeatureFlags {
@@ -159,7 +154,6 @@ contract KojiStaking is Ownable, ReentrancyGuard {
     PegConfig public pegConfig;
     SuperMintConfig public superMintConfig;
     PenaltyConfig public penaltyConfig;
-    AccrualConfig public accrualConfig;
     FeatureFlags public featureFlags;
 
     mapping(address => bool) public addedstakeTokens; // Used for preventing staked tokens from being added twice in add().
@@ -228,14 +222,9 @@ contract KojiStaking is Ownable, ReentrancyGuard {
             period: 86400
         });
 
-        accrualConfig = AccrualConfig({
-            frame1: 1814400,
-            frame2: 4233600
-        });
-
         featureFlags = FeatureFlags({
             enableKojiSuperMintBuying: false,
-            enableFluxSuperMintBuying: false,
+            enableFluxSuperMintBuying: true,
             enableTaxlessWithdrawals: false,
             convertRewardsEnabled: true,
             withdrawRewardsEnabled: true
@@ -266,20 +255,18 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         return dailyEmission * blocksSince / blockRewardConfig.blocksPerDay;
     }
 
-    // View function to see pending KOJIFLUX tokens on frontend (includes bonus for display).
+    // View function to see pending KOJIFLUX tokens on frontend (bonusRate = stakeAmount/tierPeg, determines FLUX earned).
     // Pending = (tierDailyEmission / blocksPerDay) * blocksSinceLastSettle * bonusRate / 100
     function pendingRewards(uint256 _pid, address _user) public view returns (uint256) {
         UserInfo storage user = userInfo[_pid][_user];
         if (user.tierAtStakeTime == 0) return 0;
-        (, uint256 bonusRate) = getConversionAmount(user.amount, _user);
-        return _basePendingRewards(_pid, _user) * bonusRate / 100;
+        return _basePendingRewards(_pid, _user) * getBonusRate(_user) / 100;
     }
 
     // Deposit tokens/$KOJI to KojiFarming for KOJIFLUX token allocation.
     function deposit(uint256 _pid, uint256 _amount) public nonReentrant {
         require(_pid < poolInfo.length, "E06");
-        require(IBEP20(kojiflux).balanceOf(address(this)) > 0, "E66"); // FLUX must be in contract to distribute rewards
-
+        
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_msgSender()];
 
@@ -294,7 +281,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
             } else { // If user has already deposited, secure rewards before updating amount
 
                 require(user.amount + _amount <= minstake1 * stakingLimitsConfig.upperLimiter / 100, "E41");
-                userBalance[_msgSender()] = userBalance[_msgSender()] + _basePendingRewards(_pid, _msgSender());
+                userBalance[_msgSender()] = userBalance[_msgSender()] + _basePendingRewards(_pid, _msgSender()) * getBonusRate(_msgSender()) / 100;
                 user.lastRewardBlock = block.number;
                 user.unstakeTime = block.timestamp;
             }
@@ -305,7 +292,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
             user.lastRewardBlock = block.number; // start accruing from this block (first deposit or after crediting)
             user.usdEquiv = getUSDequivalent(user.amount);
             user.tierAtStakeTime = uint8(getTierequivalent(user.amount));
-            user.supermintaccrualperiod = getOverStakeTimeframe(user.tierAtStakeTime,user.amount);
+            user.supermintaccrualperiod = 0;
 
             if (user.tierAtStakeTime == 1 || user.tierAtStakeTime == 2) {
                 userStaked[_msgSender()] = true;
@@ -330,7 +317,7 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         require(_amount > 0, "E08");
         require(user.amount >= _amount, "E09");
 
-        userBalance[_msgSender()] = userBalance[_msgSender()] + _basePendingRewards(_pid, _msgSender());
+        userBalance[_msgSender()] = userBalance[_msgSender()] + _basePendingRewards(_pid, _msgSender()) * getBonusRate(_msgSender()) / 100;
         user.lastRewardBlock = block.number;
 
         uint256 netamount = _amount; //stack too deep
@@ -351,27 +338,27 @@ contract KojiStaking is Ownable, ReentrancyGuard {
             user.usdEquiv = 0;
             user.tierAtStakeTime = 0;
             user.supermintstaketimer = block.timestamp;
-            user.supermintaccrualperiod = 9999999999;
+            user.supermintaccrualperiod = 0;
             userStaked[_msgSender()] = false;
         } else {
             if (getTierequivalent(user.amount) == 1) {
                 user.usdEquiv = getUSDequivalent(user.amount);
                 user.unstakeTime = block.timestamp;
                 user.tierAtStakeTime = uint8(1);
-                user.supermintaccrualperiod = getOverStakeTimeframe(user.tierAtStakeTime,user.amount);
+                user.supermintaccrualperiod = 0;
                 userStaked[_msgSender()] = true;
             } else {
                 if (getTierequivalent(user.amount) == 2) {
                     user.usdEquiv = getUSDequivalent(user.amount);
                     user.unstakeTime = block.timestamp;
                     user.tierAtStakeTime = uint8(2);
-                    user.supermintaccrualperiod = getOverStakeTimeframe(user.tierAtStakeTime,user.amount);
+                    user.supermintaccrualperiod = 0;
                     userStaked[_msgSender()] = true;
                 } else {
                     user.usdEquiv = getUSDequivalent(user.amount);
                     user.unstakeTime = block.timestamp;
                     user.tierAtStakeTime = uint8(0);
-                    user.supermintaccrualperiod = 9999999999;
+                    user.supermintaccrualperiod = 0;
                     userStaked[_msgSender()] = false;
                 }
             }
@@ -428,9 +415,9 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         return userBalance[_user];
     }
 
-    // Gets the total of pending + secured rewards in KOJIFLUX tokens (base FLUX; bonus applied at convert)
+    // Gets the total of pending + secured rewards in KOJIFLUX tokens (FLUX with bonusRate applied).
     function getTotalRewards(address _user) public view returns (uint256) {
-        return _basePendingRewards(0, _user) + userBalance[_user];
+        return pendingRewards(0, _user) + userBalance[_user];
     }
 
     // Estimated FLUX rewards over a 24h period for a given staked amount and reward params.
@@ -442,9 +429,9 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         return tier == 1 ? dailyEmissionConfig.tier1DailyEmission : dailyEmissionConfig.tier2DailyEmission;
     }
 
-    // Internal function to move all pending rewards into the accrued balance for a user (base FLUX only; bonus applied at convert)
+    // Internal function to move all pending rewards into the accrued balance for a user (FLUX with bonusRate applied).
     function redeemTotalRewards(address _user) internal {
-        userBalance[_user] = userBalance[_user] + _basePendingRewards(0, _user);
+        userBalance[_user] = userBalance[_user] + _basePendingRewards(0, _user) * getBonusRate(_user) / 100;
         userInfo[0][_user].lastRewardBlock = block.number;
     }
 
@@ -543,38 +530,43 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         return conversionRate;
     }
 
-    // Get the oracle-adjusted conversion rate between KOJIFLUX and $KOJI based on current KOJI price
-    // Returns base rate if KOJI price is below peg or conversion is disabled
+    // USD-consistent FLUX → KOJI conversion rate: same FLUX always gives same USD value of KOJI regardless of price.
+    // rate in basis 1000: at peg 1:1 (rate 1000); when KOJI 10x, rate 100 so you get 1/10 the KOJI (same USD).
+    // No underflow; scales correctly for 10x, 100x, etc. Returns conversionRate if below peg or disabled.
     function getOracleConversionRate() public view returns (uint256) {
-        (,,uint256 kojiusd) = IOracle(auth.getKojiOracle()).getKojiUSDPrice();
-        if(kojiusd < pegConfig.kojiUsdPeg || !featureFlags.convertRewardsEnabled) {
+        (,, uint256 kojiusd) = IOracle(auth.getKojiOracle()).getKojiUSDPrice();
+        if (!featureFlags.convertRewardsEnabled || kojiusd == 0) {
             return conversionRate;
-        } else {
-            uint256 newrate = kojiusd * 100 / pegConfig.kojiUsdPeg; //result in 100s (div by 1000 to get decimal)
-            uint256 newconversionRate = conversionRate - newrate; //1000 minus 125 = 875 (87.5%)
-            return newconversionRate;
         }
+        if (kojiusd < pegConfig.kojiUsdPeg) {
+            return conversionRate; // below peg: 1:1
+        }
+        // USD-consistent: rate = 1000 * peg / kojiusd  =>  kojiAmount = fluxAmount * rate / 1000 = fluxAmount * peg / kojiusd
+        return conversionRate * pegConfig.kojiUsdPeg / kojiusd;
     }
 
-    // Get the amount of $KOJI tokens equivalent to a given amount of KOJIFLUX, including bonus rate.
-    // bonusRate = (stakeAmount / tierPeg) * getOracleConversionRate() / 10 (so 100 = 1x at peg with 100% conversion).
-    // Returns the converted amount and the bonus rate percentage applied.
-    function getConversionAmount(uint256 _amount, address _address) public view returns (uint256, uint256) {
-        uint256 newconversionRate = getOracleConversionRate();
-        uint256 newamount = _amount * newconversionRate / 1000;
+    // Bonus rate for FLUX rewards only: stakeAmount / tierPeg in hundredths (100 = 1x at peg).
+    // Used to scale FLUX earned; not used when converting FLUX → KOJI (that uses conversionRate only).
+    function getBonusRate(address _address) public view returns (uint256) {
+        UserInfo storage user0 = userInfo[0][_address];
+        if (user0.tierAtStakeTime == 0) return 100;
+        uint256 tierPeg = user0.tierAtStakeTime == 1 ? pegConfig.tier1kojiPeg : pegConfig.tier2kojiPeg;
+        if (tierPeg == 0) return 100;
+        uint256 bonusRate = user0.amount * 100 / tierPeg;
+        if (bonusRate < 100) bonusRate = 100; // floor at 1x
+        return bonusRate;
+    }
 
+    // Converts FLUX to $KOJI using oracle conversion rate only (no bonus; bonus already applied to FLUX earned).
+    // Returns (kojiAmount, bonusRate) for compatibility; bonusRate is from getBonusRate (for display).
+    function getConversionAmount(uint256 _amount, address _address) public view returns (uint256, uint256) {
+        uint256 conversionRateUsed = getOracleConversionRate();
         UserInfo storage user0 = userInfo[0][_address];
         if (user0.tierAtStakeTime == 0) {
-            return (_amount * conversionRate / 1000, 100); // tier 0: base conversion only, no bonus
+            conversionRateUsed = conversionRate;
         }
-
-        uint256 tierPeg = user0.tierAtStakeTime == 1 ? pegConfig.tier1kojiPeg : pegConfig.tier2kojiPeg;
-        if (tierPeg == 0) return (newamount, 100);
-        // bonusRate in hundredths: (stakeAmount / tierPeg) * getOracleConversionRate() / 10
-        uint256 bonusRate = user0.amount * newconversionRate / tierPeg / 10;
-        if (bonusRate < 100) bonusRate = 100; // floor at 1x
-        newamount = newamount * bonusRate / 100;
-        return (newamount, bonusRate);
+        uint256 kojiAmount = _amount * conversionRateUsed / 1000;
+        return (kojiAmount, getBonusRate(_address));
     }
 
     // Get the USD dollar value equivalent of a given amount of KOJIFLUX tokens
@@ -627,30 +619,6 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         }
     }
 
-    // Gets the reduced supermint accrual period based on user tier and staking amount (over-staking reduces wait time)
-    function getOverStakeTimeframe(uint _usertier, uint256 _amount) internal view returns (uint256) {
-
-        uint256 multiplier = 100;
-
-        (uint256 tier1min, uint256 tier2min) = getOracleMinMax();
-
-        if (_usertier == 1) {
-            if(_amount >= tier1min) { multiplier = _amount * 100 / tier1min;}
-
-            if (multiplier > 150) {multiplier = 150;}
-
-            return accrualConfig.frame1 * 100 / multiplier;
-
-        } else {
-            if(_amount >= tier2min) { multiplier = _amount * 100 / tier2min;}
-
-            if (multiplier > 200) {multiplier = 200;}
-
-            return accrualConfig.frame2 * 100 / multiplier;
-        }
-        
-    }
-
     // FLUX cost to purchase a superMint: 15 days of tier emission rate × over-stake factor (stakeAmount / tier peg).
     function getSuperMintFluxPrice(uint256 _stakeAmount) public view returns (uint256) {
         uint256 tier = getTierequivalent(_stakeAmount);
@@ -701,13 +669,8 @@ contract KojiStaking is Ownable, ReentrancyGuard {
 
     // Function to purchase a superMint using $KOJI tokens (price increases with each purchase)
     function buySuperMintKoji() external nonReentrant {
-        
         require(userStaked[_msgSender()], "E29");
         require(featureFlags.enableKojiSuperMintBuying, "E34");
-
-        (,bool supermintunlocked) = getAccrualTime(_msgSender());
-
-        require(supermintunlocked, "E32");
 
         IOracle oracle = IOracle(auth.getKojiOracle());
         
@@ -830,23 +793,8 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         superMint[_holder] = _status;
     }
 
-    // Get the remaining time until a user can unlock a supermint purchased with FLUX and whether it's unlocked
-    // Returns (timeLeft, isUnlocked)
-    function getAccrualTime(address _holder) public view returns (uint256,bool) {
-        UserInfo storage user = userInfo[0][_holder]; 
-
-        uint256 timeleft = user.supermintstaketimer + user.supermintaccrualperiod;
-
-        if (timeleft > block.timestamp) {
-            return (timeleft - block.timestamp,false);
-        } else {
-            return (0,true);
-        }
-    
-    }
 
     // External setters for all config structs (comprehensive setters)
-
     // Set the staking limits configuration (minimum tier amounts and upper limiter percentage)
     function setStakingLimitsConfig(
         uint256 _minTier1Stake,
@@ -895,17 +843,6 @@ contract KojiStaking is Ownable, ReentrancyGuard {
         penaltyConfig.defaultTax = _defaultTax;
         penaltyConfig.denominator = _denominator;
         penaltyConfig.period = _period;
-    }
-
-    // Set the accrual configuration (time frames for tier 1 and tier 2 superMint accrual)
-    function setAccrualConfig(
-        uint256 _frame1,
-        uint256 _frame2
-    ) external onlyAuthorized {
-        require(_frame1 > 0, "E38");
-        require(_frame2 > 0, "E39");
-        accrualConfig.frame1 = _frame1;
-        accrualConfig.frame2 = _frame2;
     }
 
     // Set the feature flags (enable/disable various contract features)
