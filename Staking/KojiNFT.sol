@@ -1,6 +1,6 @@
 //Contract based on https://docs.openzeppelin.com/contracts/3.x/erc721
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.33;
+pragma solidity ^0.8.30;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -240,6 +240,7 @@ contract KojiNFT is ERC721, Ownable, ReentrancyGuard {
                 // Supermint checks - no staking requirement
                 if(block.timestamp > nft.supermintend) {validated = false; revertstring = "E49";} 
                 if(nftSuperMinted[id][recipient]) {validated = false; revertstring = "E23";}
+                if(nftTierMinted[id][recipient][minttier]) {validated = false; revertstring = "E16";}
                 if(!nft.supermintable) {validated = false; revertstring = "E22";}
             }
 
@@ -273,13 +274,19 @@ contract KojiNFT is ERC721, Ownable, ReentrancyGuard {
 
         _recordMint(newItemId, id, minttier);
         
-        //record this NFT & tier as being minted by the recipient
-        if (!superMinted && !bnbMinted) {
+        // Record redemption mints
+        if (redeemed) {
             nftTierMinted[id][recipient][minttier] = true;
             nftMinted[id][recipient] = true;
         }
 
-        if(superMinted) {nftSuperMinted[id][recipient] = true;}
+        // Supermint mints both tiers in one tx; page flag set only after tier 2
+        if (superMinted) {
+            nftTierMinted[id][recipient][minttier] = true;
+            if (minttier == 2) {
+                nftSuperMinted[id][recipient] = true;
+            }
+        }
 
         if(bnbMinted) {
             if(minttier == 1) {nftBNBtier1Minted[id][recipient] = true;}
